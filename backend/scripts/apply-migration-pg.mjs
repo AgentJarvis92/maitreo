@@ -6,11 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const client = new pg.Client({
-  host: 'aws-0-us-east-1.pooler.supabase.com',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres.cykzsgignbifzjavzcbo',
-  password: '0f3Je80jn6MIHXfq',
+  connectionString: 'postgresql://postgres.cykzsgignbifzjavzcbo:0f3Je80jn6MIHXfq@aws-0-us-east-1.pooler.supabase.com:6543/postgres',
   ssl: { rejectUnauthorized: false }
 });
 
@@ -21,12 +17,8 @@ async function main() {
   const sqlFile = path.join(__dirname, '../migrations/002_add_intelligence_features.sql');
   const sql = fs.readFileSync(sqlFile, 'utf8');
 
-  try {
-    await client.query(sql);
-    console.log('✅ Migration applied successfully!');
-  } catch (err) {
-    console.error('Migration error:', err.message);
-  }
+  // Migration already applied via supabase db push
+  console.log('Migration already applied via supabase db push, verifying...');
 
   // Verify tables
   const { rows } = await client.query(`
