@@ -14,6 +14,10 @@ CREATE TABLE IF NOT EXISTS restaurants (
     competitors_json JSONB DEFAULT '[]',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    google_access_token TEXT,
+    google_refresh_token TEXT,
+    google_token_expires_at TIMESTAMP WITH TIME ZONE,
+    google_account_id VARCHAR(255),
     CONSTRAINT restaurants_owner_email_check CHECK (owner_email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$')
 );
 

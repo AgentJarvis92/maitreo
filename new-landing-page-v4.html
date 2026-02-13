@@ -646,11 +646,14 @@
                 slideshowStarted = true;
                 currentSlideIndex = 0;
                 showSlide(currentSlideIndex);
+                // Faster on mobile: 2.5s, desktop: 4s
+                const isMobile = window.innerWidth < 768;
+                const slideSpeed = isMobile ? 2500 : 4000;
                 slideshowInterval = setInterval(() => {
                     currentSlideIndex++;
                     if (currentSlideIndex >= slideshowSteps.length) currentSlideIndex = 0;
                     showSlide(currentSlideIndex);
-                }, 5000);
+                }, slideSpeed);
             }
             
             function stopSlideshow() {

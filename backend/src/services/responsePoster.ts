@@ -13,6 +13,7 @@
  */
 
 import { query } from '../db/client.js';
+import { postReply } from './googleBusinessProfile.js';
 import type { ReplyDraft, Review } from '../types/models.js';
 
 export interface PostResult {
@@ -79,47 +80,22 @@ export class ResponsePoster {
   }
 
   /**
-   * Post response to Google via Business Profile API.
-   * Requires GOOGLE_BUSINESS_ACCOUNT_ID and OAuth token.
+   * Post response to Google via Business Profile API (OAuth-authenticated).
    */
   private async postToGoogle(review: Review, text: string): Promise<PostResult> {
-    const accountId = process.env.GOOGLE_BUSINESS_ACCOUNT_ID;
-    const accessToken = process.env.GOOGLE_BUSINESS_ACCESS_TOKEN;
-
-    if (!accountId || !accessToken) {
-      console.warn('⚠️  Google Business Profile API not configured');
-      return {
-        success: false,
-        platform: 'google',
-        error: 'Google Business Profile API credentials not configured. Set GOOGLE_BUSINESS_ACCOUNT_ID and GOOGLE_BUSINESS_ACCESS_TOKEN.',
-      };
+    const reviewName = review.metadata?.googleReviewName;
+    if (!reviewName) {
+      return { success: false, platform: 'google', error: 'Missing Google review resource name in metadata' };
     }
 
     try {
-      // Google My Business API v4 — reply to a review
-      const reviewName = review.metadata?.googleReviewName;
-      if (!reviewName) {
-        return { success: false, platform: 'google', error: 'Missing Google review resource name in metadata' };
+      const result = await postReply(review.restaurant_id, reviewName, text);
+      if (result.success) {
+        console.log('✅ Posted to Google successfully');
+        return { success: true, platform: 'google', externalResponseId: reviewName };
+      } else {
+        return { success: false, platform: 'google', error: result.error };
       }
-
-      const url = `https://mybusiness.googleapis.com/v4/${reviewName}/reply`;
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ comment: text }),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Google API ${response.status}: ${errText}`);
-      }
-
-      const data = await response.json() as any;
-      console.log('✅ Posted to Google successfully');
-      return { success: true, platform: 'google', externalResponseId: data.name };
     } catch (error) {
       console.error('❌ Google post error:', error);
       return { success: false, platform: 'google', error: (error as Error).message };
