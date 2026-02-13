@@ -3,13 +3,12 @@
  * 
  * Orchestrates: Fetch → Classify → Generate Reply → Route (auto-post or SMS approval)
  * 
- * Currently uses mock reply generator. 
- * TODO: Swap generatePlaceholderReply with OpenAI replyGenerator once API is active.
+ * Uses real OpenAI GPT-4o for reply generation with fallback to mock generator on API errors.
  */
 
 import { supabase } from './database.js';
 import { classifySentiment, type SentimentResult } from './sentimentClassifier.js';
-import { generatePlaceholderReply } from './mockReplyGenerator.js';
+import { generateReply } from './replyGeneratorOpenAI.js';
 import { twilioClient } from '../sms/twilioClient.js';
 import type { Review, Restaurant, GenerateReplyOutput } from '../types/models.js';
 
@@ -61,8 +60,8 @@ export async function processReview(review: Review, restaurant: Restaurant): Pro
     const sentiment = sentimentResult.sentiment;
     console.log(`  🏷️  Review ${review.id}: ${review.rating}★ → ${sentiment} (score: ${sentimentResult.score})`);
 
-    // 2. Generate reply (PLACEHOLDER - TODO: integrate OpenAI)
-    const replyOutput: GenerateReplyOutput = generatePlaceholderReply(review, sentiment as any, restaurant);
+    // 2. Generate reply (using OpenAI GPT-4o with fallback to mock)
+    const replyOutput: GenerateReplyOutput = await generateReply(review, restaurant);
 
     // 3. Store draft in database
     const { data: draft, error: draftError } = await supabase
@@ -73,7 +72,7 @@ export async function processReview(review: Review, restaurant: Restaurant): Pro
         escalation_flag: replyOutput.escalation_flag,
         escalation_reasons: replyOutput.escalation_reasons,
         ai_confidence: replyOutput.confidence_score,
-        ai_model_version: 'placeholder-v1', // TODO: Change to 'gpt-4o' when OpenAI is active
+        ai_model_version: 'gpt-4o',
         status: sentiment === 'positive' ? 'approved' : 'pending',
       })
       .select()

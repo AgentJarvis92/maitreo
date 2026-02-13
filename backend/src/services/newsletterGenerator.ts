@@ -132,6 +132,8 @@ Be specific, data-driven, and actionable.`,
     content: NewsletterContent
   ): string {
     const weekFormatted = format(weekStartDate, 'MMMM d, yyyy');
+    const baseUrl = process.env.BASE_URL || 'https://maitreo.com';
+    const digestUrl = `${baseUrl}/digest/${restaurant.id}`;
     
     return `
 <!DOCTYPE html>
@@ -249,13 +251,21 @@ Be specific, data-driven, and actionable.`,
   </div>
   ` : ''}
 
+  <!-- Digest Link -->
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="${digestUrl}" 
+       style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-weight: 500;">
+      View Full Dashboard
+    </a>
+  </div>
+
   <!-- Footer -->
   <div style="text-align: center; padding: 20px; color: #64748b; font-size: 12px;">
     <p style="margin: 0 0 8px;">
-      This report is generated automatically every Monday based on competitor review data.
+      This report is generated automatically every Sunday at 6 PM based on competitor review data.
     </p>
     <p style="margin: 0;">
-      Restaurant SaaS • ${new Date().getFullYear()}
+      <a href="https://maitreo.com" style="color: #64748b; text-decoration: none;">Maitreo</a> • ${new Date().getFullYear()}
     </p>
   </div>
 

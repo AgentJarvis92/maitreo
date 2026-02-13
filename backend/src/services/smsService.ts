@@ -56,7 +56,7 @@ export async function sendApprovalRequest(
     ``,
     `Reply:`,
     `YES → Post this reply`,
-    `EDIT → We'll send you a link to edit`,
+    `EDIT → Visit maitreo.com/edit to customize`,
     `SKIP → Handle manually`,
   ].join('\n');
 
