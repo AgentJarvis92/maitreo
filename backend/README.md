@@ -97,3 +97,62 @@ npx tsx test-full-pipeline.ts
 npx tsx src/test-pipeline.ts
 npx tsx src/test-twilio.ts
 ```
+
+## ✅ Current Status (2026-02-11)
+
+**Pipeline is LIVE and working:**
+- ✅ Google Places API (New) - Fetching real reviews from Joe's Pizza
+- ✅ Mock Reply Generator - Template-based replies (40+ variations)
+- ✅ SMS Approval - Twilio integration tested and working
+- ✅ Review Classification - 4-5★ = auto-post, 1-3★ = SMS approval
+- ✅ Database - Supabase storing reviews + reply drafts
+- ✅ **Cron Job - Auto-checks every 15 minutes via OpenClaw**
+
+### 🧪 Quick Tests
+
+```bash
+# Test with real Google reviews (no API needed)
+npx tsx run-live-test.ts
+
+# Test negative review SMS flow
+npx tsx test-negative-review.ts
+
+# Run cron job manually
+npx tsx cron-review-checker.ts
+```
+
+### ⏰ Automated Review Checking
+
+**Active cron job:** Checks for new reviews **every 15 minutes**
+- Fetches from Google Places API
+- Processes through full pipeline
+- Auto-posts positive reviews (currently mocked)
+- Sends SMS approval for negative reviews
+- Reports summary via iMessage
+
+See `CRON_SETUP.md` for cron management commands.
+
+### 🚧 Still Using Mocks
+
+- **Mock replies** instead of OpenAI (waiting for $10 credit to activate)
+- **Mock posting** instead of Google Business Profile API (can add later)
+- **SMS approval flow works** - tested and functional ✅
+
+### 📱 What You'll Receive
+
+When a **negative review** (1-3★) comes in:
+1. SMS notification with review text
+2. AI-generated draft reply
+3. Options: Reply YES to approve, NO to skip, or type custom text
+
+When the **cron runs** (every 15 min):
+- iMessage notification if new reviews found
+- Summary: X restaurants checked, Y new reviews, Z SMS sent
+
+### 🚀 Next Steps
+
+1. **Activate OpenAI** - Replace mock generator with GPT-4o ($10 credit pending)
+2. **Add webhook handler** - Process SMS replies (YES/NO/custom text)
+3. **Real posting to Google** - Connect Business Profile API (optional)
+4. **Find pilot customer** - Test with real restaurant
+

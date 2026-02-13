@@ -1,7 +1,7 @@
 # Maitreo - Complete Product Vision
 
-**Last Updated:** 2026-02-12 11:06 AM EST  
-**Status:** Finalized
+**Last Updated:** 2026-02-12 11:58 AM EST  
+**Status:** Finalized (with FAQ added)
 
 ---
 
@@ -219,6 +219,28 @@ Check your email → maitreo.com/digest/abc123
 
 ---
 
+## Common Questions (FAQ)
+
+**Q: Will replies sound robotic?**  
+A: No. We learn your voice during onboarding. Every reply is customized to your brand. You approve negative responses before they post.
+
+**Q: What if I'm closed on Sundays?**  
+A: The digest arrives Sunday 9am, perfect for planning your week. If you'd prefer a different day, just let us know.
+
+**Q: How long does setup take?**  
+A: 2 minutes. Enter your restaurant name and address. We find your listings and send simple connection links. You're live within 24 hours.
+
+**Q: Can I cancel anytime?**  
+A: Yes. Month-to-month, no long-term contracts.
+
+**Q: What platforms do you monitor?**  
+A: Google Reviews, Yelp, and TripAdvisor - all in one system.
+
+**Q: Do you post reviews without my approval?**  
+A: We auto-post positive reviews (4-5 stars). Negative reviews always require your approval via SMS before posting.
+
+---
+
 ## Positioning
 
 **"Your Digital Maître d' for Guest Experience & Reputation"**
@@ -227,3 +249,19 @@ Check your email → maitreo.com/digest/abc123
 - Medium to high-end restaurants
 - Compete on experience, not price
 - Multi-platform, simple onboarding, Sunday morning coffee newsletter
+
+## Cancellation Flow (Build Note)
+- **SMS CANCEL:** Twilio receives inbound "CANCEL" text → backend matches phone number to customer → calls Stripe Cancel Subscription API → confirms via SMS
+- **Digest link:** Stripe Customer Portal (hosted page, no custom UI needed) → unique link per customer in weekly email footer → customer manages/cancels directly through Stripe
+
+## Voice Setup (Onboarding Step 5)
+
+After the 4-field signup, prompt the restaurant owner with 2-3 questions to build their voice profile:
+
+1. "Paste a reply you've written before that sounds like you" (or skip)
+2. "How would you describe your restaurant's personality in a few words?"
+3. "When a guest has a bad experience, what matters most to you?" (making it right / explaining what happened / inviting them back)
+
+AI uses their answers to generate a voice profile that shapes every auto-generated reply. Also offer tone presets as a fast path fallback: "Professional & Warm", "Casual & Friendly", "Formal & Elevated", "Personal & Heartfelt".
+
+Build note: Store voice profile in Supabase per restaurant. Pass as system prompt context to GPT-4o-mini when generating replies.
