@@ -11,7 +11,7 @@
 
 import { supabase } from './database.js';
 import type { Review, Restaurant } from '../types/models.js';
-import { sendSms } from './smsService.js';
+import { twilioClient } from '../sms/twilioClient.js';
 
 export interface CrisisEvent {
   type: 'multiple_negative' | 'critical_keyword' | 'rating_drop';
@@ -57,7 +57,7 @@ export class CrisisDetector {
 
     // Check 1: Multiple negative reviews in 24 hours
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const negativeReviews24h = recentReviews.filter(r => 
+    const negativeReviews24h = recentReviews.filter((r: any) => 
       r.rating <= 2 && new Date(r.review_date) >= oneDayAgo
     );
 
@@ -73,7 +73,7 @@ export class CrisisDetector {
 
     // Check 2: Multiple negative reviews in 72 hours
     const threeDaysAgo = new Date(Date.now() - 72 * 60 * 60 * 1000);
-    const negativeReviews72h = recentReviews.filter(r => 
+    const negativeReviews72h = recentReviews.filter((r: any) => 
       r.rating <= 2 && new Date(r.review_date) >= threeDaysAgo
     );
 
@@ -118,8 +118,8 @@ export class CrisisDetector {
       .lt('review_date', sevenDaysAgo.toISOString());
 
     if (olderReviews && olderReviews.length >= 5) {
-      const recentAvg = recentReviews.reduce((sum, r) => sum + r.rating, 0) / recentReviews.length;
-      const olderAvg = olderReviews.reduce((sum, r) => sum + r.rating, 0) / olderReviews.length;
+      const recentAvg = recentReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / recentReviews.length;
+      const olderAvg = olderReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / olderReviews.length;
       const drop = olderAvg - recentAvg;
 
       if (drop >= 1.5) {
@@ -166,7 +166,7 @@ export class CrisisDetector {
     message += `🔗 Check your dashboard: https://maitreo.com/dashboard`;
 
     try {
-      await sendSms(restaurant.owner_phone, message);
+      await twilioClient.sendSms(restaurant.owner_phone, message);
       console.log(`📱 Crisis alert sent to ${restaurant.owner_phone}`);
 
       // Log the alert
