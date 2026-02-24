@@ -6,8 +6,20 @@
  */
 
 import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import pool from './db/client.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const MIME_TYPES: Record<string, string> = {
+  '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+  '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
+};
 import { ingestionJob } from './jobs/ingestion.js';
 import { newsletterJob } from './jobs/newsletter.js';
 import { reviewMonitor } from './jobs/reviewMonitor.js';
@@ -492,7 +504,30 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 404
+  // Static files from public/ directory
+  const safePath = path.normalize(url.pathname).replace(/^(\.\.[\/\\])+/, '');
+  const filePath = path.join(PUBLIC_DIR, safePath === '/' ? 'index.html' : safePath);
+  if (filePath.startsWith(PUBLIC_DIR)) {
+    try {
+      const content = fs.readFileSync(filePath);
+      const ext = path.extname(filePath);
+      res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+      res.end(content);
+      return;
+    } catch {}
+  }
+
+  // Fallback: serve landing page for unmatched GET routes
+  if (req.method === 'GET') {
+    try {
+      const landing = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'));
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(landing);
+      return;
+    } catch {}
+  }
+
+  // 404 for API routes
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ error: 'Not found' }));
 });

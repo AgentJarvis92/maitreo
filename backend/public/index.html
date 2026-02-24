@@ -1,0 +1,793 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">Maitreo - AI Review Management for Restaurants</title>
+    <script src="https://cdn.tailwindcss.com" vid="5"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" vid="6">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" vid="7">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet" vid="8">
+    
+    <script vid="9">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            lime: '#FFF3E0',   
+                            lemon: '#FFCC80',  
+                            mint: '#FAFAFA',   
+                            orange: '#EF6C00', 
+                            white: '#FFFFFF',
+                            text: '#111827',   
+                            secondary: '#6B7280'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['"Outfit"', 'sans-serif'], 
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -5px rgba(239, 108, 0, 0.15)',
+                        'float': '0 20px 40px -10px rgba(0, 0, 0, 0.08)',
+                        'glow': '0 0 40px -10px rgba(239, 108, 0, 0.3)',
+                    },
+                    backgroundImage: {
+                        'citrus-gradient': 'linear-gradient(135deg, #FFF3E0 0%, #FFFFFF 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style vid="10">
+        body {
+            background-color: #FFFFFF;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            color: #111827;
+        }
+
+        
+        h1, h2, h3, h4 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        
+        .text-body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        
+        .btn-primary {
+            background-color: #EF6C00;
+            color: #FFFFFF;
+            border-radius: 12px; 
+            padding: 14px 36px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px -5px rgba(239, 108, 0, 0.4);
+            border: 2px solid transparent;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background-color: #E65100;
+            box-shadow: 0 15px 30px -5px rgba(239, 108, 0, 0.5);
+        }
+
+        
+        .glass-card {
+            background: #FFFFFF;
+            border: 1px solid #F3F4F6;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: #EF6C00;
+            transform: translateY(-5px);
+        }
+
+        
+        .pill-tag {
+            border-radius: 8px;
+            padding: 10px 24px;
+            background: #FAFAFA;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #E5E7EB;
+            color: #374151;
+            transition: all 0.2s;
+        }
+        .pill-tag:hover {
+            border-color: #EF6C00;
+            color: #EF6C00;
+            background: #FFF3E0;
+        }
+
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 6s ease-in-out 3s infinite; }
+
+        .orange-highlight {
+            color: #EF6C00;
+            position: relative;
+            display: inline-block;
+        }
+        
+        
+        .bg-citrus-glow {
+            background: radial-gradient(circle at 60% 40%, rgba(239,108,0,0.15) 0%, rgba(255,204,128,0.08) 35%, rgba(255,255,255,0) 70%);
+        }
+
+    </style>
+</head>
+<body class="text-brand-text" vid="11">
+
+    
+    <nav class="fixed w-full z-50 top-0 transition-all duration-300 bg-white/95 backdrop-blur-md border-b border-gray-100" vid="12">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between" vid="13">
+            <div class="flex items-center gap-2" vid="14">
+                
+                <div class="w-10 h-10 rounded-lg bg-brand-orange flex items-center justify-center text-white font-display font-black text-xl tracking-tighter shadow-lg" vid="15">M</div>
+                <span class="font-display text-2xl font-bold tracking-tight text-gray-900" vid="16">Maitreo</span>
+            </div>
+            <a href="https://buy.stripe.com/test_3cI3cv3YV0u64WScCr87K02" class="btn-primary py-3 px-6 text-xs shadow-none hover:shadow-lg" vid="17">
+                Start Free Trial
+            </a>
+        </div>
+    </nav>
+
+    
+    <section class="relative pt-32 pb-20 overflow-hidden bg-white" vid="18">
+        
+        
+        <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-citrus-glow opacity-60 -translate-y-1/3 translate-x-1/3 z-0 pointer-events-none" vid="19"></div>
+        <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-lime opacity-40 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 z-0 pointer-events-none" vid="20"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center" vid="21">
+            
+            
+            <div class="space-y-8" vid="22">
+                
+                <div class="inline-block bg-gradient-to-r from-orange-50 to-yellow-50 border-l-4 border-brand-orange pl-4 py-2 rounded-r-lg" vid="23">
+                    <span class="text-brand-orange font-bold tracking-widest uppercase text-xs font-display" vid="24">✨ AI-Powered Reviews</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl leading-[0.85] text-gray-900 tracking-tighter font-black" vid="25">
+                    Your Digital <br vid="26">
+                    <span class="orange-highlight text-transparent bg-clip-text bg-gradient-to-r from-brand-orange via-yellow-400 to-orange-300" vid="27">Maître d'</span>
+                </h1>
+                <h2 class="text-3xl md:text-4xl leading-tight text-gray-800 font-bold tracking-tight">for Guest Experience & Reputation</h2>
+                
+                <p class="text-xl text-gray-700 text-body max-w-2xl font-light border-l-4 border-brand-orange pl-6" vid="28">
+                    AI-driven review responses that protect your brand and elevate your online presence. <span class="font-semibold text-gray-900">SMS-Delivered. Human-Toned. Always in your voice.</span>
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 pt-4" vid="29">
+                    <a href="https://buy.stripe.com/test_3cI3cv3YV0u64WScCr87K02" class="btn-primary text-lg" vid="30">
+                        Start for $99/mo
+                    </a>
+                    <div class="flex items-center gap-3 px-6 text-gray-500" vid="31">
+                        
+                        <div class="w-5 h-5 rounded-full border border-brand-orange flex items-center justify-center text-brand-orange text-xs font-bold" vid="32">✓</div>
+                        <span class="text-sm font-semibold tracking-wide" vid="33">7-DAY FREE TRIAL</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="relative flex justify-center lg:justify-end" vid="34">
+                
+                
+                <div class="relative w-[320px] sm:w-[400px] md:w-[500px] h-[320px] sm:h-[400px] md:h-[500px] rounded-full bg-gradient-to-br from-brand-lime to-white flex items-center justify-center border border-brand-lemon/30 z-10 shadow-glow" vid="35">
+                    
+                    
+                    <div class="absolute inset-8 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white" vid="36">
+                         
+                        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1000&amp;q=80" class="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-700" alt="Restaurant Interior" vid="37">
+                        <div class="absolute inset-0 bg-orange-900/10" vid="38"></div>
+                    </div>
+                    
+                    
+                    <div class="relative w-[180px] sm:w-[220px] md:w-[240px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-gray-900 overflow-hidden transform rotate-[-3deg] hover:rotate-0 transition-transform duration-500 ml-4 sm:ml-8 md:ml-10" vid="39">
+                        
+                        <div class="bg-gray-50 h-[360px] sm:h-[440px] md:h-[480px] p-3 sm:p-4 md:p-5 flex flex-col pt-8 sm:pt-10 md:pt-12 font-sans" vid="40">
+                            
+                            <div class="bg-white p-2 sm:p-3 md:p-4 rounded-xl rounded-tl-sm shadow-sm mb-2 sm:mb-3 md:mb-4 text-[10px] sm:text-[11px] md:text-xs border border-gray-100" vid="41">
+                                <strong class="block mb-1 text-gray-900 font-bold" vid="42">New Review (3/5):</strong> 
+                                <span class="text-gray-500" vid="43">"Food was great but service was slow..."</span>
+                            </div>
+                            
+                            
+                            <div class="bg-brand-orange p-2 sm:p-3 md:p-4 rounded-xl rounded-tr-sm shadow-md self-end max-w-[95%] text-[10px] sm:text-[11px] md:text-xs mb-2 text-white" vid="44">
+                                <strong class="block mb-1 text-white/90" vid="45">AI Draft:</strong> 
+                                "Thanks for visiting! We're glad you enjoyed the food. We're addressing the wait times immediately. Hope to see you again soon!"
+                            </div>
+                            
+                            
+                            <div class="mt-auto mb-3 sm:mb-4 md:mb-6 bg-gray-900 text-white text-center py-2 sm:py-2.5 md:py-3 rounded-lg text-[10px] sm:text-[11px] md:text-xs font-bold uppercase tracking-wider mx-1 sm:mx-1.5 md:mx-2" vid="46">
+                                Reply "YES" to Post
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="absolute top-4 sm:top-8 md:top-10 left-2 sm:left-6 md:left-10 bg-white p-2 sm:p-3 md:p-4 rounded-xl shadow-xl animate-float z-20 border border-gray-100" vid="47">
+                    <div class="flex text-brand-orange text-sm sm:text-lg md:text-xl tracking-widest" vid="48">★★★★★</div>
+                </div>
+                
+                <div class="absolute bottom-12 sm:bottom-16 md:bottom-20 right-0 bg-gray-900 text-white px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg shadow-xl animate-float-delayed z-20 font-display font-bold text-[10px] sm:text-xs md:text-sm tracking-wide" vid="49">
+                    APPROVED VIA SMS
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="py-24 bg-white relative" vid="50">
+        <div class="max-w-7xl mx-auto px-6" vid="51">
+            <div class="text-center mb-20 space-y-4" vid="52">
+                <span class="text-brand-orange font-bold tracking-widest uppercase text-sm font-display" vid="53">Product Features</span>
+                <h2 class="text-4xl md:text-6xl text-gray-900 font-display font-black" vid="54">Your AI Maître D'</h2>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto text-body" vid="55">Simple, silent, and smart. We handle the noise so you can handle the kitchen.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8" vid="56">
+                
+                
+                <div class="glass-card p-10 group" vid="57">
+                    <div class="w-16 h-16 bg-brand-orange rounded-xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300" vid="58">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" vid="59"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" vid="60"></path></svg>
+                    </div>
+                    <h3 class="text-2xl mb-4 text-gray-900" vid="61">Positive Reviews</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed mb-6 font-light" vid="62">
+                        5-star reviews are handled silently. Our AI writes personalized "Thank You" notes and posts them instantly to Google &amp; Yelp.
+                    </p>
+                    <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 border border-gray-200 font-mono" vid="63">
+                        100% automated. You never see them.
+                    </div>
+                </div>
+
+
+                <div class="glass-card p-10 relative overflow-hidden group" vid="64">
+                    <div class="w-16 h-16 bg-brand-orange rounded-xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300" vid="65">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" vid="66"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" vid="67"></path></svg>
+                    </div>
+                    <h3 class="text-2xl mb-4 text-gray-900" vid="68">Negative Reviews</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed mb-6 font-light" vid="69">
+                        Criticism requires a human touch. We draft a diplomatic response and text it to you. You approve or edit via SMS.
+                    </p>
+                    <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 border border-gray-200 font-mono" vid="70">
+                        <span class="font-bold text-brand-orange" vid="71">SMS:</span> Reply "EDIT" to write a custom response.
+                    </div>
+                </div>
+
+
+                <div class="glass-card p-10 group" vid="72">
+                    <div class="w-16 h-16 bg-brand-orange rounded-xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300" vid="73">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" vid="74"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" vid="75"></path></svg>
+                    </div>
+                    <h3 class="text-2xl mb-4 text-gray-900" vid="76">Weekly Intel</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed mb-6 font-light" vid="77">
+                        Every Sunday, receive a digest. Staff shoutouts, recurring complaints, and competitor movement in your area.
+                    </p>
+                    <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 border border-gray-200 font-mono" vid="78">
+                        Delivered where you already are: your phone and inbox. No logins required.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="py-24 bg-brand-mint overflow-hidden relative" vid="79">
+        
+        <div class="absolute top-0 left-1/2 w-px h-full bg-gray-200 -translate-x-1/2 hidden lg:block" vid="80"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10" vid="81">
+            <div class="grid lg:grid-cols-2 gap-20 items-center" vid="82">
+                
+                <div class="relative" vid="83">
+                    
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md ml-auto mr-10 relative z-10 border border-gray-100 overflow-hidden transform -rotate-2 hover:rotate-0 transition-all duration-500" vid="84">
+                        <div class="bg-brand-orange p-4 flex items-center justify-between" vid="85">
+                            <div class="font-bold text-white text-sm font-display tracking-wide uppercase" vid="86">Weekly Digest</div>
+                            <div class="text-xs text-white/80 font-mono" vid="87">SUN, 9:00 AM</div>
+                        </div>
+                        <div class="p-6 space-y-4" vid="88">
+                            <div vid="89">
+                                <h4 class="font-bold text-gray-900 mb-3 uppercase text-xs tracking-wider border-b border-gray-100 pb-2" vid="90">Wins This Week</h4>
+                                <div class="bg-brand-lime p-4 rounded-lg text-gray-800 border-l-4 border-brand-orange space-y-2" vid="91">
+                                    <p class="text-sm font-bold" vid="92">"Sarah was amazing!" mentioned in 4 reviews</p>
+                                    <p class="text-xs text-gray-600" vid="93">Top server by customer praise for 2nd week running</p>
+                                </div>
+                            </div>
+                            <div vid="94">
+                                <h4 class="font-bold text-gray-900 mb-3 uppercase text-xs tracking-wider border-b border-gray-100 pb-2" vid="95">Competitor Intel</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-2" vid="96">
+                                    <div class="flex items-center justify-between" vid="97">
+                                        <span class="text-gray-900 font-bold text-sm" vid="98">Miami Chop House</span>
+                                        <span class="text-brand-orange font-bold text-xs bg-brand-orange/10 px-2 py-1 rounded" vid="99">+200% Review Vol</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600" vid="100">Launched new pasta menu, avg rating dropped 4.5→4.2</p>
+                                </div>
+                            </div>
+                            <div vid="101">
+                                <h4 class="font-bold text-gray-900 mb-3 uppercase text-xs tracking-wider border-b border-gray-100 pb-2" vid="102">Pattern Detection</h4>
+                                <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500 space-y-2" vid="103">
+                                    <p class="text-sm font-bold text-red-900" vid="104">⚠️ 3 customers mentioned "slow service"</p>
+                                    <p class="text-xs text-red-700" vid="105">Action needed: Check staffing levels on weekends</p>
+                                </div>
+                            </div>
+                            <div vid="106">
+                                <h4 class="font-bold text-gray-900 mb-3 uppercase text-xs tracking-wider border-b border-gray-100 pb-2" vid="107">Response Performance</h4>
+                                <div class="bg-green-50 p-4 rounded-lg border border-green-200" vid="108">
+                                    <div class="flex items-center justify-between mb-2" vid="109">
+                                        <span class="text-sm font-bold text-green-900" vid="110">12 reviews handled</span>
+                                        <span class="text-xs text-green-700 bg-green-100 px-2 py-1 rounded" vid="111">100% response rate</span>
+                                    </div>
+                                    <p class="text-xs text-green-700" vid="112">Avg response time: 4 minutes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="absolute -bottom-10 -left-4 bg-white p-4 rounded-lg shadow-2xl max-w-xs z-20 border-l-4 border-green-500 animate-float-delayed" vid="113">
+                        <div class="flex items-center gap-3 mb-2" vid="114">
+                            <div class="w-6 h-6 rounded bg-green-500 flex items-center justify-center text-white text-[10px]" vid="115">💬</div>
+                            <div class="text-[10px] font-bold text-gray-400 tracking-widest uppercase" vid="116">Messages • Now</div>
+                        </div>
+                        <p class="text-sm font-medium text-gray-800 leading-tight" vid="117">Your Weekly Digest is ready. Click to view: <span class="text-brand-orange underline decoration-2 underline-offset-2" vid="118">maitreo.com/digest/823</span></p>
+                    </div>
+                </div>
+
+                
+                <div class="space-y-8 bg-white p-8 lg:p-12 rounded-3xl shadow-soft" vid="119">
+                    <h2 class="text-5xl text-gray-900 leading-[0.9] font-black tracking-tight" vid="120">
+                        Sunday Morning <br vid="121">
+                        <span class="text-brand-orange" vid="122">Intelligence.</span>
+                    </h2>
+                    <p class="text-lg text-gray-500 text-body font-light" vid="123">
+                        No logins. No complex dashboards. We send the data where you already are: your inbox and your text messages.
+                    </p>
+                    <ul class="space-y-4 pt-4" vid="124">
+                        <li class="flex items-start gap-4 group" vid="125">
+                            <span class="w-8 h-8 rounded-lg bg-brand-orange flex items-center justify-center text-white text-xs font-bold group-hover:scale-110 transition-transform shrink-0" vid="126">✓</span>
+                            <div vid="127">
+                                <span class="font-sans font-bold text-gray-900 block" vid="128">Competitor Intelligence</span>
+                                <span class="text-sm text-gray-600" vid="129">Sally's Italian spiked +200% in reviews, launched new pasta menu, avg rating dropped from 4.5 to 4.2</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4 group" vid="130">
+                            <span class="w-8 h-8 rounded-lg bg-brand-orange flex items-center justify-center text-white text-xs font-bold group-hover:scale-110 transition-transform shrink-0" vid="131">✓</span>
+                            <div vid="132">
+                                <span class="font-sans font-bold text-gray-900 block" vid="133">Staff MVPs &amp; Shoutouts</span>
+                                <span class="text-sm text-gray-600" vid="134">Maria mentioned 8x this week ("Maria was incredible!"), Top server by customer praise for 3rd week running</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4 group" vid="135">
+                            <span class="w-8 h-8 rounded-lg bg-brand-orange flex items-center justify-center text-white text-xs font-bold group-hover:scale-110 transition-transform shrink-0" vid="136">✓</span>
+                            <div vid="137">
+                                <span class="font-sans font-bold text-gray-900 block" vid="138">Pattern Detection &amp; Alerts</span>
+                                <span class="text-sm text-gray-600" vid="139">3 customers mentioned "slow service" this week, Your pasta carbonara got 4 photo uploads (trending dish!)</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4 group" vid="140">
+                            <span class="w-8 h-8 rounded-lg bg-brand-orange flex items-center justify-center text-white text-xs font-bold group-hover:scale-110 transition-transform shrink-0" vid="141">✓</span>
+                            <div vid="142">
+                                <span class="font-sans font-bold text-gray-900 block" vid="143">Google Ranking Radar</span>
+                                <span class="text-sm text-gray-600" vid="144">You're #3 for "Italian restaurant [city]" (up from #5 last month), 5-mile radius competitor movement tracked</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4 group" vid="145">
+                            <span class="w-8 h-8 rounded-lg bg-brand-orange flex items-center justify-center text-white text-xs font-bold group-hover:scale-110 transition-transform shrink-0" vid="146">✓</span>
+                            <div vid="147">
+                                <span class="font-sans font-bold text-gray-900 block" vid="148">Response Performance</span>
+                                <span class="text-sm text-gray-600" vid="149">12 reviews handled this week, 100% response rate maintained, Avg response time: 4 minutes</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="py-24 bg-white" vid="150">
+        <div class="max-w-7xl mx-auto px-6 text-center" vid="151">
+            <h2 class="text-4xl mb-16 font-display font-black tracking-tight" vid="152">Stop Managing Dashboards</h2>
+            
+            <div class="flex flex-col md:flex-row items-center justify-center gap-12" vid="153">
+                
+                
+                <div class="w-full md:w-1/2 opacity-40 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500" vid="154">
+                    <div class="bg-gray-50 rounded-lg border border-gray-200 p-3 shadow-inner" vid="155">
+                        <!-- Header bar -->
+                        <div class="bg-gray-800 h-8 rounded-t flex items-center px-3 gap-1 mb-2" vid="156">
+                            <div class="w-2 h-2 rounded-full bg-red-400" vid="157"></div>
+                            <div class="w-2 h-2 rounded-full bg-yellow-400" vid="158"></div>
+                            <div class="w-2 h-2 rounded-full bg-green-400" vid="159"></div>
+                            <div class="h-3 w-24 bg-gray-700 rounded ml-2" vid="160"></div>
+                        </div>
+                        
+                        <!-- Top nav -->
+                        <div class="flex gap-2 mb-3 px-2" vid="161">
+                            <div class="h-5 w-16 bg-blue-200 rounded text-[8px] flex items-center justify-center font-bold text-blue-700" vid="162">Reviews</div>
+                            <div class="h-5 w-16 bg-gray-200 rounded text-[8px] flex items-center justify-center text-gray-600" vid="163">Analytics</div>
+                            <div class="h-5 w-16 bg-gray-200 rounded text-[8px] flex items-center justify-center text-gray-600" vid="164">Settings</div>
+                        </div>
+                        
+                        <div class="flex gap-2" vid="165">
+                            <!-- Sidebar -->
+                            <div class="w-1/4 bg-gray-100 rounded p-2 space-y-1" vid="166">
+                                <div class="h-4 bg-orange-200 rounded text-[7px] flex items-center px-1 font-bold text-orange-700" vid="167">Dashboard</div>
+                                <div class="h-4 bg-gray-200 rounded" vid="168"></div>
+                                <div class="h-4 bg-gray-200 rounded" vid="169"></div>
+                                <div class="h-4 bg-gray-200 rounded" vid="170"></div>
+                                <div class="h-px bg-gray-300 my-1" vid="171"></div>
+                                <div class="h-3 bg-gray-200 rounded" vid="172"></div>
+                                <div class="h-3 bg-gray-200 rounded" vid="173"></div>
+                            </div>
+                            
+                            <!-- Main content area -->
+                            <div class="w-3/4 space-y-2" vid="174">
+                                <!-- Stats cards -->
+                                <div class="grid grid-cols-3 gap-2" vid="175">
+                                    <div class="bg-white rounded border border-gray-200 p-2" vid="176">
+                                        <div class="text-[8px] text-gray-500 mb-1" vid="177">Avg Rating</div>
+                                        <div class="h-4 w-8 bg-green-100 rounded text-[10px] font-bold text-green-700 flex items-center justify-center" vid="178">4.2</div>
+                                    </div>
+                                    <div class="bg-white rounded border border-gray-200 p-2" vid="179">
+                                        <div class="text-[8px] text-gray-500 mb-1" vid="180">Reviews</div>
+                                        <div class="h-4 w-8 bg-blue-100 rounded text-[10px] font-bold text-blue-700 flex items-center justify-center" vid="181">847</div>
+                                    </div>
+                                    <div class="bg-white rounded border border-gray-200 p-2" vid="182">
+                                        <div class="text-[8px] text-gray-500 mb-1" vid="183">Response</div>
+                                        <div class="h-4 w-8 bg-red-100 rounded text-[10px] font-bold text-red-700 flex items-center justify-center" vid="184">67%</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Chart area -->
+                                <div class="bg-white rounded border border-gray-200 p-3 h-24" vid="185">
+                                    <div class="text-[7px] text-gray-400 mb-2 font-bold" vid="186">REVIEW VOLUME (LAST 30 DAYS)</div>
+                                    <div class="flex items-end justify-between h-12 gap-1" vid="187">
+                                        <div class="w-full bg-blue-200 h-8 rounded-t" vid="188"></div>
+                                        <div class="w-full bg-blue-300 h-12 rounded-t" vid="189"></div>
+                                        <div class="w-full bg-blue-200 h-6 rounded-t" vid="190"></div>
+                                        <div class="w-full bg-blue-400 h-10 rounded-t" vid="191"></div>
+                                        <div class="w-full bg-blue-200 h-7 rounded-t" vid="192"></div>
+                                        <div class="w-full bg-blue-300 h-9 rounded-t" vid="193"></div>
+                                        <div class="w-full bg-blue-200 h-5 rounded-t" vid="194"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Table -->
+                                <div class="bg-white rounded border border-gray-200" vid="195">
+                                    <div class="bg-gray-100 border-b border-gray-200 px-2 py-1 grid grid-cols-4 gap-1 text-[7px] font-bold text-gray-600" vid="196">
+                                        <div vid="197">CUSTOMER</div>
+                                        <div vid="198">RATING</div>
+                                        <div vid="199">PLATFORM</div>
+                                        <div vid="200">STATUS</div>
+                                    </div>
+                                    <div class="p-2 space-y-1" vid="201">
+                                        <div class="grid grid-cols-4 gap-1 text-[7px] items-center" vid="202">
+                                            <div class="h-3 w-12 bg-gray-200 rounded" vid="203"></div>
+                                            <div class="text-yellow-600" vid="204">★★★★★</div>
+                                            <div class="h-3 w-10 bg-red-100 rounded text-[6px] flex items-center justify-center text-red-600 font-bold" vid="205">Yelp</div>
+                                            <div class="h-3 w-12 bg-green-100 rounded text-[6px] flex items-center justify-center text-green-600 font-bold" vid="206">Replied</div>
+                                        </div>
+                                        <div class="grid grid-cols-4 gap-1 text-[7px] items-center" vid="207">
+                                            <div class="h-3 w-12 bg-gray-200 rounded" vid="208"></div>
+                                            <div class="text-yellow-600" vid="209">★★★☆☆</div>
+                                            <div class="h-3 w-10 bg-blue-100 rounded text-[6px] flex items-center justify-center text-blue-600 font-bold" vid="210">Google</div>
+                                            <div class="h-3 w-12 bg-orange-100 rounded text-[6px] flex items-center justify-center text-orange-600 font-bold" vid="211">Pending</div>
+                                        </div>
+                                        <div class="grid grid-cols-4 gap-1 text-[7px] items-center" vid="212">
+                                            <div class="h-3 w-12 bg-gray-200 rounded" vid="213"></div>
+                                            <div class="text-yellow-600" vid="214">★★★★☆</div>
+                                            <div class="h-3 w-10 bg-red-100 rounded text-[6px] flex items-center justify-center text-red-600 font-bold" vid="215">Yelp</div>
+                                            <div class="h-3 w-12 bg-green-100 rounded text-[6px] flex items-center justify-center text-green-600 font-bold" vid="216">Replied</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-6 font-bold text-gray-400 uppercase tracking-widest text-xs" vid="217">Other tools require logins. We don't.</p>
+                </div>
+
+                
+                <div class="w-16 h-16 rounded-full bg-gray-900 text-white flex items-center justify-center font-display text-xl font-black z-10 shrink-0 border-4 border-white shadow-xl" vid="218">
+                    VS
+                </div>
+
+                
+                <div class="w-full md:w-1/2" vid="219">
+                    <div class="relative w-full max-w-4xl mx-auto flex items-start justify-center gap-6" vid="220">
+                        <!-- iPhone SMS Sample with floating style -->
+                        <div class="relative w-[240px] bg-white rounded-[2.5rem] shadow-2xl border-[6px] border-gray-900 overflow-hidden transform -rotate-2 hover:rotate-0 transition-all duration-500 z-20" vid="221">
+                            <div class="bg-gray-50 h-[480px] p-4 flex flex-col pt-10 font-sans overflow-y-auto" vid="222">
+                                <div class="bg-white p-4 rounded-xl rounded-tl-sm shadow-sm text-xs leading-relaxed border border-gray-100" vid="223">
+                                    <div class="flex items-center gap-1 mb-2" vid="224">
+                                        <span vid="225">⚠️</span>
+                                        <span class="font-bold text-brand-orange" vid="226">Maitreo Alert</span>
+                                    </div>
+                                    
+                                    <p class="font-bold text-gray-900 mb-1" vid="227">New 2-star review from Mike T. on Google</p>
+                                    <p class="text-gray-400 text-[8px] mb-3" vid="228">Posted 3 minutes ago</p>
+                                    
+                                    <div class="bg-gray-50 p-2 rounded mb-3 text-gray-700" vid="229">
+                                        "Food was cold and service took forever. Not coming back."
+                                    </div>
+                                    
+                                    <div class="border-t border-gray-200 my-2" vid="230"></div>
+                                    
+                                    <p class="font-bold text-gray-600 text-[8px] mb-1" vid="231">Our draft response:</p>
+                                    
+                                    <p class="text-gray-800 leading-relaxed mb-3" vid="232">
+                                        "Hi Mike, we're truly sorry about your experience. This isn't the standard we hold ourselves to. Cold food and slow service are unacceptable. Please call us at (201) 555-XXXX so we can make this right. We'd love a chance to change your mind. - Tony, Owner"
+                                    </p>
+                                    
+                                    <div class="border-t border-gray-200 my-2" vid="233"></div>
+                                    
+                                    <div class="space-y-1 text-[8px] text-gray-600 mb-2" vid="234">
+                                        <p vid="235">Reply <span class="font-bold text-green-600" vid="236">YES</span> to post this response</p>
+                                        <p vid="237">Reply <span class="font-bold text-blue-600" vid="238">EDIT</span> to make changes</p>
+                                        <p vid="239">Reply <span class="font-bold text-gray-500" vid="240">SKIP</span> to handle manually</p>
+                                    </div>
+                                    
+                                    <div class="bg-green-50 px-2 py-1 rounded text-[8px] text-green-700" vid="241">
+                                        Your response rate: 100% ✓
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <p class="mt-6 font-bold text-brand-orange uppercase tracking-widest text-xs text-center" vid="242">Us: Never log in. Everything via text and email.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="py-24 bg-gray-50" vid="243">
+        <div class="max-w-7xl mx-auto px-6" vid="244">
+            <h2 class="text-4xl text-center mb-16 font-display font-black" vid="245">Everything You Need to Dominate Your Local Market</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto" vid="246">
+                <div class="glass-card p-6 text-left" vid="247">
+                    <svg class="w-10 h-10 text-brand-orange mb-4" fill="currentColor" viewBox="0 0 20 20" vid="248"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" vid="249"></path><path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" vid="250"></path></svg>
+                    <h4 class="font-bold text-gray-900 mb-2 text-sm" vid="251">Human-Tone AI (Not Robotic)</h4>
+                    <p class="text-xs text-gray-600 mb-3" vid="252">Not robotic - sounds like YOU. Learns your restaurant's voice. Matches your tone (casual, formal, friendly).</p>
+                    <div class="text-[10px] text-gray-500 bg-gray-50 p-2 rounded border-l-2 border-green-500" vid="253"><strong class="text-green-700" vid="254">✓</strong> "Thanks for the love, Sarah! Maria will be thrilled."</div>
+                    <div class="text-[10px] text-gray-400 bg-gray-50 p-2 rounded border-l-2 border-red-300 mt-1" vid="255"><strong class="text-red-500" vid="256">✗</strong> "Thank you for your feedback. We appreciate your patronage."</div>
+                </div>
+                <div class="glass-card p-6 text-left" vid="257">
+                    <svg class="w-10 h-10 text-brand-orange mb-4" fill="currentColor" viewBox="0 0 20 20" vid="258"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" vid="259"></path></svg>
+                    <h4 class="font-bold text-gray-900 mb-2 text-sm" vid="260">SMS Approval (You Stay In Control)</h4>
+                    <p class="text-xs text-gray-600 mb-3" vid="261">YOU stay in control. See draft before it posts. Edit via text if needed. Catch issues before they're public. Reply YES to approve in 5 seconds.</p>
+                    <div class="text-[10px] font-semibold text-green-700 bg-green-50 p-2 rounded" vid="262">✓ Never worry about AI saying the wrong thing</div>
+                </div>
+                <div class="glass-card p-6 text-left" vid="263">
+                    <svg class="w-10 h-10 text-brand-orange mb-4" fill="currentColor" viewBox="0 0 20 20" vid="264"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd" vid="265"></path></svg>
+                    <h4 class="font-bold text-gray-900 mb-2 text-sm" vid="266">Competitor Tracking (5-Mile Radius)</h4>
+                    <p class="text-xs text-gray-600 mb-3" vid="267">AI identifies similar restaurants nearby. Tracks review growth weekly. Highlights threats (200% spikes). Shows YOUR position vs rivals.</p>
+                    <div class="text-[10px] font-semibold text-purple-700 bg-purple-50 p-2 rounded" vid="268">✓ See opportunities and threats before your competitors do</div>
+                </div>
+                <div class="glass-card p-6 text-left" vid="269">
+                    <svg class="w-10 h-10 text-brand-orange mb-4" fill="currentColor" viewBox="0 0 20 20" vid="270"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" vid="271"></path></svg>
+                    <h4 class="font-bold text-gray-900 mb-2 text-sm" vid="272">Crisis Mode</h4>
+                    <p class="text-xs text-gray-600 mb-3" vid="273">2+ negatives in 24 hours = urgent alert. Real-time operational intel. "Something's wrong tonight". Fix problems immediately.</p>
+                    <div class="text-[10px] font-semibold text-red-700 bg-red-50 p-2 rounded" vid="274">✓ Catch bad nights BEFORE they ruin your month</div>
+                </div>
+                <div class="glass-card p-6 text-left" vid="275">
+                    <svg class="w-10 h-10 text-brand-orange mb-4" fill="currentColor" viewBox="0 0 20 20" vid="276"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" vid="277"></path></svg>
+                    <h4 class="font-bold text-gray-900 mb-2 text-sm" vid="278">Pattern Detection</h4>
+                    <p class="text-xs text-gray-600 mb-3" vid="279">Flags recurring complaints. "3x mentioned slow service this week". Prevent ratings damage. Fix operational issues early.</p>
+                    <div class="text-[10px] text-gray-500 italic bg-gray-50 p-2 rounded" vid="280">Example: If 3 people mention "cold food" in a week, you know your heat lamps aren't working.</div>
+                </div>
+                <div class="glass-card p-6 text-left" vid="281">
+                    <svg class="w-10 h-10 text-brand-orange mb-4" fill="currentColor" viewBox="0 0 20 20" vid="282"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" vid="283"></path></svg>
+                    <h4 class="font-bold text-gray-900 mb-2 text-sm" vid="284">Staff Shoutouts</h4>
+                    <p class="text-xs text-gray-600 mb-3" vid="285">Tracks name mentions in reviews. "Maria mentioned 5x this week". Boost team morale. Recognize top performers. Data-driven employee recognition.</p>
+                    <div class="text-[10px] font-semibold text-blue-700 bg-blue-50 p-2 rounded" vid="286">✓ Your team LOVES seeing real customer praise</div>
+                </div>
+                <div class="glass-card p-6 text-left" vid="287">
+                    <svg class="w-10 h-10 text-brand-orange mb-4" fill="currentColor" viewBox="0 0 20 20" vid="288"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" vid="289"></path></svg>
+                    <h4 class="font-bold text-gray-900 mb-2 text-sm" vid="290">Photo Alerts</h4>
+                    <p class="text-xs text-gray-600 mb-3" vid="291">Flags reviews with images. Shows what dishes photograph well. Free marketing content. Repost opportunities to Instagram/Facebook.</p>
+                    <div class="text-[10px] font-semibold text-pink-700 bg-pink-50 p-2 rounded" vid="292">✓ Turn customer photos into free marketing</div>
+                </div>
+                <div class="glass-card p-6 text-left" vid="293">
+                    <svg class="w-10 h-10 text-brand-orange mb-4" fill="currentColor" viewBox="0 0 20 20" vid="294"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" vid="295"></path></svg>
+                    <h4 class="font-bold text-gray-900 mb-2 text-sm" vid="296">Ranking Tracker</h4>
+                    <p class="text-xs text-gray-600 mb-3" vid="297">Monthly Google Maps position tracking. "#3 for Italian restaurant [city]". Proves Maitreo ROI. Track improvement over time.</p>
+                    <div class="text-[10px] font-semibold text-indigo-700 bg-indigo-50 p-2 rounded" vid="298">✓ See exactly how fast responses improve your SEO</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="py-24 bg-white relative" vid="299">
+        <div class="absolute inset-0 bg-citrus-gradient opacity-50" vid="300"></div>
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10" vid="301">
+            <div class="bg-white rounded-[2rem] p-16 shadow-2xl border border-gray-100" vid="302">
+                <div class="inline-block bg-brand-orange text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-6" vid="303">Subscription</div>
+                <h2 class="text-6xl mb-6 font-black font-display text-gray-900" vid="304">$99/month per location</h2>
+                
+                <div class="max-w-md mx-auto mb-8 text-gray-500 text-body" vid="305">
+                    Includes all features and 24/7 AI response generation.
+                </div>
+
+                <a href="https://buy.stripe.com/test_3cI3cv3YV0u64WScCr87K02" class="btn-primary text-xl px-16 py-5 shadow-xl w-full md:w-auto" vid="306">
+                    Start 7-Day Free Trial
+                </a>
+                <p class="mt-6 text-xs text-gray-400 uppercase tracking-widest font-bold" vid="307">No credit card required for setup.</p>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="py-24 bg-white overflow-hidden" vid="308">
+        <div class="max-w-7xl mx-auto px-6" vid="309">
+            <h2 class="text-4xl text-center mb-20 font-display font-black" vid="310">Trusted by restaurant owners nationwide</h2>
+            
+            <div class="grid md:grid-cols-3 gap-12" vid="311">
+                
+                <div class="text-center group p-6 border border-transparent hover:border-gray-100 hover:shadow-lg rounded-2xl transition-all" vid="312">
+                    <div class="w-32 h-32 mx-auto rounded-full overflow-hidden shadow-lg mb-6 border-4 border-white ring-4 ring-gray-50 group-hover:ring-brand-orange transition-all duration-500" vid="313">
+                        <img src="https://images.unsplash.com/photo-1595273670150-bd0c3c392e46?w=800&amp;h=800&amp;fit=crop" alt="Maria" class="w-full h-full object-cover" vid="314">
+                    </div>
+                    <p class="text-gray-600 mb-6 px-2 text-sm italic font-medium" vid="315">"Maitreo handles our reviews so I can focus on running my restaurant."</p>
+                    <h4 class="font-bold text-gray-900 uppercase tracking-wider text-sm" vid="316">Maria R.</h4>
+                    <span class="text-[10px] text-brand-orange font-bold uppercase tracking-widest" vid="317">Bella Bistro</span>
+                </div>
+
+                
+                <div class="text-center group p-6 border border-transparent hover:border-gray-100 hover:shadow-lg rounded-2xl transition-all relative top-8 md:top-0" vid="318">
+                    <div class="w-32 h-32 mx-auto rounded-full overflow-hidden shadow-lg mb-6 border-4 border-white ring-4 ring-gray-50 group-hover:ring-brand-orange transition-all duration-500" vid="319">
+                        <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=800&amp;h=800&amp;fit=crop" alt="Carlos" class="w-full h-full object-cover" vid="320">
+                    </div>
+                    <p class="text-gray-600 mb-6 px-2 text-sm italic font-medium" vid="321">"The AI sounds exactly like me. Professional but warm. It handles the Karens so I don't have to."</p>
+                    <h4 class="font-bold text-gray-900 uppercase tracking-wider text-sm" vid="322">Carlos T.</h4>
+                    <span class="text-[10px] text-brand-orange font-bold uppercase tracking-widest" vid="323">Taco &amp; Tequila</span>
+                </div>
+
+                
+                <div class="text-center group p-6 border border-transparent hover:border-gray-100 hover:shadow-lg rounded-2xl transition-all" vid="324">
+                    <div class="w-32 h-32 mx-auto rounded-full overflow-hidden shadow-lg mb-6 border-4 border-white ring-4 ring-gray-50 group-hover:ring-brand-orange transition-all duration-500" vid="325">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&amp;h=800&amp;fit=crop" alt="Sarah" class="w-full h-full object-cover" vid="326">
+                    </div>
+                    <p class="text-gray-600 mb-6 px-2 text-sm italic font-medium" vid="327">"The competitor intel is scary good. I knew Sally's was launching a new menu before they announced it."</p>
+                    <h4 class="font-bold text-gray-900 uppercase tracking-wider text-sm" vid="328">Sarah L.</h4>
+                    <span class="text-[10px] text-brand-orange font-bold uppercase tracking-widest" vid="329">The Daily Grind</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="py-24 bg-brand-mint/50" vid="330">
+        <div class="max-w-3xl mx-auto px-6" vid="331">
+            <h2 class="text-4xl text-center mb-16 font-display font-black text-gray-900" vid="332">Common Questions</h2>
+            <div class="space-y-4" vid="333">
+                <details class="group bg-white rounded-lg p-6 shadow-sm cursor-pointer border-l-4 border-transparent hover:border-brand-orange transition-all" vid="334">
+                    <summary class="font-bold text-gray-900 list-none flex justify-between items-center text-lg" vid="335">
+                        Does the AI sound like a robot?
+                        <span class="transform group-open:rotate-180 transition-transform text-brand-orange" vid="336">↓</span>
+                    </summary>
+                    <p class="mt-4 text-gray-600 text-sm leading-relaxed border-t border-gray-100 pt-4" vid="337">Not at all. We train the model on your previous 50 responses so it learns your unique voice, tone, and vocabulary.</p>
+                </details>
+                <details class="group bg-white rounded-lg p-6 shadow-sm cursor-pointer border-l-4 border-transparent hover:border-brand-orange transition-all" vid="338">
+                    <summary class="font-bold text-gray-900 list-none flex justify-between items-center text-lg" vid="339">
+                        Can I edit the responses?
+                        <span class="transform group-open:rotate-180 transition-transform text-brand-orange" vid="340">↓</span>
+                    </summary>
+                    <p class="mt-4 text-gray-600 text-sm leading-relaxed border-t border-gray-100 pt-4" vid="341">Yes. For sensitive (negative) reviews, we text you a draft. You can reply with "Edit" to rewrite it entirely or tweak the tone.</p>
+                </details>
+                <details class="group bg-white rounded-lg p-6 shadow-sm cursor-pointer border-l-4 border-transparent hover:border-brand-orange transition-all" vid="342">
+                    <summary class="font-bold text-gray-900 list-none flex justify-between items-center text-lg" vid="343">
+                        Which platforms do you support?
+                        <span class="transform group-open:rotate-180 transition-transform text-brand-orange" vid="344">↓</span>
+                    </summary>
+                    <p class="mt-4 text-gray-600 text-sm leading-relaxed border-t border-gray-100 pt-4" vid="345">We currently support Google Maps, Yelp, TripAdvisor, and OpenTable.</p>
+                </details>
+                 <details class="group bg-white rounded-lg p-6 shadow-sm cursor-pointer border-l-4 border-transparent hover:border-brand-orange transition-all" vid="346">
+                    <summary class="font-bold text-gray-900 list-none flex justify-between items-center text-lg" vid="347">
+                        Is there a contract?
+                        <span class="transform group-open:rotate-180 transition-transform text-brand-orange" vid="348">↓</span>
+                    </summary>
+                    <p class="mt-4 text-gray-600 text-sm leading-relaxed border-t border-gray-100 pt-4" vid="349">No. Maitreo is month-to-month. You can cancel anytime with one click.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="py-24 bg-white text-center relative overflow-hidden" vid="350">
+        <div class="max-w-4xl mx-auto px-6 relative z-10" vid="351">
+            <h2 class="text-6xl md:text-7xl mb-8 text-gray-900 font-black font-display tracking-tight" vid="352">Take back your <br vid="353"> <span class="text-brand-orange" vid="354">Sunday nights.</span></h2>
+            <p class="text-xl text-gray-500 mb-12 max-w-2xl mx-auto font-light" vid="355">Join 500+ restaurants automating their reputation management.</p>
+            <a href="https://buy.stripe.com/test_3cI3cv3YV0u64WScCr87K02" class="btn-primary text-xl px-16 py-6 shadow-2xl" vid="356">
+                Start Your Free Trial
+            </a>
+
+        </div>
+        
+        
+        <div class="absolute -bottom-40 -right-20 w-96 h-96 bg-brand-orange opacity-10 rounded-full blur-[80px]" vid="357"></div>
+        <div class="absolute top-0 -left-20 w-72 h-72 bg-brand-lime opacity-40 rounded-full blur-[80px]" vid="358"></div>
+    </section>
+
+    
+    <footer class="bg-gray-50 py-16 border-t border-gray-200" vid="359">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 text-sm" vid="360">
+            <div class="space-y-6" vid="361">
+                <div class="flex items-center gap-2" vid="362">
+                    <div class="w-8 h-8 rounded bg-brand-orange flex items-center justify-center text-white font-display text-lg font-black shadow-sm" vid="363">R</div>
+                    <span class="font-display font-bold text-gray-900 text-lg" vid="364">Maitreo</span>
+                </div>
+                <p class="text-gray-500 leading-relaxed font-light" vid="365">
+                    AI-powered review management for modern restaurants. Designed in New York City.
+                </p>
+            </div>
+            
+            <div vid="366">
+                <h4 class="font-bold text-gray-900 mb-6 uppercase tracking-wider text-xs" vid="367">Product</h4>
+                <ul class="space-y-4 text-gray-500 font-medium" vid="368">
+                    <li vid="369"><a href="#" class="hover:text-brand-orange transition-colors" vid="370">Features</a></li>
+                    <li vid="371"><a href="#" class="hover:text-brand-orange transition-colors" vid="372">Pricing</a></li>
+                    <li vid="373"><a href="#" class="hover:text-brand-orange transition-colors" vid="374">Case Studies</a></li>
+                    <li vid="375"><a href="#" class="hover:text-brand-orange transition-colors" vid="376">API</a></li>
+                </ul>
+            </div>
+
+            <div vid="377">
+                <h4 class="font-bold text-gray-900 mb-6 uppercase tracking-wider text-xs" vid="378">Company</h4>
+                <ul class="space-y-4 text-gray-500 font-medium" vid="379">
+                    <li vid="380"><a href="#" class="hover:text-brand-orange transition-colors" vid="381">About</a></li>
+                    <li vid="382"><a href="#" class="hover:text-brand-orange transition-colors" vid="383">Careers</a></li>
+                    <li vid="384"><a href="#" class="hover:text-brand-orange transition-colors" vid="385">Blog</a></li>
+                    <li vid="386"><a href="#" class="hover:text-brand-orange transition-colors" vid="387">Contact</a></li>
+                </ul>
+            </div>
+
+            <div vid="388">
+                <h4 class="font-bold text-gray-900 mb-6 uppercase tracking-wider text-xs" vid="389">Legal</h4>
+                <ul class="space-y-4 text-gray-500 font-medium" vid="390">
+                    <li vid="391"><a href="#" class="hover:text-brand-orange transition-colors" vid="392">Privacy Policy</a></li>
+                    <li vid="393"><a href="#" class="hover:text-brand-orange transition-colors" vid="394">Terms of Service</a></li>
+                    <li vid="395"><a href="#" class="hover:text-brand-orange transition-colors" vid="396">Data Processing</a></li>
+                </ul>
+                <div class="mt-8 flex gap-4" vid="397">
+                    <div class="w-8 h-8 rounded bg-gray-200 hover:bg-brand-orange transition-colors cursor-pointer" vid="398"></div>
+                    <div class="w-8 h-8 rounded bg-gray-200 hover:bg-brand-orange transition-colors cursor-pointer" vid="399"></div>
+                    <div class="w-8 h-8 rounded bg-gray-200 hover:bg-brand-orange transition-colors cursor-pointer" vid="400"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body></html>
