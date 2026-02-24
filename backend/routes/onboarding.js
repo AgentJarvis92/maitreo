@@ -38,8 +38,8 @@ router.get('/form/:sessionId', async (req, res) => {
       sessionId,
       customer: {
         restaurantName: customer.restaurant_name,
-        location: customer.location_address,
-        phone: customer.phone_number,
+        location: customer.location,
+        phone: customer.phone,
         email: customer.email
       },
       onboardingStatus: customer.onboarding_status,
@@ -88,8 +88,8 @@ router.post('/form', async (req, res) => {
       .from('customers')
       .update({
         restaurant_name: restaurantName,
-        location_address: location,
-        phone_number: phone,
+        location: location,
+        phone: phone,
         email: email,
         onboarding_status: 'in_progress',
         updated_at: new Date().toISOString()

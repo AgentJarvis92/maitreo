@@ -5,7 +5,14 @@
 
 const express = require('express');
 const router = express.Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Lazy-initialize Stripe so missing key doesn't crash startup
+let stripe;
+function getStripe() {
+  if (!stripe && process.env.STRIPE_SECRET_KEY) {
+    stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripe;
+}
 const { createClient } = require('@supabase/supabase-js');
 
 // Initialize Supabase
@@ -25,7 +32,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     let event;
     try {
-      event = stripe.webhooks.constructEvent(
+      event = getStripe().webhooks.constructEvent(
         req.body,
         signature,
         webhookSecret

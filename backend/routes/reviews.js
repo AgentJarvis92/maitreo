@@ -55,49 +55,96 @@ async function getAccessToken(encryptedRefreshToken) {
 }
 
 /**
- * Fetch reviews from Google Business Profile API
- * Requires: accounts/{accountId}/locations/{locationId} format location name
- * For testing, this will use the sample data structure
+ * Convert Google's StarRating enum to a numeric value
  */
-async function fetchGoogleReviews(accessToken, locationName) {
-  try {
-    // Use MyBusiness API with proper scopes
-    const myBusiness = google.mybusinessaccountmanagement({ 
-      version: 'v1', 
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    });
+function starRatingToNumber(starRating) {
+  const map = {
+    'ONE': 1,
+    'TWO': 2,
+    'THREE': 3,
+    'FOUR': 4,
+    'FIVE': 5
+  };
+  return map[starRating] || 0;
+}
 
-    // For now, return sample data for testing
-    // In production, this would hit: GET https://mybusiness.googleapis.com/v4/{parent}/reviews
-    console.log(`Fetching reviews for location: ${locationName}`);
+/**
+ * Fetch reviews from Google Business Profile API
+ * Uses: GET https://mybusiness.googleapis.com/v4/{parent}/reviews
+ * @param {string} accessToken - Valid OAuth access token
+ * @param {string} locationName - Format: accounts/{accountId}/locations/{locationId}
+ * @param {string} [pageToken] - Token for pagination
+ * @returns {Object} { reviews, averageRating, totalReviewCount, nextPageToken }
+ */
+async function fetchGoogleReviews(accessToken, locationName, pageToken = null) {
+  const baseUrl = `https://mybusiness.googleapis.com/v4/${locationName}/reviews`;
+  const params = new URLSearchParams({
+    pageSize: '50',
+    orderBy: 'updateTime desc'
+  });
+  if (pageToken) {
+    params.set('pageToken', pageToken);
+  }
+
+  const url = `${baseUrl}?${params.toString()}`;
+  console.log(`Fetching reviews from: ${url}`);
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error(`Google API error ${response.status}:`, errorBody);
     
-    return {
-      reviews: [
-        {
-          name: 'accounts/123/locations/456/reviews/review1',
-          reviewer: { displayName: 'John Doe' },
-          starRating: 5,
-          comment: 'Great service and delicious food!',
-          createTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          updateTime: new Date().toISOString()
-        },
-        {
-          name: 'accounts/123/locations/456/reviews/review2',
-          reviewer: { displayName: 'Jane Smith' },
-          starRating: 4,
-          comment: 'Good food, but a bit slow on service.',
-          createTime: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-          updateTime: new Date().toISOString()
-        }
-      ],
-      message: 'Sample reviews for testing (API integration pending)'
-    };
-  } catch (error) {
-    console.error('Error fetching reviews from Google:', error);
+    let parsed;
+    try { parsed = JSON.parse(errorBody); } catch (_) {}
+    
+    const error = new Error(
+      parsed?.error?.message || `Google API returned ${response.status}`
+    );
+    error.status = response.status;
+    error.googleError = parsed?.error;
     throw error;
   }
+
+  const data = await response.json();
+  return {
+    reviews: (data.reviews || []).map(review => ({
+      name: review.name,
+      reviewId: review.reviewId,
+      reviewer: review.reviewer,
+      starRating: starRatingToNumber(review.starRating),
+      comment: review.comment || '',
+      createTime: review.createTime,
+      updateTime: review.updateTime,
+      reviewReply: review.reviewReply || null
+    })),
+    averageRating: data.averageRating || null,
+    totalReviewCount: data.totalReviewCount || 0,
+    nextPageToken: data.nextPageToken || null
+  };
+}
+
+/**
+ * Fetch ALL reviews across pages
+ */
+async function fetchAllGoogleReviews(accessToken, locationName) {
+  let allReviews = [];
+  let pageToken = null;
+  let meta = {};
+
+  do {
+    const result = await fetchGoogleReviews(accessToken, locationName, pageToken);
+    allReviews = allReviews.concat(result.reviews);
+    pageToken = result.nextPageToken;
+    meta = { averageRating: result.averageRating, totalReviewCount: result.totalReviewCount };
+  } while (pageToken);
+
+  return { reviews: allReviews, ...meta };
 }
 
 /**
@@ -125,24 +172,66 @@ router.get('/fetch/:sessionId', async (req, res) => {
       });
     }
 
-    // Get fresh access token
-    const accessToken = await getAccessToken(customer.google_refresh_token_encrypted);
+    if (!customer.google_location_name) {
+      return res.status(400).json({
+        error: 'No Google Business location configured. Please set your location in onboarding.'
+      });
+    }
 
-    // Fetch reviews from Google
-    const { reviews } = await fetchGoogleReviews(
-      accessToken, 
-      customer.google_location_name
-    );
+    // Get fresh access token
+    let accessToken;
+    try {
+      accessToken = await getAccessToken(customer.google_refresh_token_encrypted);
+    } catch (tokenError) {
+      console.error('Token refresh failed:', tokenError);
+      return res.status(401).json({
+        error: 'Google token expired or revoked. Please reconnect your Google account.',
+        code: 'TOKEN_REFRESH_FAILED'
+      });
+    }
+
+    // Fetch reviews from Google Business Profile API
+    let reviewData;
+    try {
+      reviewData = await fetchAllGoogleReviews(accessToken, customer.google_location_name);
+    } catch (apiError) {
+      console.error('Google API error:', apiError);
+      if (apiError.status === 401) {
+        return res.status(401).json({
+          error: 'Google authentication failed. Please reconnect your Google account.',
+          code: 'GOOGLE_AUTH_FAILED'
+        });
+      }
+      if (apiError.status === 403) {
+        return res.status(403).json({
+          error: 'Access denied. Make sure the Google account has access to this business location.',
+          code: 'GOOGLE_ACCESS_DENIED'
+        });
+      }
+      if (apiError.status === 404) {
+        return res.status(404).json({
+          error: 'Business location not found. The location may have been removed or the ID is incorrect.',
+          code: 'LOCATION_NOT_FOUND'
+        });
+      }
+      return res.status(502).json({
+        error: `Failed to fetch reviews from Google: ${apiError.message}`,
+        code: 'GOOGLE_API_ERROR'
+      });
+    }
+
+    const { reviews, averageRating, totalReviewCount } = reviewData;
 
     if (!reviews || reviews.length === 0) {
       return res.json({
         success: true,
-        message: 'No reviews found',
-        reviews: []
+        message: 'No reviews found for this location',
+        reviews: [],
+        stats: { averageRating, totalReviewCount }
       });
     }
 
-    // Store reviews in database
+    // Upsert reviews in database (use review_id as unique key)
     const storedReviews = [];
     const errors = [];
 
@@ -150,8 +239,7 @@ router.get('/fetch/:sessionId', async (req, res) => {
       try {
         const { data: stored, error } = await supabase
           .from('reviews')
-          .insert({
-            restaurant_id: null, // Use customer_id instead (update schema)
+          .upsert({
             customer_id: customer.id,
             platform: 'google',
             review_id: review.name,
@@ -161,13 +249,15 @@ router.get('/fetch/:sessionId', async (req, res) => {
             review_date: review.createTime,
             metadata: {
               googleReviewId: review.name,
-              updateTime: review.updateTime
+              reviewId: review.reviewId,
+              updateTime: review.updateTime,
+              reviewReply: review.reviewReply
             }
-          })
+          }, { onConflict: 'review_id' })
           .select()
           .single();
 
-        if (error && error.code !== 'PGRST116') { // Ignore duplicate key errors
+        if (error) {
           errors.push({ review: review.name, error: error.message });
         } else {
           storedReviews.push(stored);
@@ -179,8 +269,10 @@ router.get('/fetch/:sessionId', async (req, res) => {
 
     res.json({
       success: true,
-      message: `Fetched and stored ${storedReviews.length} review(s)`,
-      reviews: storedReviews.length,
+      message: `Fetched ${reviews.length} review(s) from Google, stored ${storedReviews.length}`,
+      totalFromGoogle: reviews.length,
+      stored: storedReviews.length,
+      stats: { averageRating, totalReviewCount },
       errors: errors.length > 0 ? errors : undefined
     });
   } catch (error) {
@@ -251,6 +343,261 @@ router.get('/list/:sessionId', async (req, res) => {
   } catch (error) {
     console.error('Error listing reviews:', error);
     res.status(500).json({ error: 'Failed to list reviews' });
+  }
+});
+
+/**
+ * POST /api/reviews/reply/:reviewId
+ * Post a reply to a Google review via the Google Business Profile API
+ * 
+ * Body: { replyText: string, sessionId: string }
+ * 
+ * The reviewId param is the internal UUID from our reviews table.
+ * The Google review name (accounts/.../reviews/xxx) is stored in review_id or metadata.
+ */
+router.post('/reply/:reviewId', async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { replyText, sessionId } = req.body;
+
+    // --- Validation ---
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Missing sessionId' });
+    }
+    if (!replyText || typeof replyText !== 'string' || replyText.trim().length === 0) {
+      return res.status(400).json({ error: 'Reply text is required' });
+    }
+
+    const trimmedReply = replyText.trim();
+
+    // Google Business Profile reply max is 4096 characters
+    if (trimmedReply.length > 4096) {
+      return res.status(400).json({ 
+        error: `Reply text too long (${trimmedReply.length} chars). Maximum is 4096 characters.` 
+      });
+    }
+
+    // --- Find customer ---
+    const { data: customer, error: custError } = await supabase
+      .from('customers')
+      .select('id, google_refresh_token_encrypted, google_location_name')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (custError || !customer) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+
+    if (!customer.google_refresh_token_encrypted) {
+      return res.status(400).json({ 
+        error: 'Google not connected. Please complete onboarding first.' 
+      });
+    }
+
+    // --- Find review ---
+    const { data: review, error: revError } = await supabase
+      .from('reviews')
+      .select('id, review_id, platform, metadata, customer_id')
+      .eq('id', reviewId)
+      .single();
+
+    if (revError || !review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    // Verify review belongs to this customer
+    if (review.customer_id !== customer.id) {
+      return res.status(403).json({ error: 'Review does not belong to this customer' });
+    }
+
+    if (review.platform !== 'google') {
+      return res.status(400).json({ error: 'Reply posting is only supported for Google reviews' });
+    }
+
+    // The Google review resource name (e.g. "accounts/123/locations/456/reviews/abc")
+    const googleReviewName = review.review_id;
+    if (!googleReviewName || !googleReviewName.includes('/reviews/')) {
+      return res.status(400).json({ 
+        error: 'Review does not have a valid Google review resource name' 
+      });
+    }
+
+    // --- Get access token (auto-refreshes from refresh token) ---
+    let accessToken;
+    try {
+      accessToken = await getAccessToken(customer.google_refresh_token_encrypted);
+    } catch (tokenError) {
+      console.error('Token refresh failed:', tokenError);
+      return res.status(401).json({ 
+        error: 'Failed to authenticate with Google. The account may need to be reconnected.',
+        details: tokenError.message
+      });
+    }
+
+    // --- Post reply to Google Business Profile API ---
+    // API: PUT https://mybusiness.googleapis.com/v4/{reviewName}/reply
+    // Body: { "comment": "reply text" }
+    const apiUrl = `https://mybusiness.googleapis.com/v4/${googleReviewName}/reply`;
+
+    const googleResponse = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ comment: trimmedReply }),
+    });
+
+    const googleData = await googleResponse.json().catch(() => ({}));
+
+    if (!googleResponse.ok) {
+      console.error('Google API error:', googleResponse.status, googleData);
+
+      // Map common error codes
+      const statusMap = {
+        400: 'Invalid request to Google API',
+        401: 'Google authentication expired. Please reconnect your account.',
+        403: 'You do not have permission to reply to this review',
+        404: 'Review not found on Google. It may have been deleted.',
+        409: 'A reply already exists for this review. Delete it first to post a new one.',
+        429: 'Too many requests to Google. Please try again later.',
+      };
+
+      return res.status(googleResponse.status >= 500 ? 502 : googleResponse.status).json({
+        error: statusMap[googleResponse.status] || `Google API error (${googleResponse.status})`,
+        googleError: googleData.error || undefined,
+      });
+    }
+
+    // --- Update reply_drafts status to 'sent' if a draft exists ---
+    await supabase
+      .from('reply_drafts')
+      .update({ 
+        status: 'sent',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('review_id', review.id)
+      .eq('status', 'approved');
+
+    // --- Store reply info in review metadata ---
+    const updatedMetadata = {
+      ...(review.metadata || {}),
+      reply: {
+        text: trimmedReply,
+        postedAt: new Date().toISOString(),
+        googleResponse: googleData,
+      },
+    };
+
+    await supabase
+      .from('reviews')
+      .update({ metadata: updatedMetadata })
+      .eq('id', review.id);
+
+    res.json({
+      success: true,
+      message: 'Reply posted successfully to Google',
+      reviewId: review.id,
+      reply: {
+        text: trimmedReply,
+        postedAt: updatedMetadata.reply.postedAt,
+      },
+    });
+
+  } catch (error) {
+    console.error('Error posting reply:', error);
+    res.status(500).json({ error: 'Failed to post reply' });
+  }
+});
+
+/**
+ * DELETE /api/reviews/reply/:reviewId
+ * Delete a reply from a Google review
+ * 
+ * Body: { sessionId: string }
+ */
+router.delete('/reply/:reviewId', async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Missing sessionId' });
+    }
+
+    // Find customer
+    const { data: customer, error: custError } = await supabase
+      .from('customers')
+      .select('id, google_refresh_token_encrypted')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (custError || !customer) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+
+    if (!customer.google_refresh_token_encrypted) {
+      return res.status(400).json({ error: 'Google not connected' });
+    }
+
+    // Find review
+    const { data: review, error: revError } = await supabase
+      .from('reviews')
+      .select('id, review_id, platform, metadata, customer_id')
+      .eq('id', reviewId)
+      .single();
+
+    if (revError || !review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    if (review.customer_id !== customer.id) {
+      return res.status(403).json({ error: 'Review does not belong to this customer' });
+    }
+
+    if (review.platform !== 'google') {
+      return res.status(400).json({ error: 'Only Google reviews supported' });
+    }
+
+    const googleReviewName = review.review_id;
+
+    let accessToken;
+    try {
+      accessToken = await getAccessToken(customer.google_refresh_token_encrypted);
+    } catch (tokenError) {
+      return res.status(401).json({ error: 'Failed to authenticate with Google' });
+    }
+
+    const googleResponse = await fetch(
+      `https://mybusiness.googleapis.com/v4/${googleReviewName}/reply`,
+      {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      }
+    );
+
+    if (!googleResponse.ok && googleResponse.status !== 404) {
+      const googleData = await googleResponse.json().catch(() => ({}));
+      return res.status(502).json({
+        error: `Google API error (${googleResponse.status})`,
+        googleError: googleData.error || undefined,
+      });
+    }
+
+    // Clear reply from metadata
+    const updatedMetadata = { ...(review.metadata || {}) };
+    delete updatedMetadata.reply;
+
+    await supabase
+      .from('reviews')
+      .update({ metadata: updatedMetadata })
+      .eq('id', review.id);
+
+    res.json({ success: true, message: 'Reply deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting reply:', error);
+    res.status(500).json({ error: 'Failed to delete reply' });
   }
 });
 

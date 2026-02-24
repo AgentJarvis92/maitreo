@@ -22,6 +22,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve frontend static files (onboarding form, success page, etc.)
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../frontend/public')));
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ 
@@ -81,7 +85,9 @@ app.listen(PORT, () => {
   console.log(`   GET    /api/google/auth           - Start Google OAuth`);
   console.log(`   GET    /api/google/callback       - OAuth callback handler`);
   console.log(`   GET    /api/reviews/fetch/:id     - Manually fetch reviews`);
-  console.log(`   GET    /api/reviews/list/:id      - List reviews\n`);
+  console.log(`   GET    /api/reviews/list/:id      - List reviews`);
+  console.log(`   POST   /api/reviews/reply/:id     - Post reply to Google review`);
+  console.log(`   DELETE /api/reviews/reply/:id     - Delete reply from Google review\n`);
   
   // Start review polling service
   try {

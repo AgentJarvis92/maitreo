@@ -116,14 +116,16 @@ router.get('/callback', async (req, res) => {
   try {
     const { code, state, error: authError } = req.query;
 
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
     // Check for authorization errors
     if (authError) {
       console.error('Google OAuth error:', authError);
-      return res.status(400).json({ error: `Google authorization failed: ${authError}` });
+      return res.redirect(`${frontendUrl}/onboarding-success.html?error=${encodeURIComponent(authError)}`);
     }
 
     if (!code || !state) {
-      return res.status(400).json({ error: 'Missing authorization code or state' });
+      return res.redirect(`${frontendUrl}/onboarding-success.html?error=${encodeURIComponent('Missing authorization code')}`);
     }
 
     const sessionId = state;
@@ -136,7 +138,7 @@ router.get('/callback', async (req, res) => {
       .single();
 
     if (findError || !customer) {
-      return res.status(404).json({ error: 'Session not found' });
+      return res.redirect(`${frontendUrl}/onboarding-success.html?error=${encodeURIComponent('Session not found. Please restart onboarding.')}`);
     }
 
     // Exchange code for tokens
@@ -144,9 +146,7 @@ router.get('/callback', async (req, res) => {
     const { tokens } = await oauth2Client.getToken(code);
 
     if (!tokens || !tokens.refresh_token) {
-      return res.status(400).json({ 
-        error: 'Failed to get refresh token. Please make sure to approve all permissions.' 
-      });
+      return res.redirect(`${frontendUrl}/onboarding-success.html?error=${encodeURIComponent('Failed to get permissions. Please approve all requested permissions.')}`);
     }
 
     // Encrypt refresh token before storing
@@ -179,22 +179,20 @@ router.get('/callback', async (req, res) => {
 
     if (updateError) {
       console.error('Error updating customer with Google credentials:', updateError);
-      return res.status(500).json({ error: 'Failed to save Google credentials' });
+      return res.redirect(`${frontendUrl}/onboarding-success.html?error=${encodeURIComponent('Failed to save credentials. Please try again.')}`);
     }
 
-    // Return success response
-    res.json({
-      success: true,
-      customerId: updated.id,
-      sessionId: updated.session_id,
-      message: 'Google Business Profile connected successfully!',
-      restaurantName: updated.restaurant_name,
-      googleEmail: updated.google_email,
-      nextStep: `/onboarding/success?sessionId=${updated.session_id}`
+    // Redirect to success page
+    const successParams = new URLSearchParams({
+      success: 'true',
+      restaurant: updated.restaurant_name || '',
+      email: updated.google_email || ''
     });
+    res.redirect(`${frontendUrl}/onboarding-success.html?${successParams.toString()}`);
   } catch (error) {
     console.error('Error handling OAuth callback:', error);
-    res.status(500).json({ error: 'Failed to process Google authorization' });
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/onboarding-success.html?error=${encodeURIComponent('Something went wrong. Please try again.')}`);
   }
 });
 
@@ -225,6 +223,262 @@ router.get('/status/:sessionId', async (req, res) => {
   } catch (error) {
     console.error('Error checking Google status:', error);
     res.status(500).json({ error: 'Failed to check Google status' });
+  }
+});
+
+/**
+ * GET /api/google/locations/:sessionId
+ * List all Google Business locations the customer has access to.
+ * Requires Google OAuth to be connected (refresh token stored).
+ */
+router.get('/locations/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+
+    // Find customer by session ID
+    const { data: customer, error: findError } = await supabase
+      .from('customers')
+      .select('id, google_refresh_token_encrypted, google_connected, restaurant_name')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (findError || !customer) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    if (!customer.google_connected || !customer.google_refresh_token_encrypted) {
+      return res.status(401).json({ 
+        error: 'Google not connected',
+        message: 'Please connect your Google Business Profile first.'
+      });
+    }
+
+    // Decrypt refresh token and get fresh access token
+    const refreshToken = decryptToken(customer.google_refresh_token_encrypted);
+    const oauth2Client = getOAuth2Client();
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+    let accessToken;
+    try {
+      const { credentials } = await oauth2Client.refreshAccessToken();
+      accessToken = credentials.access_token;
+    } catch (refreshErr) {
+      console.error('Token refresh failed:', refreshErr);
+      // Mark as disconnected if token is revoked
+      await supabase
+        .from('customers')
+        .update({ google_connected: false, google_status: 'not_connected', updated_at: new Date().toISOString() })
+        .eq('id', customer.id);
+      return res.status(401).json({ 
+        error: 'Token expired',
+        message: 'Your Google connection has expired. Please reconnect.'
+      });
+    }
+
+    // Fetch all accounts
+    const accountsRes = await fetch('https://mybusinessaccountmanagement.googleapis.com/v1/accounts', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    if (!accountsRes.ok) {
+      const errText = await accountsRes.text();
+      console.error('Failed to fetch Google accounts:', accountsRes.status, errText);
+      return res.status(502).json({ 
+        error: 'Google API error',
+        message: 'Could not retrieve your Google Business accounts. Please try again.'
+      });
+    }
+
+    const accountsData = await accountsRes.json();
+    const accounts = accountsData.accounts || [];
+
+    if (accounts.length === 0) {
+      return res.status(200).json({ 
+        locations: [],
+        message: 'No Google Business accounts found. Make sure you have a Google Business Profile set up.'
+      });
+    }
+
+    // For each account, fetch locations
+    const allLocations = [];
+
+    for (const account of accounts) {
+      try {
+        const locRes = await fetch(
+          `https://mybusinessbusinessinformation.googleapis.com/v1/${account.name}/locations?readMask=name,title,storefrontAddress,websiteUri,phoneNumbers`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+
+        if (!locRes.ok) {
+          console.warn(`Failed to fetch locations for ${account.name}: ${locRes.status}`);
+          continue;
+        }
+
+        const locData = await locRes.json();
+        const locations = locData.locations || [];
+
+        for (const loc of locations) {
+          const address = loc.storefrontAddress;
+          const addressStr = address 
+            ? [address.addressLines?.join(', '), address.locality, address.administrativeArea, address.postalCode]
+                .filter(Boolean).join(', ')
+            : '';
+
+          allLocations.push({
+            locationName: loc.name, // e.g., "locations/12345"
+            fullResourceName: `${account.name}/${loc.name}`, // e.g., "accounts/123/locations/456"
+            title: loc.title || 'Unnamed Location',
+            address: addressStr,
+            phone: loc.phoneNumbers?.primaryPhone || null,
+            website: loc.websiteUri || null,
+            accountName: account.accountName || account.name
+          });
+        }
+      } catch (locErr) {
+        console.error(`Error fetching locations for account ${account.name}:`, locErr);
+      }
+    }
+
+    res.json({
+      locations: allLocations,
+      count: allLocations.length,
+      message: allLocations.length === 0 
+        ? 'No locations found. Make sure your Google Business Profile has at least one location.'
+        : `Found ${allLocations.length} location(s).`
+    });
+
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    res.status(500).json({ error: 'Failed to fetch locations' });
+  }
+});
+
+/**
+ * POST /api/google/locations/:sessionId
+ * Save the selected Google Business location for a customer.
+ * Body: { locationName: "accounts/123/locations/456" }
+ */
+router.post('/locations/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { locationName } = req.body;
+
+    if (!locationName) {
+      return res.status(400).json({ error: 'Missing locationName in request body' });
+    }
+
+    // Validate format: should look like "accounts/XXX/locations/YYY"
+    if (!/^accounts\/\d+\/locations\/\d+$/.test(locationName)) {
+      return res.status(400).json({ 
+        error: 'Invalid locationName format',
+        message: 'Expected format: accounts/{accountId}/locations/{locationId}'
+      });
+    }
+
+    // Find customer by session ID
+    const { data: customer, error: findError } = await supabase
+      .from('customers')
+      .select('id, google_refresh_token_encrypted, google_connected')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (findError || !customer) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    if (!customer.google_connected || !customer.google_refresh_token_encrypted) {
+      return res.status(401).json({ 
+        error: 'Google not connected',
+        message: 'Please connect your Google Business Profile first.'
+      });
+    }
+
+    // Verify the customer actually has access to this location
+    const refreshToken = decryptToken(customer.google_refresh_token_encrypted);
+    const oauth2Client = getOAuth2Client();
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+    let accessToken;
+    try {
+      const { credentials } = await oauth2Client.refreshAccessToken();
+      accessToken = credentials.access_token;
+    } catch (refreshErr) {
+      console.error('Token refresh failed:', refreshErr);
+      await supabase
+        .from('customers')
+        .update({ google_connected: false, google_status: 'not_connected', updated_at: new Date().toISOString() })
+        .eq('id', customer.id);
+      return res.status(401).json({ 
+        error: 'Token expired',
+        message: 'Your Google connection has expired. Please reconnect.'
+      });
+    }
+
+    // Extract account name from locationName
+    const accountMatch = locationName.match(/^(accounts\/\d+)\//);
+    const accountName = accountMatch ? accountMatch[1] : null;
+    const locationPart = locationName.replace(/^accounts\/\d+\//, ''); // "locations/XXX"
+
+    // Verify location exists and customer has access
+    const verifyRes = await fetch(
+      `https://mybusinessbusinessinformation.googleapis.com/v1/${locationName}?readMask=name,title`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    if (!verifyRes.ok) {
+      if (verifyRes.status === 403) {
+        return res.status(403).json({ 
+          error: 'Access denied',
+          message: 'You do not have access to this Google Business location.'
+        });
+      }
+      if (verifyRes.status === 404) {
+        return res.status(404).json({ 
+          error: 'Location not found',
+          message: 'This Google Business location does not exist.'
+        });
+      }
+      const errText = await verifyRes.text();
+      console.error('Location verification failed:', verifyRes.status, errText);
+      return res.status(502).json({ 
+        error: 'Google API error',
+        message: 'Could not verify the location. Please try again.'
+      });
+    }
+
+    const locationData = await verifyRes.json();
+
+    // Save to customer record
+    const { data: updated, error: updateError } = await supabase
+      .from('customers')
+      .update({
+        google_location_name: locationName,
+        google_location_id: locationPart,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', customer.id)
+      .select('id, session_id, restaurant_name, google_location_name')
+      .single();
+
+    if (updateError) {
+      console.error('Error saving location:', updateError);
+      return res.status(500).json({ error: 'Failed to save location selection' });
+    }
+
+    console.log(`✅ Location saved for customer ${customer.id}: ${locationName} (${locationData.title})`);
+
+    res.json({
+      success: true,
+      message: `Location "${locationData.title}" has been selected.`,
+      location: {
+        locationName: locationName,
+        title: locationData.title
+      }
+    });
+
+  } catch (error) {
+    console.error('Error saving location:', error);
+    res.status(500).json({ error: 'Failed to save location selection' });
   }
 });
 

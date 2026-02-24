@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Digest - {{restaurant_name}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .section {
+            margin-bottom: 32px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .theme-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .theme-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .theme-list li:last-child {
+            border-bottom: none;
+        }
+        .theme-list li:before {
+            content: "• ";
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 8px;
+        }
+        .praise-icon:before {
+            content: "👍 ";
+        }
+        .warning-icon:before {
+            content: "⚠️ ";
+        }
+        .insight-box {
+            background-color: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 4px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .insight-box:before {
+            content: "💡 ";
+            font-size: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 24px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        .cta-container {
+            text-align: center;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 24px 30px;
+            text-align: center;
+            font-size: 13px;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 24px 0;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        /* Mobile responsive */
+        @media only screen and (max-width: 600px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-box {
+                padding: 12px;
+            }
+            .content {
+                padding: 20px;
+            }
+            .cta-button {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Weekly Digest</h1>
+            <p>{{restaurant_name}} • {{date_range}}</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Hi {{owner_first_name}},
+            </div>
+            
+            <p style="margin-bottom: 24px;">Here's your weekly review summary:</p>
+            
+            <!-- Stats Section -->
+            <div class="section">
+                <div class="section-title">📊 This Week's Stats</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value">{{review_count}}</div>
+                        <div class="stat-label">New Reviews</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{avg_rating}}⭐</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{pending_count}}</div>
+                        <div class="stat-label">Pending Replies</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conditional: Show themes only if reviews exist -->
+            {{#if has_reviews}}
+            
+            <!-- Praise Section -->
+            {{#if has_praise}}
+            <div class="section">
+                <div class="section-title praise-icon">What Customers Loved</div>
+                <ul class="theme-list">
+                    {{#each praise_themes}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            {{/if}}
+            
+            <!-- Complaints Section -->
+            {{#if has_complaints}}
+            <div class="section">
+                <div class="section-title warning-icon">Areas to Improve</div>
+                <ul class="theme-list">
+                    {{#each complaint_themes}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            {{/if}}
+            
+            <!-- Insight Section -->
+            {{#if has_insight}}
+            <div class="section">
+                <div class="insight-box">
+                    {{operational_insight}}
+                </div>
+            </div>
+            {{/if}}
+            
+            <!-- CTA Button -->
+            {{#if has_pending_reviews}}
+            <div class="cta-container">
+                <a href="{{reply_link}}" class="cta-button">Reply to Pending Reviews</a>
+            </div>
+            {{/if}}
+            
+            {{else}}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <p style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No reviews this week</p>
+                <p>Don't worry—customers are still discovering you! Keep up the great work.</p>
+            </div>
+            {{/if}}
+            
+            <div class="divider"></div>
+            
+            <p style="font-size: 14px; color: #6c757d; margin-top: 24px;">
+                Questions? Reply to this email or text us anytime.
+            </p>
+            
+            <p style="font-size: 14px; color: #333; margin-top: 16px;">
+                — Maitreo
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 8px 0;">
+                <a href="{{billing_link}}">Manage Billing</a> • 
+                <a href="{{support_link}}">Get Support</a> • 
+                <a href="{{unsubscribe_link}}">Unsubscribe</a>
+            </p>
+            <p style="margin: 0; font-size: 12px;">
+                © {{current_year}} Maitreo. Helping restaurants turn feedback into growth.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

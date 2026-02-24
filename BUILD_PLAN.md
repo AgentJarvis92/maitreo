@@ -48,11 +48,16 @@
 - [ ] Auto-post approved responses back to Google/Yelp
 
 ### Phase 4: SMS System (Day 8)
+- [x] **SMS Command System Design** (COMPLETE - see docs/)
+  - Architecture: `docs/sms-architecture.md`
+  - Templates: `sms-templates.json` (20+ templates)
+  - State Machine: `docs/sms-state-machine.md`
 - [ ] Twilio integration (complete verification)
 - [x] SMS alert template for negative reviews
 - [x] Reply parsing (YES/EDIT/custom text)
 - [ ] Edit flow via SMS
 - [ ] Weekly digest SMS link system
+- [ ] **IMPLEMENTATION:** Build command parser, session manager, handlers (see SMS_DESIGN_COMPLETE.md)
 
 ### Phase 5: Competitor Intelligence (Day 8-9)
 - [ ] Identify similar restaurants (5-mile radius, same category)

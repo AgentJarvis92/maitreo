@@ -1,158 +1,180 @@
-# ReviewReply - Restaurant Review Management SaaS
+# Maitreo Backend - Review Polling System
 
-## Pipeline Architecture
+## Phase 2: Review Monitoring (BUILT)
+
+### What It Does
+- Polls Google Business Profile API every 5 minutes
+- Detects new reviews
+- Classifies sentiment (positive/negative)
+- Stores reviews in Supabase
+- Sends SMS alerts for negative reviews
+
+### Architecture
 
 ```
-Google Places API  ──→  Review Fetcher  ──→  Database (Supabase)
-                              │
-                              ▼
-                      Review Classifier
-                     (4-5★ = positive)
-                     (1-3★ = negative)
-                              │
-                    ┌─────────┴─────────┐
-                    ▼                   ▼
-              POSITIVE              NEGATIVE
-            Auto-post             SMS Approval
-           (mock reply)         (Twilio → Owner)
-                │                       │
-                ▼                       ▼
-          reply_drafts            reply_drafts
-         status: 'sent'        status: 'pending'
-                                        │
-                                Owner replies:
-                              YES → post reply
-                              NO  → skip
-                              [text] → custom reply
+┌─────────────────────────────────────────────┐
+│         Review Polling Service              │
+│                                             │
+│  ┌──────────────────────────────────────┐  │
+│  │  Poll Loop (every 5 minutes)         │  │
+│  │                                      │  │
+│  │  1. Fetch active restaurants        │  │
+│  │  2. Get fresh OAuth access tokens   │  │
+│  │  3. Call Google Business Profile API│  │
+│  │  4. Compare with last known reviews │  │
+│  │  5. Store new reviews in Supabase   │  │
+│  │  6. Classify sentiment (1-3★ = neg) │  │
+│  │  7. Send SMS for negative reviews   │  │
+│  └──────────────────────────────────────┘  │
+└─────────────────────────────────────────────┘
 ```
 
-## Review Flow
+### Files
 
-1. **Fetch**: `reviewPoller.ts` polls Google Places API every 15 min for all restaurants
-2. **Store**: New reviews synced to `reviews` table (deduped by platform + review_id)
-3. **Classify**: Rating-based sentiment (4-5★ positive, 1-3★ negative) + keyword analysis
-4. **Generate Reply**: Currently using placeholder templates (`mockReplyGenerator.ts`)
-   - TODO: Swap with OpenAI GPT-4o via `replyGenerator.ts` when API is active
-5. **Route**:
-   - Positive → auto-post (mock) + mark as sent
-   - Negative → SMS to owner via Twilio for approval
-6. **SMS Webhook**: Owner replies YES/NO/custom text → updates draft status
+- **`services/review-poller.js`** - Core polling logic
+- **`server.js`** - Express server + background poller
+- **`routes/google-oauth.js`** - OAuth endpoints (Phase 1)
+- **`routes/sms-webhooks.js`** - Twilio SMS handler (Phase 3)
+- **`routes/reviews.js`** - Manual review operations
 
-## Key Files
+### Setup
 
-| File | Purpose |
-|------|---------|
-| `src/services/reviewFetcher.ts` | Fetch & sync reviews from Google |
-| `src/services/reviewClassifier.ts` | Classify sentiment, determine routing |
-| `src/services/reviewProcessor.ts` | Main pipeline orchestrator |
-| `src/services/mockReplyGenerator.ts` | Placeholder replies (until OpenAI) |
-| `src/services/replyGenerator.ts` | OpenAI GPT-4o reply generation (TODO) |
-| `src/services/onboarding.ts` | Add restaurants, validate place IDs |
-| `src/jobs/reviewPoller.ts` | Cron job: poll all restaurants |
-| `src/sms/webhookHandler.ts` | Twilio incoming SMS webhook |
-| `src/sms/smsService.ts` | SMS formatting and approval flow |
+1. **Install dependencies:**
+   ```bash
+   cd backend
+   npm install
+   ```
 
-## Database Schema
+2. **Configure environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your credentials
+   ```
 
-- **restaurants** — Business profiles, owner_phone, google_place_id
-- **reviews** — Ingested reviews (unique by platform + review_id)
-- **reply_drafts** — AI-generated replies (pending/approved/rejected/sent)
-- **sms_messages** — SMS audit trail
-- **newsletters** — Weekly intelligence digests
+3. **Start server:**
+   ```bash
+   npm start
+   ```
 
-## Quick Start
+### Environment Variables
 
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | Supabase service role key (admin access) |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `TOKEN_ENCRYPTION_KEY` | 64-char hex key for encrypting OAuth tokens |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token |
+| `TWILIO_PHONE_NUMBER` | Maitreo phone number (+18553405068) |
+| `OPENAI_API_KEY` | OpenAI API key for response generation |
+
+### Testing
+
+**Test single poll cycle:**
 ```bash
-# Install
-npm install
-
-# Run full pipeline test
-npx tsx test-full-pipeline.ts
-
-# Run review poller once
-npx tsx src/jobs/reviewPoller.ts
-
-# Run poller continuously (every 15 min)
-npx tsx src/jobs/reviewPoller.ts --loop
-
-# Start HTTP server (health check + webhooks)
-npx tsx src/index.ts
+npm run poll
 ```
 
-## Environment Variables
-
-See `.env` for required keys:
-- `GOOGLE_PLACES_API_KEY` — Google Places API
-- `SUPABASE_URL` / `SUPABASE_KEY` / `SUPABASE_SERVICE_ROLE_KEY` — Database
-- `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` — SMS
-- `OPENAI_API_KEY` — AI reply generation (TODO: activate)
-
-## Testing
-
+**Start continuous polling:**
 ```bash
-# Full end-to-end test (onboard → fetch → classify → reply → route)
-npx tsx test-full-pipeline.ts
-
-# Quick API tests
-npx tsx src/test-pipeline.ts
-npx tsx src/test-twilio.ts
+npm start
 ```
 
-## ✅ Current Status (2026-02-11)
+### Database Schema
 
-**Pipeline is LIVE and working:**
-- ✅ Google Places API (New) - Fetching real reviews from Joe's Pizza
-- ✅ Mock Reply Generator - Template-based replies (40+ variations)
-- ✅ SMS Approval - Twilio integration tested and working
-- ✅ Review Classification - 4-5★ = auto-post, 1-3★ = SMS approval
-- ✅ Database - Supabase storing reviews + reply drafts
-- ✅ **Cron Job - Auto-checks every 15 minutes via OpenClaw**
+Reviews are stored in `reviews` table:
+```sql
+{
+  id: uuid,
+  restaurant_id: uuid,
+  google_review_id: text,
+  reviewer_name: text,
+  rating: int (1-5),
+  comment: text,
+  sentiment: text ('positive' | 'negative'),
+  create_time: timestamp,
+  update_time: timestamp,
+  status: text ('pending_review' | 'approved' | 'ignored'),
+  ai_response: text (generated response),
+  posted_at: timestamp (when response was posted to Google)
+}
+```
 
-### 🧪 Quick Tests
+### Sentiment Classification
 
+- **Positive:** 4-5 stars
+  - Status: `auto_approved`
+  - Action: No SMS alert (can be reviewed in weekly digest)
+
+- **Negative:** 1-3 stars
+  - Status: `pending_review`
+  - Action: Immediate SMS alert to owner
+  - SMS format:
+    ```
+    ⚠️ NEW REVIEW (2⭐)
+    
+    "Food was cold and service was slow."
+    
+    – John D.
+    
+    Reply APPROVE to post AI response
+    Reply EDIT to customize response
+    Reply IGNORE to skip
+    ```
+
+### API Endpoints
+
+- `GET /health` - Server health check
+- `GET /api/google/auth` - Start Google OAuth flow (Phase 1)
+- `GET /api/google/callback` - OAuth callback (Phase 1)
+- `POST /api/sms/incoming` - Twilio webhook (Phase 3)
+- `GET /api/reviews/:restaurantId` - List reviews (TODO)
+
+### Next Steps (Phase 3)
+
+- [ ] SMS command parsing (APPROVE, EDIT, IGNORE, etc.)
+- [ ] AI response generation (OpenAI GPT-4o-mini)
+- [ ] Response posting to Google Business Profile
+- [ ] Weekly digest generator
+
+### Deployment
+
+**Railway:**
 ```bash
-# Test with real Google reviews (no API needed)
-npx tsx run-live-test.ts
+# Install Railway CLI
+npm install -g @railway/cli
 
-# Test negative review SMS flow
-npx tsx test-negative-review.ts
-
-# Run cron job manually
-npx tsx cron-review-checker.ts
+# Deploy backend
+railway up
 ```
 
-### ⏰ Automated Review Checking
+**Environment:** Set all env vars in Railway dashboard
 
-**Active cron job:** Checks for new reviews **every 15 minutes**
-- Fetches from Google Places API
-- Processes through full pipeline
-- Auto-posts positive reviews (currently mocked)
-- Sends SMS approval for negative reviews
-- Reports summary via iMessage
+### Monitoring
 
-See `CRON_SETUP.md` for cron management commands.
+Check logs for polling activity:
+```
+=== Starting Review Poll Cycle ===
+Time: 2026-02-13T20:35:00.000Z
+Polling 1 restaurant(s)...
+[Luigi's Pizza] Starting review poll...
+[Luigi's Pizza] Found 2 new review(s)
+[Luigi's Pizza] SMS alert sent for review 123
 
-### 🚧 Still Using Mocks
+=== Poll Cycle Complete ===
+Success: 1, Failed: 0, New Reviews: 2
+```
 
-- **Mock replies** instead of OpenAI (waiting for $10 credit to activate)
-- **Mock posting** instead of Google Business Profile API (can add later)
-- **SMS approval flow works** - tested and functional ✅
+### Error Handling
 
-### 📱 What You'll Receive
+- OAuth token refresh failures logged to `restaurants.last_error`
+- Failed polls don't crash service (Promise.allSettled)
+- Continues polling other restaurants if one fails
+- SMS failures logged but don't stop polling
 
-When a **negative review** (1-3★) comes in:
-1. SMS notification with review text
-2. AI-generated draft reply
-3. Options: Reply YES to approve, NO to skip, or type custom text
+---
 
-When the **cron runs** (every 15 min):
-- iMessage notification if new reviews found
-- Summary: X restaurants checked, Y new reviews, Z SMS sent
-
-### 🚀 Next Steps
-
-1. **Activate OpenAI** - Replace mock generator with GPT-4o ($10 credit pending)
-2. **Add webhook handler** - Process SMS replies (YES/NO/custom text)
-3. **Real posting to Google** - Connect Business Profile API (optional)
-4. **Find pilot customer** - Test with real restaurant
-
+**Status:** ✅ Phase 2 Complete (untested)
+**Next:** Phase 3 - SMS Command System
