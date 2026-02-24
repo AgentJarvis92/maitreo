@@ -174,13 +174,17 @@ export class IngestionJob {
           console.log(`  💬 Generated reply draft: ${replyDraft.id}`);
 
           // Send email to owner
-          await emailService.sendReplyDraftEmail(
-            restaurant.owner_email,
-            restaurant.name,
-            review,
-            replyDraft
-          );
-          console.log(`  📧 Email sent to ${restaurant.owner_email}`);
+          if (restaurant.owner_email) {
+            await emailService.sendReplyDraftEmail(
+              restaurant.owner_email,
+              restaurant.name,
+              review,
+              replyDraft
+            );
+            console.log(`  📧 Email sent to ${restaurant.owner_email}`);
+          } else {
+            console.warn(`  ⚠️  No owner email for restaurant ${restaurant.name}`);
+          }
 
           newReviewsCount++;
         }

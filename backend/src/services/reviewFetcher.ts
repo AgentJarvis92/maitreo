@@ -4,7 +4,7 @@
  * Deduplicates by platform + review_id.
  */
 
-import { supabase } from './database.js';
+import { supabase } from './database';
 import { googleReviewSource } from '../sources/google.js';
 import { classifySentiment } from './sentimentClassifier.js';
 import type { Review } from '../types/models.js';

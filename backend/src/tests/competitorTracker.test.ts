@@ -4,7 +4,7 @@
  */
 
 import { competitorTracker } from '../services/competitorTracker.js';
-import { supabase } from '../services/database.js';
+import { supabase } from '../services/database';
 import type { Restaurant } from '../types/models.js';
 
 async function testCompetitorTracker() {

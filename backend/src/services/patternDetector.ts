@@ -10,7 +10,7 @@
  * - Actionable insights for owners
  */
 
-import { supabase } from './database.js';
+import { supabase } from './database';
 import type { Review } from '../types/models.js';
 
 export interface Pattern {

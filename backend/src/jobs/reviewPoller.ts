@@ -11,7 +11,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { supabase } from '../services/database.js';
+import { supabase } from '../services/database';
 import { syncNewReviews } from '../services/reviewFetcher.js';
 import { processNewReviews, type ProcessResult } from '../services/reviewProcessor.js';
 import type { Restaurant } from '../types/models.js';

@@ -10,7 +10,7 @@
  * - Identify emerging threats
  */
 
-import { supabase } from './database.js';
+import { supabase } from './database';
 import { yelpService } from './yelpService.js';
 import type { Restaurant, Competitor } from '../types/models.js';
 

@@ -134,13 +134,17 @@ export class NewsletterJob {
       console.log(`  ✅ Newsletter saved: ${newsletter.id}`);
 
       // Send email
-      console.log(`  📧 Sending email to ${restaurant.owner_email}...`);
-      await emailService.sendNewsletterEmail(
-        restaurant.owner_email,
-        restaurant.name,
-        newsletter
-      );
-      console.log(`  ✅ Newsletter email sent!`);
+      if (restaurant.owner_email) {
+        console.log(`  📧 Sending email to ${restaurant.owner_email}...`);
+        await emailService.sendNewsletterEmail(
+          restaurant.owner_email,
+          restaurant.name,
+          newsletter
+        );
+        console.log(`  ✅ Newsletter email sent!`);
+      } else {
+        console.warn(`  ⚠️  No owner email for restaurant ${restaurant.name}`);
+      }
 
     } catch (error) {
       console.error(`  ❌ Error processing newsletter:`, error);

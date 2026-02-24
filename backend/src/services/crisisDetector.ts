@@ -9,7 +9,7 @@
  * - Sudden drop in average rating
  */
 
-import { supabase } from './database.js';
+import { supabase } from './database';
 import type { Review, Restaurant } from '../types/models.js';
 import { twilioClient } from '../sms/twilioClient.js';
 

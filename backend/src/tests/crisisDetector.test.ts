@@ -4,7 +4,7 @@
  */
 
 import { crisisDetector } from '../services/crisisDetector.js';
-import { supabase } from '../services/database.js';
+import { supabase } from '../services/database';
 
 async function testCrisisDetector() {
   console.log('🧪 Testing Crisis Detector\n');

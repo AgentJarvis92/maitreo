@@ -4,7 +4,7 @@
  */
 
 import { patternDetector } from '../services/patternDetector.js';
-import { supabase } from '../services/database.js';
+import { supabase } from '../services/database';
 
 async function testPatternDetector() {
   console.log('🧪 Testing Pattern Detector\n');

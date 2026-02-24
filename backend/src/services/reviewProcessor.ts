@@ -6,7 +6,7 @@
  * Uses real OpenAI GPT-4o for reply generation with fallback to mock generator on API errors.
  */
 
-import { supabase } from './database.js';
+import { supabase } from './database';
 import { classifySentiment, type SentimentResult } from './sentimentClassifier.js';
 import { generateReply } from './replyGeneratorOpenAI.js';
 import { twilioClient } from '../sms/twilioClient.js';
