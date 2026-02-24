@@ -15,11 +15,12 @@ import { query } from '../db/client.js';
 
 dotenv.config();
 
+const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_stub_key_not_configured';
 if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is required');
+  console.warn('⚠️  STRIPE_SECRET_KEY not configured - Stripe operations will fail at runtime');
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+export const stripe = new Stripe(stripeKey);
 
 // ─── Constants ───────────────────────────────────────────────────────
 
