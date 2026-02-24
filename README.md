@@ -1,169 +1,158 @@
-# Restaurant SaaS Product/Offer Materials
+# ReviewReply - Restaurant Review Management SaaS
 
-## 📁 Deliverables Created
+## Pipeline Architecture
 
-All files created in: `~/restaurant-saas/`
+```
+Google Places API  ──→  Review Fetcher  ──→  Database (Supabase)
+                              │
+                              ▼
+                      Review Classifier
+                     (4-5★ = positive)
+                     (1-3★ = negative)
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+              POSITIVE              NEGATIVE
+            Auto-post             SMS Approval
+           (mock reply)         (Twilio → Owner)
+                │                       │
+                ▼                       ▼
+          reply_drafts            reply_drafts
+         status: 'sent'        status: 'pending'
+                                        │
+                                Owner replies:
+                              YES → post reply
+                              NO  → skip
+                              [text] → custom reply
+```
 
-### 1. **landing-page-copy.md**
-Complete landing page with:
-- Hero section with pain-focused headline: "Stop Losing Customers to Unanswered Reviews"
-- Problem/solution framing
-- Feature breakdown
-- Pricing tiers (detailed below)
-- FAQ section
-- Social proof / testimonials
-- Multiple CTAs with 30-day free trial offer
+## Review Flow
 
-### 2. **onboarding-form.md**
-28-question intake form covering:
-- Restaurant basics & platform access
-- Brand voice & tone customization
-- Response preferences & urgency settings
-- Competitor selection & intel priorities
-- Success metrics & goals
+1. **Fetch**: `reviewPoller.ts` polls Google Places API every 15 min for all restaurants
+2. **Store**: New reviews synced to `reviews` table (deduped by platform + review_id)
+3. **Classify**: Rating-based sentiment (4-5★ positive, 1-3★ negative) + keyword analysis
+4. **Generate Reply**: Currently using placeholder templates (`mockReplyGenerator.ts`)
+   - TODO: Swap with OpenAI GPT-4o via `replyGenerator.ts` when API is active
+5. **Route**:
+   - Positive → auto-post (mock) + mark as sent
+   - Negative → SMS to owner via Twilio for approval
+6. **SMS Webhook**: Owner replies YES/NO/custom text → updates draft status
 
-### 3. **competitor-intel-examples.md**
-3 full newsletter examples for different restaurant types:
-- **Example 1:** Casual dining (BBQ restaurant in Atlanta)
-- **Example 2:** Upscale dining (Fine dining bistro in Portland)
-- **Example 3:** Fast-casual (Poke bowl shop in Denver)
+## Key Files
 
-Each includes: competitive wins, competitor mistakes, menu trends, pricing intel, and specific action items.
+| File | Purpose |
+|------|---------|
+| `src/services/reviewFetcher.ts` | Fetch & sync reviews from Google |
+| `src/services/reviewClassifier.ts` | Classify sentiment, determine routing |
+| `src/services/reviewProcessor.ts` | Main pipeline orchestrator |
+| `src/services/mockReplyGenerator.ts` | Placeholder replies (until OpenAI) |
+| `src/services/replyGenerator.ts` | OpenAI GPT-4o reply generation (TODO) |
+| `src/services/onboarding.ts` | Add restaurants, validate place IDs |
+| `src/jobs/reviewPoller.ts` | Cron job: poll all restaurants |
+| `src/sms/webhookHandler.ts` | Twilio incoming SMS webhook |
+| `src/sms/smsService.ts` | SMS formatting and approval flow |
 
----
+## Database Schema
 
-## 💰 Pricing Structure
+- **restaurants** — Business profiles, owner_phone, google_place_id
+- **reviews** — Ingested reviews (unique by platform + review_id)
+- **reply_drafts** — AI-generated replies (pending/approved/rejected/sent)
+- **sms_messages** — SMS audit trail
+- **newsletters** — Weekly intelligence digests
 
-### Tier 1: Review Reply Drafts
-**$99/month per location**
+## Quick Start
 
-Includes:
-- AI-drafted responses for all reviews (Google, Yelp, TripAdvisor)
-- Brand voice customization
-- Email-first workflow
-- 4-hour response time
-- One-click approval or editing
-- SEO & reputation boost
+```bash
+# Install
+npm install
 
-**Target:** Busy owners who need reputation protection without time investment
+# Run full pipeline test
+npx tsx test-full-pipeline.ts
 
----
+# Run review poller once
+npx tsx src/jobs/reviewPoller.ts
 
-### Tier 2: Review Drafts + Competitor Intel
-**$249/month per location**
+# Run poller continuously (every 15 min)
+npx tsx src/jobs/reviewPoller.ts --loop
 
-Everything in Tier 1, PLUS:
-- Weekly competitor intelligence newsletter
-- Track 3-5 nearby competitors
-- Menu trend analysis
-- Review sentiment comparison
-- Pricing & promotion insights
-- Competitive opportunity identification
+# Start HTTP server (health check + webhooks)
+npx tsx src/index.ts
+```
 
-**Target:** Owners who want to stay ahead and spot market opportunities
+## Environment Variables
 
----
+See `.env` for required keys:
+- `GOOGLE_PLACES_API_KEY` — Google Places API
+- `SUPABASE_URL` / `SUPABASE_KEY` / `SUPABASE_SERVICE_ROLE_KEY` — Database
+- `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` — SMS
+- `OPENAI_API_KEY` — AI reply generation (TODO: activate)
 
-## 🎯 Key Strategic Decisions
+## Testing
 
-### 1. **Pain-First Positioning**
-- Avoided "AI-powered" buzzwords
-- Led with emotional pain: "Stop losing customers to unanswered reviews"
-- Focus on time savings and reputation protection, not technology
+```bash
+# Full end-to-end test (onboard → fetch → classify → reply → route)
+npx tsx test-full-pipeline.ts
 
-### 2. **Email-First Workflow**
-- No dashboard to learn = major differentiator
-- One-click approval ("Reply 'send it'")
-- Mobile-friendly for on-the-go owners
+# Quick API tests
+npx tsx src/test-pipeline.ts
+npx tsx src/test-twilio.ts
+```
 
-### 3. **Competitor Intel as Premium Tier**
-- $150/mo price jump justified by actionable weekly insights
-- Specific, tactical recommendations (not generic data dumps)
-- Positioned as offensive strategy (growth) vs. defensive (reputation)
+## ✅ Current Status (2026-02-11)
 
-### 4. **Trust-Building Elements**
-- 30-day money-back guarantee with specific promise ("save 3 hours or refund")
-- No automatic posting (human always approves)
-- Transparent about public data sources for competitor intel
-- No long-term contracts, cancel anytime
+**Pipeline is LIVE and working:**
+- ✅ Google Places API (New) - Fetching real reviews from Joe's Pizza
+- ✅ Mock Reply Generator - Template-based replies (40+ variations)
+- ✅ SMS Approval - Twilio integration tested and working
+- ✅ Review Classification - 4-5★ = auto-post, 1-3★ = SMS approval
+- ✅ Database - Supabase storing reviews + reply drafts
+- ✅ **Cron Job - Auto-checks every 15 minutes via OpenClaw**
 
-### 5. **Onboarding Focus on Brand Voice**
-- Extensive voice/tone questions to avoid "robotic" responses
-- Examples of words to always/never use
-- Option to paste favorite past responses for style matching
+### 🧪 Quick Tests
 
-### 6. **Competitor Newsletter Structure**
-Each newsletter follows a proven format:
-- What's working (steal these ideas)
-- Competitor mistakes (avoid these, exploit their weakness)
-- Menu/pricing trends (data-driven opportunities)
-- Specific action items (prioritized, tactical)
+```bash
+# Test with real Google reviews (no API needed)
+npx tsx run-live-test.ts
 
----
+# Test negative review SMS flow
+npx tsx test-negative-review.ts
 
-## 🎨 Tone & Voice Guidelines Used
+# Run cron job manually
+npx tsx cron-review-checker.ts
+```
 
-**DO:**
-- Conversational, like talking to a friend
-- Pain-focused ("You're too busy...")
-- Specific time/money savings
-- Acknowledge restaurant reality (inventory, staff, health inspections)
-- Use restaurant owner language
+### ⏰ Automated Review Checking
 
-**DON'T:**
-- Tech jargon or "AI-powered" positioning
-- Overpromise automation
-- Corporate speak
-- Vague benefits
+**Active cron job:** Checks for new reviews **every 15 minutes**
+- Fetches from Google Places API
+- Processes through full pipeline
+- Auto-posts positive reviews (currently mocked)
+- Sends SMS approval for negative reviews
+- Reports summary via iMessage
 
----
+See `CRON_SETUP.md` for cron management commands.
 
-## 📊 Success Metrics to Track (Post-Launch)
+### 🚧 Still Using Mocks
 
-Based on onboarding form insights:
-1. **Time saved per week** (goal: 3+ hours)
-2. **Review response rate improvement**
-3. **Star rating improvement** (Google/Yelp)
-4. **Competitor intel action rate** (% of recommendations implemented)
-5. **Customer retention** (churn rate by tier)
+- **Mock replies** instead of OpenAI (waiting for $10 credit to activate)
+- **Mock posting** instead of Google Business Profile API (can add later)
+- **SMS approval flow works** - tested and functional ✅
 
----
+### 📱 What You'll Receive
 
-## 🚀 Next Steps (Implementation)
+When a **negative review** (1-3★) comes in:
+1. SMS notification with review text
+2. AI-generated draft reply
+3. Options: Reply YES to approve, NO to skip, or type custom text
 
-1. **Design landing page** using copy from landing-page-copy.md
-2. **Build onboarding form** (use Typeform, Google Forms, or embedded on site)
-3. **Set up email templates** for review drafts (approval workflow)
-4. **Create newsletter template** matching competitor-intel-examples.md format
-5. **Beta test** with 3-5 restaurants (one of each type: casual, upscale, fast-casual)
-6. **Refine voice/tone algorithms** based on beta feedback
+When the **cron runs** (every 15 min):
+- iMessage notification if new reviews found
+- Summary: X restaurants checked, Y new reviews, Z SMS sent
 
----
+### 🚀 Next Steps
 
-## 💡 Additional Recommendations
+1. **Activate OpenAI** - Replace mock generator with GPT-4o ($10 credit pending)
+2. **Add webhook handler** - Process SMS replies (YES/NO/custom text)
+3. **Real posting to Google** - Connect Business Profile API (optional)
+4. **Find pilot customer** - Test with real restaurant
 
-### Upsell Opportunities
-- Multi-location discount (3+ locations: 10% off)
-- Annual pre-pay discount (2 months free = 16% savings)
-- Add-on: "Crisis response" for PR disasters ($500 one-time)
-
-### Content Marketing
-- Blog: "5 Review Response Templates That Actually Work"
-- Case study: "How [Restaurant] Went from 3.8 to 4.6 Stars in 60 Days"
-- Free tool: "Review Response Quality Checker" (lead gen)
-
-### Partnership Opportunities
-- POS systems (Toast, Square) integration
-- Restaurant consulting firms (referral partnerships)
-- Local restaurant associations (group discounts)
-
----
-
-**Files Created:**
-- `/Users/jarvis/.openclaw/workspace/restaurant-saas/landing-page-copy.md`
-- `/Users/jarvis/.openclaw/workspace/restaurant-saas/onboarding-form.md`
-- `/Users/jarvis/.openclaw/workspace/restaurant-saas/competitor-intel-examples.md`
-- `/Users/jarvis/.openclaw/workspace/restaurant-saas/README.md`
-
-**Status:** ✅ All deliverables complete
-**Time to review:** ~15 minutes
