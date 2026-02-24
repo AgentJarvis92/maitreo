@@ -1,0 +1,1247 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">Maitreo | Intelligent Reputation</title>
+    <style vid="5">
+        
+
+        :root {
+            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --c-bg: #1a1a1a; 
+            --c-white: #FFFFFF;
+            --c-black: #080808;
+            --c-accent: #EAE8E4; 
+            
+            --s-gutter: 24px;
+            --s-unit: 8px;
+            
+            --radius: 0px; 
+            --border-width: 1px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: #121212;
+            color: var(--c-white);
+            overflow-x: hidden;
+            
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2787&auto=format&fit=crop'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        
+        h1, h2, h3, h4, .label {
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+        }
+
+        p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 400;
+        }
+
+        
+        .screen {
+            max-width: 100%;
+            margin: 0 auto;
+            padding-bottom: 0; 
+            overflow: hidden;
+            max-height: 100vh;
+            overflow-y: auto;
+            /* scroll-snap-type: y proximity; */
+        }
+
+        section {
+            padding: 60px var(--s-gutter);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px); 
+            background: rgba(0,0,0,0.2);
+            /* scroll-snap-align: start; */
+        }
+
+        section:first-of-type {
+            min-height: 100vh;
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-bottom: none;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.8));
+            backdrop-filter: none;
+            padding: 0 var(--s-gutter) 24px;
+            margin-top: -20px;
+        }
+
+        
+        .brand-header {
+            font-size: 12px;
+            margin-bottom: 24px;
+            opacity: 0.9;
+        }
+
+        .hero-title {
+            font-size: 28px;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            letter-spacing: 0.05em;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-sub {
+            font-size: 14px;
+            max-width: 320px;
+            opacity: 0.7;
+            margin: 0 auto 16px;
+        }
+        
+        .trust-line {
+            font-size: 10px;
+            opacity: 0.5;
+            margin: 0 auto 40px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            max-width: 300px;
+        }
+        
+        .chip-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            max-width: 320px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .chip {
+            font-size: 10px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+            line-height: 1.3;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            height: 56px;
+            background: var(--c-white);
+            color: var(--c-black);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            width: 100%;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--c-white);
+            color: var(--c-white);
+        }
+
+        
+        .sms-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .sms-bubble {
+            padding: 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 85%;
+            font-size: 13px;
+            position: relative;
+        }
+
+        .sms-bubble.left {
+            align-self: flex-start;
+            border-left: 2px solid var(--c-white); 
+        }
+
+        .sms-bubble.right {
+            align-self: flex-end;
+            background: var(--c-white);
+            color: var(--c-black);
+        }
+        
+        .tab-container {
+            margin-top: 32px;
+        }
+        
+        .tab-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px 8px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            font-family: var(--font-main);
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn.active {
+            color: var(--c-white);
+            border-bottom-color: var(--c-white);
+        }
+        
+        .tab-content {
+            position: relative;
+            min-height: 120px;
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        .sms-meta {
+            display: block;
+            font-size: 10px;
+            margin-top: 8px;
+            opacity: 0.5;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        
+        .card {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 24px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .card-label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 8px;
+        }
+
+        .stat-val {
+            font-size: 32px;
+            font-weight: 300;
+        }
+
+        .stat-delta {
+            font-size: 12px;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+            border-left: 1px solid rgba(255,255,255,0.2);
+            margin-left: 8px;
+            margin-top: 32px;
+        }
+
+        .timeline-item {
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -29px; 
+            top: 4px;
+            width: 9px;
+            height: 9px;
+            background: var(--c-white);
+            
+        }
+
+        .timeline-time {
+            font-size: 10px;
+            opacity: 0.5;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+
+
+        
+        .u-mt-lg { margin-top: 48px; }
+        .u-mb-sm { margin-bottom: 16px; }
+        
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px; 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .comp-cell {
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .comp-val { font-size: 18px; margin-top: 8px; }
+        
+        
+        .incident-step {
+            margin-bottom: 40px;
+        }
+        
+        .incident-step-primary {
+            padding: 24px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            margin-left: -24px;
+            margin-right: -24px;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+        
+        .step-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255,255,255,0.5);
+            display: block;
+            margin-bottom: 16px;
+        }
+        
+        .review-card {
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-left: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .review-meta {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        
+        .pillar-carousel {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            margin-top: 32px;
+            margin-left: -24px;
+            margin-right: -24px;
+            padding: 0 24px;
+        }
+        
+        .pillar-carousel::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .pillar-card {
+            flex: 0 0 calc(100% - 48px);
+            scroll-snap-align: start;
+            padding: 32px 24px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 32px;
+        }
+        
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .dot.active {
+            background: var(--c-white);
+            width: 24px;
+            border-radius: 3px;
+        }
+        
+        
+        .accordion {
+            margin-top: 32px;
+        }
+        
+        .accordion-item {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .accordion-header {
+            width: 100%;
+            padding: 24px 0;
+            background: transparent;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-size: 13px;
+            color: var(--c-white);
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            transition: opacity 0.2s ease;
+        }
+        
+        .accordion-header:hover {
+            opacity: 0.7;
+        }
+        
+        .accordion-icon {
+            font-size: 20px;
+            font-weight: 300;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+        
+        .accordion-item.active .accordion-icon {
+            transform: rotate(45deg);
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .accordion-item.active .accordion-content {
+            max-height: 500px;
+            padding-bottom: 24px;
+        }
+        
+        .accordion-content p {
+            font-size: 13px;
+            line-height: 1.7;
+            opacity: 0.8;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        
+        .slideshow-container {
+            position: relative;
+            min-height: 300px;
+        }
+        
+        .slideshow-step {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: none;
+            pointer-events: none;
+        }
+        
+        .slideshow-step.active {
+            display: block;
+            position: relative;
+            pointer-events: auto;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .monitoring-indicator {
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 20px var(--s-gutter);
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+        }
+        
+        .nav-logo {
+            font-size: 12px;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+            color: var(--c-white);
+            text-transform: uppercase;
+        }
+        
+        .nav-btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+            padding: 0 20px;
+            background: var(--c-white);
+            color: var(--c-black);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .nav-btn:active {
+            transform: scale(0.98);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(10px); }
+        }
+        
+        .fixed-action {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 24px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: none;
+        }
+        
+        .fixed-action.show {
+            animation: fadeIn 0.4s ease forwards;
+            pointer-events: auto;
+        }
+        
+        .fixed-action.hide {
+            animation: fadeOut 0.4s ease forwards;
+            pointer-events: none;
+        }
+
+    </style>
+    <script vid="6">
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabPanels.forEach(p => p.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+            
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const accordionItem = this.parentElement;
+                    const isActive = accordionItem.classList.contains('active');
+                    document.querySelectorAll('.accordion-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    if (!isActive) {
+                        accordionItem.classList.add('active');
+                    }
+                });
+            });
+
+            const slideshowSteps = document.querySelectorAll('.slideshow-step');
+            let currentSlideIndex = 0;
+            let slideshowStarted = false;
+            let slideshowInterval;
+            
+            function showSlide(index) {
+                slideshowSteps.forEach((step, i) => {
+                    step.classList.remove('active', 'exiting');
+                    if (i < index) step.classList.add('exiting');
+                });
+                if (slideshowSteps[index]) slideshowSteps[index].classList.add('active');
+            }
+            
+            function startSlideshow() {
+                if (slideshowStarted) return;
+                slideshowStarted = true;
+                currentSlideIndex = 0;
+                showSlide(currentSlideIndex);
+                // Faster on mobile: 2.5s, desktop: 4s
+                const isMobile = window.innerWidth < 768;
+                const slideSpeed = isMobile ? 2500 : 4000;
+                slideshowInterval = setInterval(() => {
+                    currentSlideIndex++;
+                    if (currentSlideIndex >= slideshowSteps.length) currentSlideIndex = 0;
+                    showSlide(currentSlideIndex);
+                }, slideSpeed);
+            }
+            
+            function stopSlideshow() {
+                if (slideshowInterval) {
+                    clearInterval(slideshowInterval);
+                    slideshowStarted = false;
+                }
+            }
+            
+            function checkLiveExampleVisibility() {
+                const liveExampleSection = document.querySelector('section[vid="27"]');
+                if (!liveExampleSection) return;
+                const rect = liveExampleSection.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                if (rect.top < windowHeight * 0.7 && rect.bottom > windowHeight * 0.3) {
+                    startSlideshow();
+                } else {
+                    stopSlideshow();
+                }
+            }
+            
+            window.addEventListener('scroll', checkLiveExampleVisibility);
+            checkLiveExampleVisibility();
+            
+            // Auto-start slideshow after 1 second as fallback
+            setTimeout(() => { startSlideshow(); }, 1000);
+            
+            const fixedButton = document.querySelector('.fixed-action');
+            const pricingSection = document.querySelector('section[vid="211"]');
+            const gettingStartedSection = document.querySelector('section[vid="226"]');
+            const maitredSection = document.querySelector('section[vid="293"]');
+            
+            function checkFixedButtonVisibility() {
+                if (!fixedButton || !pricingSection || !gettingStartedSection || !maitredSection) return;
+                const pricingSectionRect = pricingSection.getBoundingClientRect();
+                const gettingStartedRect = gettingStartedSection.getBoundingClientRect();
+                const maitredRect = maitredSection.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                
+                // Hide when pricing section is in view
+                if (pricingSectionRect.top <= windowHeight * 0.8 && pricingSectionRect.bottom >= 0) {
+                    fixedButton.classList.remove('show');
+                    fixedButton.classList.add('hide');
+                }
+                // Show again when getting started section is in view
+                else if (gettingStartedRect.top <= windowHeight * 0.8 && gettingStartedRect.bottom >= 0) {
+                    fixedButton.classList.remove('hide');
+                    fixedButton.classList.add('show');
+                }
+                // Hide permanently when maitre d section is in view
+                else if (maitredRect.top <= windowHeight * 0.8) {
+                    fixedButton.classList.remove('show');
+                    fixedButton.classList.add('hide');
+                }
+                // Show by default
+                else {
+                    fixedButton.classList.remove('hide');
+                    fixedButton.classList.add('show');
+                }
+            }
+            
+            const screen = document.querySelector('.screen');
+            if (screen) {
+                screen.addEventListener('scroll', checkFixedButtonVisibility);
+            }
+            window.addEventListener('scroll', checkFixedButtonVisibility);
+            checkFixedButtonVisibility();
+            
+
+            
+            const platforms = ['GOOGLE', 'YELP', 'TRIPADVISOR'];
+            let currentPlatformIndex = 0;
+            const platformText = document.querySelector('.monitoring-platform');
+            if (platformText) {
+                setInterval(() => {
+                    currentPlatformIndex = (currentPlatformIndex + 1) % platforms.length;
+                    platformText.textContent = platforms[currentPlatformIndex] + '...';
+                }, 3000);
+            }
+            
+            const pillarCarousel = document.querySelector('.pillar-carousel');
+            const pillarDots = document.querySelectorAll('.carousel-dots .dot');
+            if (pillarCarousel && pillarDots.length > 0) {
+                pillarCarousel.addEventListener('scroll', function() {
+                    const scrollLeft = pillarCarousel.scrollLeft;
+                    const cardWidth = pillarCarousel.querySelector('.pillar-card').offsetWidth + 16;
+                    const activeIndex = Math.round(scrollLeft / cardWidth);
+                    pillarDots.forEach((dot, index) => {
+                        if (index === activeIndex) {
+                            dot.classList.add('active');
+                        } else {
+                            dot.classList.remove('active');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</head>
+<body vid="7">
+
+    <nav class="nav-bar" vid="8">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;" vid="9">
+            <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" vid="10"></circle>
+            <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square" vid="11"></path>
+        </svg>
+        <div class="nav-logo" vid="12">MAITREO</div>
+    </nav>
+    
+    <div class="screen" vid="13">
+        
+        
+        <section vid="14">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 24px;" vid="15">
+                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" vid="16"></circle>
+                <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square" vid="17"></path>
+            </svg>
+            <div class="brand-header" vid="18">MAITREO</div>
+            <h1 class="hero-title" vid="19">YOUR REPUTATION<br vid="20">HAS A MAÎTRE D' NOW.</h1>
+            <p class="hero-sub" vid="21">Monitor every review. Get alerts and respond instantly by text — only when it matters.</p>
+            <p class="trust-line" vid="22" style="opacity: 0.4; font-size: 12px; letter-spacing: 0.04em; margin-top: 8px;">No dashboard. No logins.</p>
+            <p class="trust-line" style="opacity: 0.5; font-size: 11px; letter-spacing: 0.04em; margin-top: 16px;">Works with Google, Yelp &amp; TripAdvisor • Checked every 15 minutes, 24/7</p>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; font-size: 11px; letter-spacing: 0.05em;" vid="23">
+                <span class="monitoring-indicator" style="width: 6px; height: 6px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 8px #00ff00;" vid="24"></span>
+                <span style="opacity: 0.5;" vid="25">MONITORING</span>
+                <span class="monitoring-platform" style="color: var(--c-white); font-weight: 500;" vid="26">GOOGLE...</span>
+            </div>
+        </section>
+
+        
+        <section style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden;" vid="27">
+            <span class="label" vid="28"><span style="display:inline-block;position:relative;width:8px;height:8px;margin-right:8px;vertical-align:middle;"><span style="position:absolute;display:inline-flex;width:100%;height:100%;border-radius:50%;background:#22c55e;opacity:0.75;animation:pulse 1s ease-in-out infinite;"></span><span style="position:relative;display:inline-flex;width:8px;height:8px;border-radius:50%;background:#22c55e;"></span></span>How It Works, In Real Time</span>
+            <h2 class="hero-title" style="font-size: 20px; margin-top: 32px; margin-bottom: 40px; max-width: 100%;" vid="29">How Maitreo Handles a Negative Review</h2>
+            
+            <div class="slideshow-container" vid="30">
+                <div class="incident-step slideshow-step active" data-step="1" vid="31">
+                    <span class="step-label" vid="32">Step 1 — Review Received</span>
+                    <div class="review-card" vid="33">
+                        <p style="color: var(--c-white); margin-bottom: 12px;" vid="34">"The food was excellent, but the wait between courses was longer than expected."</p>
+                        <span class="review-meta" vid="35">2★ — Yelp • 7:42 PM</span>
+                    </div>
+                </div>
+                
+                <div class="incident-step slideshow-step" data-step="2" vid="36">
+                    <span class="step-label" vid="37">Step 2 — Issue Identified</span>
+                    <p vid="38">Service timing concern identified.</p>
+                </div>
+                
+                <div class="incident-step incident-step-primary slideshow-step" data-step="3" vid="39">
+                    <span class="step-label" vid="40">Step 3 — You Get a Text</span>
+                    <div class="sms-container" vid="41">
+                        <div class="sms-bubble left" vid="42">
+                            New 2★ review for The Pepper Room mentioning slow service.<br vid="43"><br vid="44">
+                            Draft reply:<br vid="45">
+                            "We're sorry your experience fell short. This is not the standard we aim to deliver at The Pepper Room. We would appreciate the opportunity to speak with you directly."<br vid="46"><br vid="47">
+                            Reply YES to post.<br vid="48">
+                            Reply EDIT to revise.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="incident-step slideshow-step" data-step="4" vid="49">
+                    <span class="step-label" vid="50">Step 4 — Response Posted</span>
+                    <div class="sms-bubble right" style="max-width: 100px; margin-bottom: 16px; text-align: center;" vid="51">
+                        YES
+                    </div>
+                    <p vid="52">Response posted. Issue addressed.</p>
+                </div>
+            </div>
+        </section>
+
+        
+        <section style="background: rgba(0,0,0,0.9);" vid="53">
+            <span class="label" vid="54">How It Works</span>
+            <div class="tab-container" vid="55">
+                <div class="tab-header" vid="56">
+                    <button class="tab-btn active" data-tab="positive" vid="57">Positive Review</button>
+                    <button class="tab-btn" data-tab="negative" vid="58">Negative Review</button>
+                    <button class="tab-btn" data-tab="crisis" vid="59">Crisis Mode</button>
+                </div>
+                <div class="tab-content" vid="60">
+                    <div class="tab-panel active" id="positive" vid="61">
+                        <div class="sms-bubble left" vid="62">
+                            5★ review for The Pepper Room.<br vid="63">Reply auto-posted.
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="negative" vid="64">
+                        <div class="sms-bubble left" vid="65">
+                            New 2★ review mentioning slow service.<br vid="66">Draft reply provided.<br vid="67"><br vid="68">Reply YES to post.<br vid="69">Reply EDIT to revise.
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="crisis" vid="70">
+                        <div class="sms-bubble left" vid="71">
+                            2 negative reviews in 40 minutes.<br vid="72">Operational issue likely occurring tonight.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section vid="73">
+            <span class="label" vid="74">Crisis Mode</span>
+            <h2 class="hero-title" style="font-size: 20px; margin-top: 32px; margin-bottom: 40px; max-width: 100%;" vid="75">When Something Goes Wrong, You'll Know Immediately</h2>
+            
+            <div class="timeline" vid="76">
+                <div class="timeline-item" vid="77">
+                    <span class="timeline-time" vid="78">19:42</span>
+                    <p vid="79">2★ review mentioning slow service</p>
+                </div>
+                <div class="timeline-item" vid="80">
+                    <span class="timeline-time" vid="81">20:18</span>
+                    <p vid="82">1★ review mentioning long wait between courses</p>
+                </div>
+                <div class="timeline-item" vid="83">
+                    <span class="timeline-time" vid="84">20:19</span>
+                    <p vid="85">Maitreo alerts you</p>
+                </div>
+            </div>
+            
+            <p style="margin-top: 40px; font-size: 14px;" vid="86">Before ratings drop.<br vid="87">Before bookings fall.</p>
+            
+            <p style="margin-top: 24px; font-size: 11px; opacity: 0.5;" vid="88">Most restaurants discover issues hours or days later.</p>
+        </section>
+
+        <section vid="89">
+            <span class="label" vid="90">Three Pillars</span>
+            
+            <div class="pillar-carousel" vid="91">
+                <div class="pillar-card" vid="92">
+                    <h3 style="font-size: 14px; margin-bottom: 24px;" vid="93">Continuous Awareness</h3>
+                    <p style="margin-bottom: 16px;" vid="94">All platforms monitored<br vid="95">Pattern detection</p>
+                    <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-left: 2px solid rgba(255,255,255,0.3);" vid="96">
+                        <span style="font-size: 11px; opacity: 0.6; display: block; margin-bottom: 8px;" vid="97">EXAMPLE</span>
+                        <p style="font-size: 13px;" vid="98">"Slow service" mentioned 3 times this week</p>
+                    </div>
+                </div>
+                
+                <div class="pillar-card" vid="99">
+                    <h3 style="font-size: 14px; margin-bottom: 24px;" vid="100">Intelligent Response</h3>
+                    <p style="margin-bottom: 16px;" vid="101">Auto-post positive reviews<br vid="102">Approve or edit negative replies by SMS</p>
+                    <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-left: 2px solid rgba(255,255,255,0.3);" vid="103">
+                        <span style="font-size: 11px; opacity: 0.6; display: block; margin-bottom: 8px;" vid="104">EXAMPLE</span>
+                        <p style="font-size: 13px;" vid="105">Reply YES to publish instantly</p>
+                    </div>
+                </div>
+                
+                <div class="pillar-card" vid="106">
+                    <h3 style="font-size: 14px; margin-bottom: 24px;" vid="107">Strategic Intelligence</h3>
+                    <p style="margin-bottom: 16px;" vid="108">Weekly digest<br vid="109">Competitor tracking</p>
+                    <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-left: 2px solid rgba(255,255,255,0.3);" vid="110">
+                        <span style="font-size: 11px; opacity: 0.6; display: block; margin-bottom: 8px;" vid="111">EXAMPLE</span>
+                        <p style="font-size: 13px;" vid="112">Miami Chop House +200% review growth</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="carousel-dots" vid="113">
+                <span class="dot active" vid="114"></span>
+                <span class="dot" vid="115"></span>
+                <span class="dot" vid="116"></span>
+            </div>
+        </section>
+
+        <section vid="117">
+            <span class="label" style="display: block; margin-bottom: 12px;" vid="118">Weekly Reputation Roundup</span>
+            <p style="font-size: 13px; opacity: 0.7; margin-bottom: 48px;" vid="119">Your weekly briefing — no dashboard required</p>
+            
+            <p style="font-size: 15px; margin-bottom: 40px; opacity: 0.95;" vid="120">The Pepper Room — Week of Feb 3 – Feb 9</p>
+            
+            <div style="margin-bottom: 48px;" vid="121">
+                <h3 style="font-size: 12px; margin-bottom: 20px; opacity: 0.6;" vid="122">This Week at a Glance</h3>
+                <p style="line-height: 1.8;" vid="123">
+                    14 new reviews (+40%)<br vid="124">
+                    4.6 avg rating (↑ from 4.4)<br vid="125">
+                    18 min response time<br vid="126">
+                    No risk signals detected
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 48px;" vid="127">
+                <h3 style="font-size: 12px; margin-bottom: 20px; opacity: 0.6;" vid="128">Patterns We Noticed</h3>
+                <p style="line-height: 1.8;" vid="129">
+                    "Slow service" in 3 reviews<br vid="130">
+                    Maria mentioned positively 5 times<br vid="131">
+                    Outdoor seating praised
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 48px;" vid="132">
+                <h3 style="font-size: 12px; margin-bottom: 20px; opacity: 0.6;" vid="133">Competitor Watch</h3>
+                <p style="line-height: 1.8;" vid="134">
+                    Miami Chop House: +12 reviews (growth anomaly)<br vid="135">
+                    Harbor Grill: rating declined from 4.5 to 4.2
+                </p>
+            </div>
+            
+            <div vid="136">
+                <h3 style="font-size: 12px; margin-bottom: 20px; opacity: 0.6;" vid="137">Recommended Actions</h3>
+                <p style="line-height: 1.8;" vid="138">
+                    ☐ Investigate Friday dinner timing<br vid="139">
+                    ☐ Recognize Maria<br vid="140">
+                    ☐ Monitor Miami Chop House
+                </p>
+            </div>
+            
+            <p style="margin-top: 56px; font-size: 12px; text-align: center; opacity: 0.5;" vid="141">Delivered weekly to your inbox — no login required</p>
+        </section>
+
+        <section vid="142">
+            <span class="label" vid="143">Competitor Intelligence</span>
+            
+            <div class="card" style="margin-top: 32px;" vid="144">
+                <h3 style="font-size: 16px; margin-bottom: 24px; text-transform: none; letter-spacing: 0;" vid="145">Miami Chop House</h3>
+                <p style="line-height: 1.8; margin-bottom: 16px;" vid="146">
+                    +12 reviews this week<br vid="147">
+                    Typical weekly average: 4<br vid="148">
+                    Growth anomaly detected
+                </p>
+            </div>
+            
+            <p style="margin-top: 40px; font-size: 13px; line-height: 1.6;" vid="149">
+                Most restaurants only watch themselves.<br vid="150">
+                Maitreo watches the market.
+            </p>
+        </section>
+
+        <section vid="151">
+            <span class="label" style="display: block; margin-bottom: 24px;" vid="152">No Dashboard</span>
+            <h2 class="hero-title" style="font-size: 20px; margin-top: 32px; margin-bottom: 16px; max-width: 100%;" vid="153">Most Tools Give You Dashboards.<br vid="154">Maitreo Sends a Text.</h2>
+            <span style="display: block; font-size: 13px; opacity: 0.5; letter-spacing: 0.02em; margin-bottom: 40px;">No dashboard. No logins. No checking. Just alerts when something needs attention.</span>
+            <div style="margin-bottom: 64px;" vid="155">
+                <div style="margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); border: 1px solid rgba(255,255,255,0.08); position: relative; overflow: hidden; height: 140px;" vid="156">
+                    <!-- Top navigation bar -->
+                    <div style="position: absolute; top: 0; left: 0; right: 0; height: 22px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; padding: 0 8px; gap: 4px;" vid="157">
+                        <div style="width: 10px; height: 10px; border: 1px solid rgba(255,255,255,0.15); border-radius: 2px;" vid="158"></div>
+                        <div style="flex: 1; height: 3px; background: rgba(255,255,255,0.1); border-radius: 3px; max-width: 40px;" vid="159"></div>
+                        <div style="width: 8px; height: 8px; border: 1px solid rgba(255,255,255,0.12); border-radius: 50%; margin-left: auto;" vid="160"></div>
+                    </div>
+                    
+                    <!-- Sidebar -->
+                    <div style="position: absolute; top: 22px; left: 0; width: 25px; bottom: 0; background: rgba(0,0,0,0.2); border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 6px; padding: 6px 4px;" vid="161">
+                        <div style="width: 100%; height: 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 2px;" vid="162"></div>
+                        <div style="width: 100%; height: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);" vid="163"></div>
+                        <div style="width: 100%; height: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);" vid="164"></div>
+                        <div style="width: 100%; height: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);" vid="165"></div>
+                    </div>
+                    
+                    <!-- Main content area -->
+                    <div style="margin-top: 28px; margin-left: 31px; opacity: 0.4;" vid="166">
+                        <!-- Stat cards -->
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-bottom: 4px;" vid="167">
+                            <div style="height: 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 4px; display: flex; flex-direction: column; gap: 2px;" vid="168">
+                                <div style="height: 2px; width: 60%; background: rgba(255,255,255,0.15); border-radius: 2px;" vid="169"></div>
+                                <div style="height: 5px; width: 40%; background: rgba(255,255,255,0.2); border-radius: 2px;" vid="170"></div>
+                            </div>
+                            <div style="height: 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 4px; display: flex; flex-direction: column; gap: 2px;" vid="171">
+                                <div style="height: 2px; width: 50%; background: rgba(255,255,255,0.15); border-radius: 2px;" vid="172"></div>
+                                <div style="height: 5px; width: 45%; background: rgba(255,255,255,0.2); border-radius: 2px;" vid="173"></div>
+                            </div>
+                            <div style="height: 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 4px; display: flex; flex-direction: column; gap: 2px;" vid="174">
+                                <div style="height: 2px; width: 55%; background: rgba(255,255,255,0.15); border-radius: 2px;" vid="175"></div>
+                                <div style="height: 5px; width: 35%; background: rgba(255,255,255,0.2); border-radius: 2px;" vid="176"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Large chart area -->
+                        <div style="height: 37px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 6px; margin-bottom: 4px; position: relative;" vid="177">
+                            <!-- Chart legend -->
+                            <div style="display: flex; gap: 3px; margin-bottom: 4px;" vid="178">
+                                <div style="height: 1.5px; width: 15px; background: rgba(255,255,255,0.2);" vid="179"></div>
+                                <div style="height: 1.5px; width: 12px; background: rgba(255,255,255,0.15);" vid="180"></div>
+                                <div style="height: 1.5px; width: 10px; background: rgba(255,255,255,0.1);" vid="181"></div>
+                            </div>
+                            <!-- Chart bars -->
+                            <div style="display: flex; align-items: flex-end; gap: 1.5px; height: 20px;" vid="182">
+                                <div style="flex: 1; background: rgba(255,255,255,0.12); height: 60%;" vid="183"></div>
+                                <div style="flex: 1; background: rgba(255,255,255,0.08); height: 40%;" vid="184"></div>
+                                <div style="flex: 1; background: rgba(255,255,255,0.15); height: 80%;" vid="185"></div>
+                                <div style="flex: 1; background: rgba(255,255,255,0.1); height: 55%;" vid="186"></div>
+                                <div style="flex: 1; background: rgba(255,255,255,0.13); height: 70%;" vid="187"></div>
+                                <div style="flex: 1; background: rgba(255,255,255,0.09); height: 45%;" vid="188"></div>
+                                <div style="flex: 1; background: rgba(255,255,255,0.11); height: 65%;" vid="189"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Table rows -->
+                        <div style="display: flex; flex-direction: column; gap: 2px;" vid="190">
+                            <div style="height: 9px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; padding: 0 4px; gap: 3px;" vid="191">
+                                <div style="width: 1.5px; height: 1.5px; background: rgba(255,255,255,0.3); border-radius: 50%;" vid="192"></div>
+                                <div style="flex: 1; height: 1.5px; background: rgba(255,255,255,0.15);" vid="193"></div>
+                                <div style="width: 10px; height: 1.5px; background: rgba(255,255,255,0.2);" vid="194"></div>
+                            </div>
+                            <div style="height: 9px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; padding: 0 4px; gap: 3px;" vid="195">
+                                <div style="width: 1.5px; height: 1.5px; background: rgba(255,255,255,0.3); border-radius: 50%;" vid="196"></div>
+                                <div style="flex: 1; height: 1.5px; background: rgba(255,255,255,0.12);" vid="197"></div>
+                                <div style="width: 7.5px; height: 1.5px; background: rgba(255,255,255,0.18);" vid="198"></div>
+                            </div>
+                            <div style="height: 9px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; padding: 0 4px; gap: 3px;" vid="199">
+                                <div style="width: 1.5px; height: 1.5px; background: rgba(255,255,255,0.3); border-radius: 50%;" vid="200"></div>
+                                <div style="flex: 1; height: 1.5px; background: rgba(255,255,255,0.12);" vid="201"></div>
+                                <div style="width: 9px; height: 1.5px; background: rgba(255,255,255,0.18);" vid="202"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bottom action buttons -->
+                        <div style="margin-top: 6px; display: flex; gap: 2px;" vid="203">
+                            <div style="flex: 1; height: 11px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);" vid="204"></div>
+                            <div style="flex: 1; height: 11px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);" vid="205"></div>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size: 12px; text-align: center; opacity: 0.6;" vid="206">The old way: Another login. Another dashboard. Another thing to check</p>
+            </div>
+            
+            <div vid="207">
+                <div class="sms-bubble left" style="max-width: 100%; margin: 0 auto 16px;" vid="208">
+                    2 negative reviews in 40 minutes.<br vid="209">
+                    Operational issue likely occurring tonight.
+                </div>
+                <p style="font-size: 12px; text-align: center; opacity: 0.6;" vid="210">The Maitreo Way: JUST CLARITY.</p>
+            </div>
+        </section>
+
+        <section style="background: rgba(0,0,0,0.9);" vid="211">
+            <span class="label" style="display: block; margin-bottom: 48px;" vid="212">Pricing</span>
+            
+            <div style="text-align: center; max-width: 320px; margin: 0 auto;" vid="213">
+                <span style="display: block; font-size: 13px; opacity: 0.5; letter-spacing: 0.03em; margin-bottom: 24px;">Costs less than one lost table per week.</span>
+                <div style="font-size: 48px; font-weight: 300; margin-bottom: 8px;" vid="214">$99</div>
+                <p style="font-size: 13px; opacity: 0.6; margin-bottom: 12px;" vid="215">per month / per location</p>
+                <p style="font-size: 12px; opacity: 0.4; margin-bottom: 40px;">No contracts. Cancel anytime.</p>
+                
+                <p style="font-size: 12px; opacity: 0.7; margin-bottom: 32px; line-height: 1.6;" vid="216">
+                    7-day free trial<br vid="217">
+                    Cancel anytime
+                </p>
+                
+                <div style="text-align: left; margin-bottom: 48px;" vid="218">
+                    <p style="font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px;" vid="219">Includes:</p>
+                    <p style="line-height: 1.9; font-size: 13px;" vid="220">
+                        Google, Yelp, TripAdvisor<br vid="221">
+                        Unlimited reviews<br vid="222">
+                        Auto-post positives<br vid="223">
+                        Approve negatives via SMS<br vid="224">
+                        Weekly digest
+                    </p>
+                </div>
+                
+                <button class="btn" style="width: 100%;" vid="225">Start Free Trial</button>
+            </div>
+        </section>
+
+        <section vid="226">
+            <span class="label" vid="227">Getting Started</span>
+            <h2 class="hero-title" style="font-size: 20px; margin-top: 32px; margin-bottom: 40px; max-width: 100%;" vid="228">Four Steps to Full Coverage</h2>
+            
+            <div class="timeline" vid="229">
+                <div class="timeline-item" vid="230">
+                    <span class="timeline-time" vid="231">Step 1</span>
+                    <p vid="232">Enter restaurant name and address</p>
+                </div>
+                <div class="timeline-item" vid="233">
+                    <span class="timeline-time" vid="234">Step 2</span>
+                    <p vid="235">Connect review platforms</p>
+                </div>
+                <div class="timeline-item" vid="236">
+                    <span class="timeline-time" vid="237">Step 3</span>
+                    <p vid="238">Monitoring begins within 24 hours</p>
+                </div>
+                <div class="timeline-item" vid="239">
+                    <span class="timeline-time" vid="240">Step 4</span>
+                    <p vid="241">First alert arrives when needed</p>
+                </div>
+            </div>
+        </section>
+
+        <section vid="242">
+            <span class="label" vid="243">FAQ</span>
+            <h2 class="hero-title" style="font-size: 20px; margin-top: 32px; margin-bottom: 40px; max-width: 100%;" vid="244">Common Questions</h2>
+            
+            <div class="accordion" vid="245">
+                <div class="accordion-item" vid="246">
+                    <button class="accordion-header" vid="247">
+                        <span vid="248">Will replies sound robotic?</span>
+                        <span class="accordion-icon" vid="249">+</span>
+                    </button>
+                    <div class="accordion-content" vid="250">
+                        <p vid="251">No. Maitreo learns your voice from existing responses and adapts to your tone. You approve or edit every negative reply before it's posted.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item" vid="252">
+                    <button class="accordion-header" vid="253">
+                        <span vid="254">How long does setup take?</span>
+                        <span class="accordion-icon" vid="255">+</span>
+                    </button>
+                    <div class="accordion-content" vid="256">
+                        <p vid="257">Under 5 minutes. Enter your restaurant details, connect your review platforms, and monitoring begins within 24 hours.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item" vid="258">
+                    <button class="accordion-header" vid="259">
+                        <span vid="260">Can I cancel anytime?</span>
+                        <span class="accordion-icon" vid="261">+</span>
+                    </button>
+                    <div class="accordion-content" vid="262">
+                        <p vid="263">Yes. No contracts, no cancellation fees. Stop whenever you want.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item" vid="264">
+                    <button class="accordion-header" vid="265">
+                        <span vid="266">What platforms do you monitor?</span>
+                        <span class="accordion-icon" vid="267">+</span>
+                    </button>
+                    <div class="accordion-content" vid="268">
+                        <p vid="269">Google, Yelp, and TripAdvisor. All reviews are checked every 15 minutes, 24/7.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item" vid="270">
+                    <button class="accordion-header" vid="271">
+                        <span vid="272">Do you post reviews without approval?</span>
+                        <span class="accordion-icon" vid="273">+</span>
+                    </button>
+                    <div class="accordion-content" vid="274">
+                        <p vid="275">Only positive reviews are auto-posted. Negative reviews always require your approval via SMS before posting.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span>Do I need to log in or check anything?</span>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p>No. Maitreo runs in the background. You receive alerts and replies by text, along with a weekly briefing. There's nothing to monitor manually.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section vid="276">
+            <span class="label" vid="277">Testimonials</span>
+            <h2 class="hero-title" style="font-size: 20px; margin-top: 32px; margin-bottom: 40px; max-width: 100%;" vid="278">What Restaurant Owners Say</h2>
+            
+            <div class="pillar-carousel" vid="279">
+                <div class="pillar-card" style="text-align: center;" vid="280">
+                    <p style="font-size: 15px; line-height: 1.6; margin-bottom: 24px; color: var(--c-white);" vid="281">"We caught a service issue on a Saturday night before it affected our rating."</p>
+                    <span style="font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.08em;" vid="282">Michael Chen — Harbor Grill</span>
+                </div>
+                
+                <div class="pillar-card" style="text-align: center;" vid="283">
+                    <p style="font-size: 15px; line-height: 1.6; margin-bottom: 24px; color: var(--c-white);" vid="284">"Finally stopped checking Google every morning. Maitreo handles it."</p>
+                    <span style="font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.08em;" vid="285">Sarah Lopez — The Pepper Room</span>
+                </div>
+                
+                <div class="pillar-card" style="text-align: center;" vid="286">
+                    <p style="font-size: 15px; line-height: 1.6; margin-bottom: 24px; color: var(--c-white);" vid="287">"Three negative reviews in an hour. We fixed the problem that night."</p>
+                    <span style="font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.08em;" vid="288">David Park — Bloom Restaurant</span>
+                </div>
+            </div>
+            
+            <div class="carousel-dots" vid="289">
+                <span class="dot active" vid="290"></span>
+                <span class="dot" vid="291"></span>
+                <span class="dot" vid="292"></span>
+            </div>
+        </section>
+
+        <section style="background: rgba(0,0,0,0.95); text-align: center; padding: 80px 24px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;" vid="293">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 32px;" vid="294">
+                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" vid="295"></circle>
+                <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square" vid="296"></path>
+            </svg>
+            <h2 class="hero-title" style="font-size: 22px; margin-bottom: 20px;" vid="297">Your Maître d' Is Ready for Service.</h2>
+            <p style="font-size: 14px; opacity: 0.7; margin-bottom: 48px;" vid="298">Continuous reputation oversight begins immediately.</p>
+            <button class="btn" style="max-width: 320px;" vid="299">Start Free Trial</button>
+        </section>
+
+
+
+    </div>
+
+    <div class="fixed-action" vid="300" style="display: flex; justify-content: center; box-sizing: border-box;">
+        <button class="btn" vid="301" style="max-width: 360px;">Start Free Trial</button>
+    </div>
+
+
+</body></html>
