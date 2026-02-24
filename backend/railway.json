@@ -10,8 +10,8 @@
     "restartPolicyMaxRetries": 10
   },
   "healthcheck": {
-    "path": "/health",
-    "timeout": 100
+    "path": "/ping",
+    "timeout": 30
   },
   "cron": [
     {
