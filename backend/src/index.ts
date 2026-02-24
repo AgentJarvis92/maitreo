@@ -41,6 +41,13 @@ const PORT = process.env.PORT || 3000;
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
 
+  // Quick ping (no db required)
+  if (url.pathname === '/ping') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true, ts: new Date().toISOString() }));
+    return;
+  }
+
   // Health check
   if (url.pathname === '/health') {
     try {
