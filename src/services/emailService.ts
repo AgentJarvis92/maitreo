@@ -5,8 +5,16 @@ import type { Review, ReplyDraft, Newsletter, EmailLog } from '../types/models.j
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@restaurantsaas.com';
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error('RESEND_API_KEY not set — cannot send emails');
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@maitreo.com';
 
 export class EmailService {
   /**
@@ -83,7 +91,7 @@ export class EmailService {
     );
 
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await getResend().emails.send({
         from: FROM_EMAIL,
         to: ownerEmail,
         subject,
@@ -228,7 +236,7 @@ export class EmailService {
     );
 
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await getResend().emails.send({
         from: FROM_EMAIL,
         to: ownerEmail,
         subject,

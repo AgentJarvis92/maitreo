@@ -9,7 +9,15 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error('RESEND_API_KEY not set — cannot send emails');
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@maitreo.com';
 
 export interface OnboardingData {
@@ -130,7 +138,7 @@ export async function processOnboarding(data: OnboardingData): Promise<Onboardin
 
     // Send welcome email
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: FROM_EMAIL,
         to: restaurant.owner_email,
         subject: 'Welcome to Maitreo! 🎉',

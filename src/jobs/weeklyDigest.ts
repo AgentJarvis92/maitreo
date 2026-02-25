@@ -29,7 +29,15 @@ const __dirname = dirname(__filename);
 // ─── Clients ─────────────────────────────────────────────────────────
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error('RESEND_API_KEY not set — cannot send emails');
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
 const FROM_EMAIL = process.env.FROM_EMAIL || 'digest@maitreo.com';
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -270,7 +278,7 @@ async function renderDigestEmail(
 
 async function sendDigestEmail(to: string, restaurantName: string, html: string): Promise<string | null> {
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to,
       subject: `Your week at ${restaurantName}`,
