@@ -109,13 +109,22 @@ export async function handleCallback(code: string, state: string): Promise<{ res
       return { restaurantId, success: false, error: 'No access token received' };
     }
 
-    // Get the Google Business account ID
-    const accountId = await fetchAccountId(access_token);
+    // Store tokens immediately (account ID fetched separately — GBP API may have quota limits)
+    await storeTokens(restaurantId, access_token, refresh_token, expires_in, null);
+    console.log(`✅ [OAuth] Tokens stored for restaurant ${restaurantId}`);
 
-    // Store tokens encrypted in database
-    await storeTokens(restaurantId, access_token, refresh_token, expires_in, accountId);
+    // Try to fetch account ID non-blocking (fails gracefully if GBP API quota is 0)
+    try {
+      const accountId = await fetchAccountId(access_token);
+      await query(
+        'UPDATE restaurants SET google_account_id = $1 WHERE id = $2',
+        [accountId, restaurantId]
+      );
+      console.log(`✅ [OAuth] Account ID stored: ${accountId}`);
+    } catch (accountErr) {
+      console.warn(`⚠️ [OAuth] Could not fetch account ID (non-fatal): ${(accountErr as Error).message}`);
+    }
 
-    console.log(`✅ [OAuth] Tokens stored for restaurant ${restaurantId}, account ${accountId}`);
     return { restaurantId, success: true };
 
   } catch (error) {
@@ -155,7 +164,7 @@ async function storeTokens(
   accessToken: string,
   refreshToken: string | null,
   expiresIn: number,
-  accountId: string
+  accountId: string | null
 ): Promise<void> {
   const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
