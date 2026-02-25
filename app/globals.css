@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --c-bg: #121212;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--c-bg);
+  color: white;
+  overflow-x: hidden;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)),
+    url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2787&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #1a1a1a; }
+::-webkit-scrollbar-thumb { background: #333; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+
+.glass-panel {
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.glass-header {
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-link { position: relative; }
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: white;
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px #00ff00; }
+  50% { opacity: 0.4; box-shadow: 0 0 2px #00ff00; }
+}
+
+.monitoring-indicator {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.step-active {
+  border-left-color: white !important;
+  background: rgba(255,255,255,0.05);
+}
+
+.sms-bubble { position: relative; }
+.sms-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+}
+.sms-bubble.left::before {
+  left: -6px;
+  background: inherit;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+.sms-bubble.right::before {
+  right: -6px;
+  background: inherit;
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+}
+
+.dash-line { height: 1px; background: rgba(255,255,255,0.1); width: 100%; }
+.dash-bar { background: rgba(255,255,255,0.1); transition: height 0.3s; }
+.dash-bar:hover { background: rgba(255,255,255,0.2); }

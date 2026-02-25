@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Maitreo - Complete Your Setup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 33%;
+            border-radius: 3px;
+        }
+
+        .form-container {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input::placeholder {
+            color: #999;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #1a1a1a;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .success-state {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+        }
+
+        .success-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .success-state p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: loading 1.4s infinite;
+        }
+
+        .loading:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loading {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+            }
+
+            body {
+                padding: 0;
+                min-height: 100vh;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .form-container {
+                padding: 30px 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Step 1: Onboarding Form -->
+        <div id="formStep" style="display: block;">
+            <div class="header">
+                <div class="progress-indicator">
+                    <span>Step 1 of 3</span>
+                    <span id="formStatus">Restaurant Info</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 33%;"></div>
+                </div>
+                <h1>Welcome to Maitreo</h1>
+                <p>Your Stripe payment was successful. Let's get you set up.</p>
+            </div>
+
+            <div class="form-container">
+                <form id="onboardingForm" onsubmit="submitForm(event)">
+                    <div id="errorMessage"></div>
+
+                    <div class="form-group">
+                        <label for="restaurantName">Restaurant Name *</label>
+                        <input 
+                            type="text" 
+                            id="restaurantName" 
+                            name="restaurantName" 
+                            placeholder="e.g., The Blue Moon Bistro" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location / Address *</label>
+                        <input 
+                            type="text" 
+                            id="location" 
+                            name="location" 
+                            placeholder="e.g., 123 Main St, New York, NY 10001" 
+                            required
+                        >
+                        <p class="help-text">Your primary restaurant location</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number (for SMS) *</label>
+                        <input 
+                            type="tel" 
+                            id="phone" 
+                            name="phone" 
+                            placeholder="(555) 123-4567" 
+                            required
+                        >
+                        <p class="help-text">We'll send review alerts to this number</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email (for digests) *</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="owner@restaurant.com" 
+                            required
+                        >
+                        <p class="help-text">Weekly competitor intelligence summaries</p>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary" id="submitBtn">
+                            Continue to Google Business
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Step 2: Google OAuth -->
+        <div id="googleStep" style="display: none;">
+            <div class="header">
+                <div class="progress-indicator">
+                    <span>Step 2 of 3</span>
+                    <span>Google Business</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 66%;"></div>
+                </div>
+                <h1>Connect Google Business</h1>
+                <p>We need access to your reviews</p>
+            </div>
+
+            <div class="form-container" style="text-align: center;">
+                <p style="margin-bottom: 30px; color: #666;">
+                    We'll use your Google account to fetch reviews from your Google Business Profile. No posting, read-only access.
+                </p>
+                <button id="googleAuthBtn" class="btn-primary" style="width: 100%;">
+                    Authorize Google Business
+                </button>
+                <p class="help-text" style="margin-top: 20px;">
+                    You'll be redirected to Google to authorize access
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div id="successStep" style="display: none;">
+            <div class="header">
+                <div class="progress-indicator">
+                    <span>Step 3 of 3</span>
+                    <span>Complete!</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%;"></div>
+                </div>
+                <h1>All Set!</h1>
+            </div>
+
+            <div class="success-state">
+                <div class="success-icon">✓</div>
+                <h2>Welcome to Maitreo!</h2>
+                <p id="successMessage"></p>
+                <button class="btn-primary" style="width: 100%; margin-top: 20px;">
+                    Go to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Extract sessionId from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('sessionId');
+
+        if (!sessionId) {
+            showError('Invalid session. Please complete payment first.');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
+            } else {
+                alert(message);
+            }
+        }
+
+        function setLoading(btn, loading) {
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = `Loading <span class="loading"></span><span class="loading"></span><span class="loading"></span>`;
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalText || 'Continue to Google Business';
+            }
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.dataset.originalText = submitBtn.innerHTML;
+            setLoading(submitBtn, true);
+
+            try {
+                const formData = {
+                    sessionId: sessionId,
+                    restaurantName: document.getElementById('restaurantName').value,
+                    location: document.getElementById('location').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value
+                };
+
+                const response = await fetch('/api/onboarding/form', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError(data.error || 'Failed to save form');
+                    setLoading(submitBtn, false);
+                    return;
+                }
+
+                // Show Google auth step
+                document.getElementById('formStep').style.display = 'none';
+                document.getElementById('googleStep').style.display = 'block';
+
+                // Set up Google auth button
+                document.getElementById('googleAuthBtn').addEventListener('click', authorizeGoogle);
+
+            } catch (error) {
+                showError('Network error: ' + error.message);
+                setLoading(submitBtn, false);
+            }
+        }
+
+        async function authorizeGoogle() {
+            try {
+                const response = await fetch(`/api/google/auth?sessionId=${encodeURIComponent(sessionId)}`);
+                const data = await response.json();
+
+                if (data.authUrl) {
+                    // Redirect to Google OAuth
+                    window.location.href = data.authUrl;
+                } else {
+                    showError('Failed to start Google authorization');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // Check if this is the success redirect
+        if (urlParams.get('success') === 'true') {
+            document.getElementById('formStep').style.display = 'none';
+            document.getElementById('googleStep').style.display = 'none';
+            document.getElementById('successStep').style.display = 'block';
+
+            const restaurantName = urlParams.get('restaurantName') || 'Your Restaurant';
+            document.getElementById('successMessage').innerHTML = `
+                <strong>${restaurantName}</strong> is now connected to Maitreo.<br><br>
+                We're starting to monitor your reviews. You'll receive SMS alerts for new reviews and a weekly digest of competitor intelligence.
+            `;
+        }
+
+        // Pre-fill form if returning from OAuth
+        if (sessionId) {
+            fetch(`/api/onboarding/form/${encodeURIComponent(sessionId)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.customer) {
+                        if (data.customer.restaurantName)
+                            document.getElementById('restaurantName').value = data.customer.restaurantName;
+                        if (data.customer.location)
+                            document.getElementById('location').value = data.customer.location;
+                        if (data.customer.phone)
+                            document.getElementById('phone').value = data.customer.phone;
+                        if (data.customer.email)
+                            document.getElementById('email').value = data.customer.email;
+                    }
+                })
+                .catch(e => console.log('Could not pre-fill form:', e));
+        }
+    </script>
+</body>
+</html>

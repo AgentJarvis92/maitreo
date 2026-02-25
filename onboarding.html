@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Started - Maitreo</title>
+    <meta name="description" content="Sign up for Maitreo and never miss another review. Free 7-day trial.">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input.error {
+            border-color: #ef4444;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .trust-badge {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .trust-badge p {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .trust-badge .features {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .trust-badge .feature {
+            color: #667eea;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-message .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .success-message h2 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 24px;
+        }
+
+        .success-message p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .submit-btn.loading .btn-text {
+            display: none;
+        }
+
+        .submit-btn.loading .loading-spinner {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .logo h1 {
+                font-size: 28px;
+            }
+
+            .trust-badge .features {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>Maitreo</h1>
+        </div>
+
+        <div id="formContainer">
+            <div class="subtitle">
+                Start your 7-day free trial. No credit card required.
+            </div>
+
+            <form id="onboardingForm">
+                <div class="form-group">
+                    <label for="name">Restaurant Name *</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        placeholder="Joe's Pizza"
+                        required
+                    >
+                    <div class="error-message" id="nameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address *</label>
+                    <input 
+                        type="text" 
+                        id="address" 
+                        name="address" 
+                        placeholder="123 Main St, Chicago, IL 60601"
+                        required
+                    >
+                    <div class="error-message" id="addressError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input 
+                        type="tel" 
+                        id="phone" 
+                        name="phone" 
+                        placeholder="(312) 555-0123"
+                        required
+                    >
+                    <div class="error-message" id="phoneError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="owner@joespizza.com"
+                        required
+                    >
+                    <div class="error-message" id="emailError"></div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span class="btn-text">Start Free Trial</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+
+            <div class="trust-badge">
+                <div class="features">
+                    <span class="feature">✓ 7-day free trial</span>
+                    <span class="feature">✓ No credit card</span>
+                    <span class="feature">✓ Cancel anytime</span>
+                </div>
+            </div>
+
+            <div class="back-link">
+                <a href="https://maitreo.com">← Back to home</a>
+            </div>
+        </div>
+
+        <div id="successMessage" class="success-message">
+            <div class="icon">🎉</div>
+            <h2>Welcome to Maitreo!</h2>
+            <p>Check your email for next steps. We'll have you up and running in no time.</p>
+            <div class="back-link">
+                <a href="https://maitreo.com">Return to home</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('onboardingForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formContainer = document.getElementById('formContainer');
+        const successMessage = document.getElementById('successMessage');
+
+        // Get backend URL from environment or use default
+        const API_URL = 'http://localhost:3000'; // Update this for production
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Clear previous errors
+            clearErrors();
+
+            // Get form data
+            const formData = new FormData(form);
+            const data = {
+                name: formData.get('name'),
+                address: formData.get('address'),
+                phone: formData.get('phone'),
+                email: formData.get('email')
+            };
+
+            // Client-side validation
+            let hasErrors = false;
+
+            if (!data.name || data.name.trim().length === 0) {
+                showError('name', 'Restaurant name is required');
+                hasErrors = true;
+            }
+
+            if (!data.address || data.address.trim().length === 0) {
+                showError('address', 'Address is required');
+                hasErrors = true;
+            }
+
+            if (!data.phone || data.phone.trim().length === 0) {
+                showError('phone', 'Phone number is required');
+                hasErrors = true;
+            }
+
+            if (!data.email || !isValidEmail(data.email)) {
+                showError('email', 'Please enter a valid email address');
+                hasErrors = true;
+            }
+
+            if (hasErrors) return;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+
+            try {
+                const response = await fetch(`${API_URL}/onboarding`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Show success message
+                    formContainer.style.display = 'none';
+                    successMessage.classList.add('show');
+                } else {
+                    // Show error message
+                    alert(result.message || 'An error occurred. Please try again.');
+                }
+
+            } catch (error) {
+                console.error('Form submission error:', error);
+                alert('Unable to connect to server. Please check your connection and try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        });
+
+        function showError(fieldName, message) {
+            const input = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(`${fieldName}Error`);
+            
+            input.classList.add('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function clearErrors() {
+            const inputs = form.querySelectorAll('input');
+            const errors = form.querySelectorAll('.error-message');
+            
+            inputs.forEach(input => input.classList.remove('error'));
+            errors.forEach(error => {
+                error.classList.remove('show');
+                error.textContent = '';
+            });
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Auto-format phone number as user types
+        const phoneInput = document.getElementById('phone');
+        phoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+            
+            if (value.length >= 6) {
+                value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
+            } else if (value.length >= 3) {
+                value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+            }
+            
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
