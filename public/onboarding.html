@@ -669,11 +669,11 @@
             const form = document.getElementById(isMobile ? 'form1-mobile' : 'form1-desktop');
             const fd = new FormData(form);
             return {
-                restaurantName: fd.get('restaurantName'),
+                name: fd.get('restaurantName'),
                 ownerName: fd.get('ownerName'),
                 email: fd.get('email'),
                 phone: fd.get('phone').replace(/\D/g, ''),
-                address: fd.get('address')
+                address: (fd.get('street') || '') + ', ' + (fd.get('city') || '') + ', ' + (fd.get('state') || '') + ' ' + (fd.get('zip') || '')
             };
         }
 
