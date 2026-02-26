@@ -3,8 +3,37 @@
  * Receives incoming SMS via Twilio webhook POST and processes commands.
  * Also handles delivery status callbacks.
  */
+import crypto from 'crypto';
 import { smsService } from './smsService.js';
 import { query } from '../db/client.js';
+/**
+ * Validate Twilio request signature (X-Twilio-Signature).
+ */
+function validateTwilioSignature(req, params) {
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (!authToken) {
+        if (process.env.NODE_ENV === 'production') {
+            console.error('❌ TWILIO_AUTH_TOKEN not set in production — rejecting request');
+            return false;
+        }
+        return true;
+    }
+    const signature = req.headers['x-twilio-signature'];
+    if (!signature) return false;
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers.host || '';
+    const url = `${protocol}://${host}${req.url}`;
+    const sortedKeys = Object.keys(params).sort();
+    let dataString = url;
+    for (const key of sortedKeys) {
+        dataString += key + params[key];
+    }
+    const expectedSignature = crypto
+        .createHmac('sha1', authToken)
+        .update(dataString)
+        .digest('base64');
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+}
 /**
  * Parse URL-encoded form body (Twilio sends application/x-www-form-urlencoded)
  */
@@ -44,6 +73,13 @@ function escapeXml(s) {
 export async function handleSmsWebhook(req, res) {
     try {
         const params = await parseFormBody(req);
+        // Validate Twilio signature in production
+        if (process.env.NODE_ENV === 'production' && !validateTwilioSignature(req, params)) {
+            console.error('❌ Invalid Twilio signature — rejecting webhook request');
+            res.writeHead(403, { 'Content-Type': 'text/plain' });
+            res.end('Forbidden: invalid signature');
+            return;
+        }
         const from = params.From || '';
         const body = params.Body || '';
         const messageSid = params.MessageSid || '';

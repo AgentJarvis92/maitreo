@@ -33,6 +33,29 @@ import { generateAuthUrl, handleCallback } from './services/googleOAuth.js';
 import { fetchReviews, fetchLocations } from './services/googleBusinessProfile.js';
 dotenv.config();
 const PORT = process.env.PORT || 3000;
+// Rate limiting
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX = 10;
+function isRateLimited(key) {
+    const now = Date.now();
+    let entry = rateLimitMap.get(key);
+    if (!entry || now - entry.start > RATE_LIMIT_WINDOW_MS) {
+        entry = { start: now, count: 1 };
+        rateLimitMap.set(key, entry);
+        return false;
+    }
+    entry.count++;
+    return entry.count > RATE_LIMIT_MAX;
+}
+// Job auth middleware
+function validateJobAuth(req) {
+    const secret = process.env.API_SECRET || process.env.JOB_SECRET;
+    if (!secret) return true; // no secret configured = allow (dev)
+    const authHeader = req.headers.authorization || '';
+    const querySecret = new URL(req.url || '/', `http://${req.headers.host}`).searchParams.get('secret');
+    return authHeader === `Bearer ${secret}` || querySecret === secret;
+}
 const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', `http://${req.headers.host}`);
     // Quick ping (no db required)
@@ -63,6 +86,12 @@ const server = http.createServer(async (req, res) => {
     }
     // Onboarding form submission
     if (url.pathname === '/onboarding' && req.method === 'POST') {
+        const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+        if (isRateLimited(String(clientIp))) {
+            res.writeHead(429, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Too many requests. Please try again later.' }));
+            return;
+        }
         let body = '';
         req.on('data', chunk => {
             body += chunk.toString();
@@ -308,6 +337,11 @@ const server = http.createServer(async (req, res) => {
     }
     // Send mock review alert (for testing SMS command flow)
     if (url.pathname === '/sms/test/mock-alert' && req.method === 'POST') {
+        if (process.env.NODE_ENV === 'production') {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Test endpoints disabled in production' }));
+            return;
+        }
         let body = '';
         req.on('data', (chunk) => { body += chunk.toString(); });
         req.on('end', async () => {
@@ -327,6 +361,18 @@ const server = http.createServer(async (req, res) => {
                 res.end(JSON.stringify({ error: err.message }));
             }
         });
+        return;
+    }
+    // Job: review-monitor (GET or POST)
+    if (url.pathname === '/jobs/review-monitor') {
+        if (!validateJobAuth(req)) {
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Unauthorized: invalid or missing API secret' }));
+            return;
+        }
+        res.writeHead(202, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'accepted', message: 'Review monitor started' }));
+        reviewMonitor.runOnce().catch(console.error);
         return;
     }
     // Manual trigger: review monitor poll
