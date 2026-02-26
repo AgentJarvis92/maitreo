@@ -276,6 +276,7 @@ export class SmsService {
       case 'CANCEL_CONFIRM':
         return this.handleCancelConfirm(fromPhone, ctx);
       case 'CANCEL_DENY':
+        await updateContext(fromPhone, { state: null });
         return TEMPLATES.cancelDeny;
       case 'UNKNOWN':
       default:
@@ -462,12 +463,14 @@ Billing: Active${HELP_SUFFIX}`;
         await cancelSubscription(subId);
         console.log(`🚫 Stripe subscription ${subId} canceled for restaurant ${ctx.restaurant_id}`);
       } catch (err) {
-        console.error('Failed to cancel Stripe subscription:', err);
-        // Still update local state even if Stripe call fails
+        console.error('🚨 HIGH SEVERITY: Stripe cancellation failed for subscription', subId, err);
+        // Do NOT update local state — Stripe still considers subscription active
+        await updateContext(phone, { state: null });
+        return `Cancellation failed, please try again or contact support@maitreo.com.${HELP_SUFFIX}`;
       }
     }
 
-    // Update local DB state
+    // Update local DB state only after successful Stripe cancellation
     await query(
       `UPDATE restaurants SET
          subscription_state = 'canceled',
