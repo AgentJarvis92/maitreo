@@ -6,7 +6,10 @@
     <title>Maitreo | Onboarding</title>
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <style>
-        :root { --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif; --c-bg: #121212; }
+        :root {
+            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --c-bg: #121212;
+        }
         body {
             font-family: var(--font-main);
             background-color: var(--c-bg);
@@ -20,8 +23,14 @@
             background-attachment: fixed;
             min-height: 100vh;
         }
-        @media (max-width: 639px) {
-            body { overflow: hidden; height: 100vh; width: 100vw; min-height: unset; }
+        @media (max-width: 767px) {
+            body {
+                background-image:
+                    linear-gradient(160deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.85) 100%),
+                    url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2787&auto=format&fit=crop');
+                height: 100vh;
+                overflow: hidden;
+            }
         }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a1a; }
@@ -39,7 +48,11 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
             box-shadow: 0 12px 56px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.04) inset;
+        }
+        @media (max-width: 767px) {
+            .glass-panel { border-radius: 20px; }
         }
         .form-input {
             background: rgba(255,255,255,0.03);
@@ -51,525 +64,754 @@
             border-color: rgba(255,255,255,0.45);
             outline: none;
         }
-        .form-input.input-error {
-            border-color: rgba(239,68,68,0.7);
-        }
-        .error-msg {
-            color: #f87171;
-            font-size: 10px;
-            margin-top: 4px;
-            display: none;
-        }
-        .error-msg.visible { display: block; }
-
         .progress-dot {
             width: 5px; height: 5px; border-radius: 50%;
             background: rgba(255,255,255,0.18);
-            transition: background 0.3s, box-shadow 0.3s;
+            transition: background 0.2s;
         }
-        .progress-dot.completed { background: rgba(255,255,255,0.85); }
+        @media (max-width: 767px) {
+            .progress-dot { width: 4px; height: 4px; }
+        }
+        .progress-dot.active { background: rgba(255,255,255,0.85); }
         .progress-dot.active-green {
             background: #4ade80;
             box-shadow: 0 0 6px rgba(74,222,128,0.6);
             animation: pulse-green 1.8s ease-in-out infinite;
         }
-        @keyframes pulse-green { 0%,100%{opacity:1} 50%{opacity:0.6} }
-
-        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .progress-dot.done-green { background: #4ade80; }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @media (max-width: 767px) {
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
         .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
         .delay-100 { animation-delay: 0.1s; }
         .delay-200 { animation-delay: 0.2s; }
+        input::placeholder { color: rgba(255,255,255,0.2); }
+        @media (max-width: 767px) {
+            input::placeholder { font-size: 12px; }
+            .form-input { font-size: 13px; }
+        }
 
-        @keyframes checkDraw {
-            from { stroke-dashoffset: 48; }
+        /* OTP input */
+        .otp-input {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: border-color 0.2s ease, background 0.2s ease;
+            letter-spacing: 0.5em;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .otp-input:focus {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.45);
+            outline: none;
+        }
+
+        /* Checkmark animation */
+        @keyframes checkStroke {
             to { stroke-dashoffset: 0; }
         }
-        .check-animate { stroke-dasharray: 48; stroke-dashoffset: 48; animation: checkDraw 0.6s ease-out 0.3s forwards; }
-
-        .step-section { display: none; }
-        .step-section.active { display: block; }
-
-        input::placeholder { color: rgba(255,255,255,0.2); }
-        @media (max-width: 639px) { input::placeholder { font-size: 12px; } }
-
-        .btn-primary {
-            width: 100%; background: white; color: black; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px;
-            transition: background 0.2s;
+        @keyframes checkScale {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
         }
-        .btn-primary:hover { background: #f3f4f6; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .resend-link {
-            color: rgba(255,255,255,0.45);
-            font-size: 11px;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            cursor: pointer;
-            transition: color 0.2s;
+        .check-circle { animation: checkScale 0.5s ease-out forwards; }
+        .check-path {
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: checkStroke 0.4s ease-out 0.3s forwards;
         }
-        .resend-link:hover { color: rgba(255,255,255,0.7); }
+
+        .step-container { display: none; }
+        .step-container.active { display: block; }
+
+        /* Loading spinner */
+        .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 16px; height: 16px; animation: spin 0.6s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="antialiased selection:bg-white selection:text-black flex flex-col">
 
-    <!-- HEADER -->
-    <nav class="fixed top-0 left-0 right-0 z-50 glass-header px-5 sm:px-8 py-4 sm:py-5 flex items-center justify-between">
-        <div class="flex items-center gap-2 sm:gap-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="sm:w-7 sm:h-7" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/>
-                <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square"/>
+    <!-- Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-header px-8 py-5 md:flex items-center justify-between hidden">
+        <div class="flex items-center gap-3">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"></circle>
+                <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square"></path>
             </svg>
-            <span class="text-xs sm:text-sm font-medium tracking-[0.15em] uppercase">Maitreo</span>
+            <span class="text-sm font-medium tracking-[0.15em] uppercase">Maitreo</span>
+        </div>
+    </nav>
+    <!-- Mobile header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-header px-5 py-4 flex items-center justify-between h-[60px] md:hidden">
+        <div class="flex items-center gap-2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"></circle>
+                <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square"></path>
+            </svg>
+            <span class="text-xs font-medium tracking-[0.15em] uppercase text-white">Maitreo</span>
         </div>
     </nav>
 
-    <!-- GRADIENT OVERLAY -->
+    <!-- ========== STEP 1: Restaurant Basics ========== -->
+    <div id="step1" class="step-container active">
+        <!-- Desktop -->
+        <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
+            <div class="w-full max-w-xl mx-auto relative z-10">
+                <div class="text-center mb-10 animate-fade-in opacity-0">
+                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
+                    <div class="flex items-center justify-center gap-2 mb-10" id="dots1-desktop">
+                        <div class="progress-dot active-green"></div>
+                        <div class="progress-dot"></div>
+                        <div class="progress-dot"></div>
+                    </div>
+                    <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Set up your restaurant</h1>
+                    <p class="text-sm text-white/55 font-light leading-relaxed">You'll connect your Google Business Profile in the next step.</p>
+                </div>
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                    <form id="form1-desktop" class="space-y-6">
+                        <div class="group">
+                            <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Restaurant Name</label>
+                            <input type="text" name="restaurantName" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="e.g. The Pepper Room" required>
+                        </div>
+                        <div class="group">
+                            <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Owner Name</label>
+                            <input type="text" name="ownerName" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="First and Last Name" required>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="group">
+                                <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Email Address</label>
+                                <input type="email" name="email" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="name@restaurant.com" required>
+                            </div>
+                            <div class="group">
+                                <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Phone Number</label>
+                                <input type="tel" name="phone" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light phone-input" placeholder="(555) 000-0000" required>
+                            </div>
+                        </div>
+                        <div class="group">
+                            <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Restaurant Address</label>
+                            <input type="text" name="address" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="Street, City, State, Zip" required>
+                        </div>
+                        <div class="pt-3">
+                            <button type="submit" id="btn1-desktop" class="w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200">Continue</button>
+                            <p class="mt-5 text-center text-[10px] uppercase tracking-[0.12em] text-white/25">Secure setup. Takes less than 2 minutes.</p>
+                        </div>
+                    </form>
+                </div>
+                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                    <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
+                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
+                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Mobile -->
+        <main class="md:hidden flex-grow flex flex-col items-center justify-center px-8 w-full h-screen pt-[60px] pb-4">
+            <div class="w-full max-w-sm mx-auto flex flex-col justify-center h-full relative z-10">
+                <div class="text-center mb-4 animate-fade-in opacity-0 shrink-0">
+                    <div class="flex items-center justify-center gap-2 mb-3">
+                        <div class="progress-dot active-green"></div>
+                        <div class="progress-dot"></div>
+                        <div class="progress-dot"></div>
+                    </div>
+                    <h1 class="text-2xl font-medium tracking-tight mb-1 text-white" style="letter-spacing: -0.02em;">Set up your restaurant</h1>
+                    <p class="text-xs text-white/50 font-light">Google Business Profile connection is next.</p>
+                </div>
+                <div class="glass-panel p-4 animate-fade-in delay-100 opacity-0 w-full shrink-0">
+                    <form id="form1-mobile" class="flex flex-col gap-3">
+                        <div class="group">
+                            <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Restaurant Name</label>
+                            <input type="text" name="restaurantName" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="e.g. The Pepper Room" required>
+                        </div>
+                        <div class="group">
+                            <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Owner Name</label>
+                            <input type="text" name="ownerName" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="First and Last Name" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="group">
+                                <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Email</label>
+                                <input type="email" name="email" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="name@site.com" required>
+                            </div>
+                            <div class="group">
+                                <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Phone</label>
+                                <input type="tel" name="phone" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg phone-input" placeholder="(555) 000-0000" required>
+                            </div>
+                        </div>
+                        <div class="group">
+                            <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Address</label>
+                            <input type="text" name="address" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="Street, City, Zip" required>
+                        </div>
+                        <div class="pt-2">
+                            <button type="submit" id="btn1-mobile" class="w-full bg-white text-black h-11 rounded-lg font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-100 transition-colors duration-200 shadow-lg shadow-white/5">Continue</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="mt-4 text-center animate-fade-in delay-200 opacity-0 shrink-0">
+                    <div class="flex justify-center gap-5 text-[9px] uppercase tracking-widest text-white/20">
+                        <a href="#" class="hover:text-white/40 transition-colors">Privacy</a>
+                        <span class="w-1 h-1 rounded-full bg-white/10 self-center"></span>
+                        <a href="#" class="hover:text-white/40 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========== STEP 2: Verify Phone ========== -->
+    <div id="step2" class="step-container">
+        <!-- Desktop -->
+        <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
+            <div class="w-full max-w-xl mx-auto relative z-10">
+                <div class="text-center mb-10 animate-fade-in opacity-0">
+                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
+                    <div class="flex items-center justify-center gap-2 mb-10">
+                        <div class="progress-dot active"></div>
+                        <div class="progress-dot active-green"></div>
+                        <div class="progress-dot"></div>
+                    </div>
+                    <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Verify your phone</h1>
+                    <p class="text-sm text-white/55 font-light leading-relaxed" id="otp-subtitle-desktop">We sent a 6-digit code to (xxx) xxx-xxxx</p>
+                </div>
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                    <div class="space-y-6">
+                        <div class="flex justify-center">
+                            <input type="text" id="otp-desktop" maxlength="6" class="otp-input w-64 px-6 py-4 text-white rounded-none" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
+                        </div>
+                        <div class="pt-3">
+                            <button type="button" id="btn2-desktop" class="w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200">Verify</button>
+                            <p class="mt-5 text-center">
+                                <button type="button" id="resend-desktop" class="text-[10px] uppercase tracking-[0.12em] text-white/40 hover:text-white/60 transition-colors">Resend code</button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                    <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
+                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
+                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Mobile -->
+        <main class="md:hidden flex-grow flex flex-col items-center justify-center px-8 w-full h-screen pt-[60px] pb-4">
+            <div class="w-full max-w-sm mx-auto flex flex-col justify-center h-full relative z-10">
+                <div class="text-center mb-4 animate-fade-in opacity-0 shrink-0">
+                    <div class="flex items-center justify-center gap-2 mb-3">
+                        <div class="progress-dot active"></div>
+                        <div class="progress-dot active-green"></div>
+                        <div class="progress-dot"></div>
+                    </div>
+                    <h1 class="text-2xl font-medium tracking-tight mb-1 text-white" style="letter-spacing: -0.02em;">Verify your phone</h1>
+                    <p class="text-xs text-white/50 font-light" id="otp-subtitle-mobile">We sent a 6-digit code to (xxx) xxx-xxxx</p>
+                </div>
+                <div class="glass-panel p-4 animate-fade-in delay-100 opacity-0 w-full shrink-0">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-center">
+                            <input type="text" id="otp-mobile" maxlength="6" class="otp-input w-full px-3 py-2.5 text-white rounded-lg" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
+                        </div>
+                        <div class="pt-2">
+                            <button type="button" id="btn2-mobile" class="w-full bg-white text-black h-11 rounded-lg font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-100 transition-colors duration-200 shadow-lg shadow-white/5">Verify</button>
+                            <p class="mt-3 text-center">
+                                <button type="button" id="resend-mobile" class="text-[9px] uppercase tracking-[0.12em] text-white/40 hover:text-white/60 transition-colors">Resend code</button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-center animate-fade-in delay-200 opacity-0 shrink-0">
+                    <div class="flex justify-center gap-5 text-[9px] uppercase tracking-widest text-white/20">
+                        <a href="#" class="hover:text-white/40 transition-colors">Privacy</a>
+                        <span class="w-1 h-1 rounded-full bg-white/10 self-center"></span>
+                        <a href="#" class="hover:text-white/40 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========== STEP 3: Stripe Payment ========== -->
+    <div id="step3" class="step-container">
+        <!-- Desktop -->
+        <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
+            <div class="w-full max-w-xl mx-auto relative z-10">
+                <div class="text-center mb-10 animate-fade-in opacity-0">
+                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
+                    <div class="flex items-center justify-center gap-2 mb-10">
+                        <div class="progress-dot active"></div>
+                        <div class="progress-dot active-green"></div>
+                        <div class="progress-dot"></div>
+                    </div>
+                    <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Start Your 14-Day Trial</h1>
+                    <p class="text-sm text-white/55 font-light leading-relaxed max-w-md mx-auto">No contracts. Cancel anytime. You'll only be charged after your trial ends.</p>
+                </div>
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                    <div class="flex flex-col">
+                        <div class="flex flex-col items-center justify-center py-2">
+                            <div class="flex items-start text-white relative left-2">
+                                <span class="text-2xl mt-3 mr-2 font-light opacity-50">$</span>
+                                <span class="text-[5rem] leading-none font-light tracking-tight">99</span>
+                                <span class="text-xl mt-6 ml-2 font-light opacity-50">/mo</span>
+                            </div>
+                            <div class="mt-4 flex flex-col items-center gap-2">
+                                <span class="text-[9px] uppercase tracking-[0.2em] text-white/30">Billed monthly after trial</span>
+                                <span class="text-xs text-white/50 font-light">$0.00 due today</span>
+                            </div>
+                        </div>
+                        <div class="w-full h-px bg-white/5 my-8"></div>
+                        <div>
+                            <button type="button" id="btn3-desktop" class="w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200 shadow-lg">Continue to Secure Checkout</button>
+                            <p class="mt-5 text-center text-[10px] uppercase tracking-[0.12em] text-white/25">Powered by Stripe. Your payment details are encrypted and secure.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                    <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
+                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
+                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Mobile -->
+        <main class="md:hidden flex-grow flex flex-col items-center justify-center px-8 w-full h-screen pt-[60px] pb-4">
+            <div class="w-full max-w-sm mx-auto flex flex-col justify-center h-full relative z-10">
+                <div class="text-center mb-4 animate-fade-in opacity-0 shrink-0">
+                    <span class="text-[10px] tracking-[0.25em] font-medium text-white/40 uppercase mb-4 block">Onboarding</span>
+                    <div class="flex items-center gap-2.5 mb-6 justify-center">
+                        <div class="progress-dot active"></div>
+                        <div class="progress-dot active-green"></div>
+                        <div class="progress-dot"></div>
+                    </div>
+                    <h1 class="text-3xl font-medium tracking-tight text-white mb-3 text-center leading-tight">Start Your<br>14-Day Trial</h1>
+                    <p class="text-sm text-white/50 font-light leading-relaxed max-w-[260px] mx-auto">No contracts. Cancel anytime. You'll only be charged after your trial ends.</p>
+                </div>
+                <div class="glass-panel p-8 animate-fade-in delay-100 opacity-0 w-full shrink-0 flex flex-col items-center">
+                    <div class="flex flex-col items-center justify-center py-2 mb-6 w-full">
+                        <div class="flex items-start text-white relative left-1">
+                            <span class="text-xl mt-2 mr-1 font-light opacity-50">$</span>
+                            <span class="text-[4rem] leading-none font-light tracking-tight">99</span>
+                            <span class="text-base mt-5 ml-1 font-light opacity-50">/mo</span>
+                        </div>
+                        <div class="mt-3 flex flex-col items-center gap-1.5">
+                            <span class="text-[9px] uppercase tracking-[0.2em] text-white/30 font-medium">Billed monthly after trial</span>
+                            <span class="text-xs text-white/50 font-light">$0.00 due today</span>
+                        </div>
+                    </div>
+                    <div class="w-full h-px bg-white/10 mb-6"></div>
+                    <div class="w-full">
+                        <button type="button" id="btn3-mobile" class="w-full bg-white text-black h-12 rounded-[2px] font-bold uppercase tracking-[0.1em] text-[11px] hover:bg-gray-100 active:bg-gray-200 transition-colors duration-200 shadow-xl mb-4">Continue to Secure Checkout</button>
+                        <p class="text-center text-[9px] uppercase tracking-[0.1em] text-white/20 leading-relaxed max-w-[240px] mx-auto">Powered by Stripe. Your payment details are encrypted and secure.</p>
+                    </div>
+                </div>
+                <div class="mt-4 text-center animate-fade-in delay-200 opacity-0 shrink-0">
+                    <div class="flex justify-center gap-5 text-[9px] uppercase tracking-widest text-white/20">
+                        <a href="#" class="hover:text-white/40 transition-colors">Privacy</a>
+                        <span class="w-1 h-1 rounded-full bg-white/10 self-center"></span>
+                        <a href="#" class="hover:text-white/40 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========== STEP 4: Connect Google ========== -->
+    <div id="step4" class="step-container">
+        <!-- Desktop -->
+        <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
+            <div class="w-full max-w-xl mx-auto relative z-10">
+                <div class="text-center mb-10 animate-fade-in opacity-0">
+                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
+                    <div class="flex items-center justify-center gap-2 mb-10">
+                        <div class="progress-dot active"></div>
+                        <div class="progress-dot active"></div>
+                        <div class="progress-dot active-green"></div>
+                    </div>
+                    <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Connect Your Google Business Profile</h1>
+                    <p class="text-sm text-white/55 font-light leading-relaxed max-w-md mx-auto">We'll monitor your reviews and draft replies automatically. You can approve everything via SMS.</p>
+                </div>
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                    <div class="space-y-6">
+                        <div class="pt-2">
+                            <button type="button" id="btn4-desktop" class="w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200 shadow-lg">Connect Google</button>
+                            <p class="mt-5 text-center text-[10px] uppercase tracking-[0.12em] text-white/25">Secure OAuth connection. We never post without your approval.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                    <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
+                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
+                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Mobile -->
+        <main class="md:hidden flex-grow flex flex-col items-center justify-center px-6 w-full h-screen pt-[60px] pb-8">
+            <div class="w-full max-w-md mx-auto flex flex-col justify-center h-full relative z-10">
+                <div class="flex flex-col items-center mb-8">
+                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4 font-medium">Onboarding</span>
+                    <div class="flex items-center justify-center gap-2 mb-6">
+                        <div class="progress-dot active"></div>
+                        <div class="progress-dot active"></div>
+                        <div class="progress-dot active-green"></div>
+                    </div>
+                    <h1 class="text-3xl font-medium tracking-tight mb-4 text-center leading-tight">Connect Your Google Business Profile</h1>
+                    <p class="text-sm text-white/55 font-light leading-relaxed text-center max-w-xs mx-auto">We'll monitor your reviews and draft replies automatically. You can approve everything via SMS.</p>
+                </div>
+                <div class="glass-panel p-6 w-full mb-4">
+                    <div class="flex flex-col gap-4">
+                        <button type="button" id="btn4-mobile" class="w-full bg-white text-black h-12 rounded-sm font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200 shadow-lg flex items-center justify-center">Connect Google</button>
+                        <p class="text-center text-[10px] uppercase tracking-[0.08em] text-white/25 leading-normal">Secure OAuth connection. We never post without your approval.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="pb-8 shrink-0 z-10 text-center">
+                <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
+                    <a href="#" class="hover:text-white/30 transition-colors">Privacy</a>
+                    <a href="#" class="hover:text-white/30 transition-colors">Terms</a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========== STEP 5: All Set ========== -->
+    <div id="step5" class="step-container">
+        <!-- Desktop -->
+        <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
+            <div class="w-full max-w-xl mx-auto relative z-10">
+                <div class="text-center mb-10 animate-fade-in opacity-0">
+                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
+                    <div class="flex items-center justify-center gap-2 mb-10">
+                        <div class="progress-dot done-green"></div>
+                        <div class="progress-dot done-green"></div>
+                        <div class="progress-dot done-green"></div>
+                    </div>
+                    <div class="flex justify-center mb-8">
+                        <svg class="check-circle" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="40" cy="40" r="36" stroke="#4ade80" stroke-width="2.5" fill="none" opacity="0.3"></circle>
+                            <circle cx="40" cy="40" r="36" stroke="#4ade80" stroke-width="2.5" fill="none"></circle>
+                            <path class="check-path" d="M24 40L35 51L56 30" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">You're all set</h1>
+                    <p class="text-sm text-white/55 font-light leading-relaxed max-w-md mx-auto">We're monitoring your reviews 24/7. Check your phone for a welcome text.</p>
+                </div>
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                    <div class="pt-2">
+                        <a href="https://maitreo.com" class="block w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200 shadow-lg text-center leading-[3.5rem]">Go to Maitreo</a>
+                    </div>
+                </div>
+                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                    <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
+                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
+                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Mobile -->
+        <main class="md:hidden flex-grow flex flex-col items-center justify-center px-8 w-full h-screen pt-[60px] pb-4">
+            <div class="w-full max-w-sm mx-auto flex flex-col justify-center h-full relative z-10">
+                <div class="text-center mb-4 animate-fade-in opacity-0 shrink-0">
+                    <div class="flex items-center justify-center gap-2 mb-3">
+                        <div class="progress-dot done-green"></div>
+                        <div class="progress-dot done-green"></div>
+                        <div class="progress-dot done-green"></div>
+                    </div>
+                    <div class="flex justify-center mb-6">
+                        <svg class="check-circle" width="64" height="64" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="40" cy="40" r="36" stroke="#4ade80" stroke-width="2.5" fill="none" opacity="0.3"></circle>
+                            <circle cx="40" cy="40" r="36" stroke="#4ade80" stroke-width="2.5" fill="none"></circle>
+                            <path class="check-path" d="M24 40L35 51L56 30" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-medium tracking-tight mb-1 text-white" style="letter-spacing: -0.02em;">You're all set</h1>
+                    <p class="text-xs text-white/50 font-light">We're monitoring your reviews 24/7. Check your phone for a welcome text.</p>
+                </div>
+                <div class="glass-panel p-4 animate-fade-in delay-100 opacity-0 w-full shrink-0">
+                    <div class="pt-2 pb-1">
+                        <a href="https://maitreo.com" class="block w-full bg-white text-black h-11 rounded-lg font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-100 transition-colors duration-200 shadow-lg shadow-white/5 text-center leading-[2.75rem]">Go to Maitreo</a>
+                    </div>
+                </div>
+                <div class="mt-4 text-center animate-fade-in delay-200 opacity-0 shrink-0">
+                    <div class="flex justify-center gap-5 text-[9px] uppercase tracking-widest text-white/20">
+                        <a href="#" class="hover:text-white/40 transition-colors">Privacy</a>
+                        <span class="w-1 h-1 rounded-full bg-white/10 self-center"></span>
+                        <a href="#" class="hover:text-white/40 transition-colors">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Background overlay -->
     <div class="fixed inset-0 pointer-events-none z-0">
         <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]"></div>
     </div>
 
-    <!-- MAIN -->
-    <main class="flex-grow flex items-center justify-center px-6 sm:px-4 py-24 sm:py-32 min-h-screen relative z-10">
-        <div class="w-full max-w-sm sm:max-w-xl mx-auto">
-
-            <!-- ==================== STEP 1: RESTAURANT BASICS ==================== -->
-            <div id="step-1" class="step-section active">
-                <div class="text-center mb-6 sm:mb-10 animate-fade-in opacity-0">
-                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-3 sm:mb-4">Onboarding</span>
-                    <div class="flex items-center justify-center gap-2 mb-6 sm:mb-10" id="dots-1">
-                        <div class="progress-dot active-green"></div>
-                        <div class="progress-dot"></div>
-                        <div class="progress-dot"></div>
-                    </div>
-                    <h1 class="text-2xl sm:text-5xl font-medium tracking-tight mb-2 sm:mb-4" style="letter-spacing:-0.02em">Set up your restaurant</h1>
-                    <p class="text-xs sm:text-sm text-white/55 font-light leading-relaxed">You'll connect your Google Business Profile in the next step.</p>
-                </div>
-
-                <div class="glass-panel rounded-[20px] sm:rounded-xl p-4 sm:px-10 sm:py-10 animate-fade-in delay-100 opacity-0">
-                    <form id="form-1" class="flex flex-col gap-3 sm:space-y-6" novalidate>
-                        <div class="group">
-                            <label class="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 sm:mb-3 group-focus-within:text-white transition-colors">Restaurant Name</label>
-                            <input type="text" name="name" class="form-input w-full px-3 sm:px-6 py-2.5 sm:py-4 text-sm text-white rounded-lg sm:rounded-none placeholder-white/20 font-light" placeholder="e.g. The Pepper Room" required>
-                            <div class="error-msg" data-for="name"></div>
-                        </div>
-                        <div class="group">
-                            <label class="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 sm:mb-3 group-focus-within:text-white transition-colors">Owner Name</label>
-                            <input type="text" name="ownerName" class="form-input w-full px-3 sm:px-6 py-2.5 sm:py-4 text-sm text-white rounded-lg sm:rounded-none placeholder-white/20 font-light" placeholder="First and Last Name" required>
-                            <div class="error-msg" data-for="ownerName"></div>
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-8">
-                            <div class="group">
-                                <label class="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 sm:mb-3 group-focus-within:text-white transition-colors">Email</label>
-                                <input type="email" name="email" class="form-input w-full px-3 sm:px-6 py-2.5 sm:py-4 text-sm text-white rounded-lg sm:rounded-none placeholder-white/20 font-light" placeholder="name@site.com" required>
-                                <div class="error-msg" data-for="email"></div>
-                            </div>
-                            <div class="group">
-                                <label class="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 sm:mb-3 group-focus-within:text-white transition-colors">Phone</label>
-                                <input type="tel" name="phone" id="phone-input" class="form-input w-full px-3 sm:px-6 py-2.5 sm:py-4 text-sm text-white rounded-lg sm:rounded-none placeholder-white/20 font-light" placeholder="(555) 000-0000" required>
-                                <div class="error-msg" data-for="phone"></div>
-                            </div>
-                        </div>
-                        <div class="group">
-                            <label class="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 sm:mb-3 group-focus-within:text-white transition-colors">Address</label>
-                            <input type="text" name="address" class="form-input w-full px-3 sm:px-6 py-2.5 sm:py-4 text-sm text-white rounded-lg sm:rounded-none placeholder-white/20 font-light" placeholder="Street, City, State, Zip" required>
-                            <div class="error-msg" data-for="address"></div>
-                        </div>
-                        <div class="pt-2 sm:pt-3">
-                            <button type="submit" class="btn-primary h-11 sm:h-14 rounded-lg sm:rounded-none">Continue</button>
-                            <p class="mt-3 sm:mt-5 text-center text-[10px] uppercase tracking-[0.12em] text-white/25">Secure setup. Takes less than 2 minutes.</p>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="mt-6 sm:mt-10 text-center animate-fade-in delay-200 opacity-0">
-                    <div class="flex justify-center gap-5 sm:gap-6 text-[9px] uppercase tracking-widest text-white/10">
-                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
-                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==================== STEP 2: VERIFY PHONE ==================== -->
-            <div id="step-2" class="step-section">
-                <div class="text-center mb-6 sm:mb-10 animate-fade-in opacity-0">
-                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-3 sm:mb-4">Onboarding</span>
-                    <div class="flex items-center justify-center gap-2 mb-6 sm:mb-10" id="dots-2">
-                        <div class="progress-dot completed"></div>
-                        <div class="progress-dot active-green"></div>
-                        <div class="progress-dot"></div>
-                    </div>
-                    <h1 class="text-2xl sm:text-5xl font-medium tracking-tight mb-2 sm:mb-4" style="letter-spacing:-0.02em">Verify your phone</h1>
-                    <p class="text-xs sm:text-sm text-white/55 font-light leading-relaxed" id="verify-subtitle">We sent a 6-digit code to your phone.</p>
-                </div>
-
-                <div class="glass-panel rounded-[20px] sm:rounded-xl p-4 sm:px-10 sm:py-10 animate-fade-in delay-100 opacity-0">
-                    <form id="form-2" class="flex flex-col gap-4 sm:space-y-6" novalidate>
-                        <div class="group">
-                            <label class="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 sm:mb-3 group-focus-within:text-white transition-colors">Verification Code</label>
-                            <input type="text" name="code" id="otp-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" class="form-input w-full px-3 sm:px-6 py-2.5 sm:py-4 text-sm sm:text-lg text-white rounded-lg sm:rounded-none placeholder-white/20 font-light tracking-[0.3em] text-center" placeholder="000000" required>
-                            <div class="error-msg" data-for="code"></div>
-                        </div>
-                        <div class="pt-2 sm:pt-3">
-                            <button type="submit" class="btn-primary h-11 sm:h-14 rounded-lg sm:rounded-none">Verify</button>
-                            <p class="mt-4 text-center">
-                                <span class="resend-link" id="resend-btn">Resend code</span>
-                            </p>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="mt-6 sm:mt-10 text-center animate-fade-in delay-200 opacity-0">
-                    <div class="flex justify-center gap-5 sm:gap-6 text-[9px] uppercase tracking-widest text-white/10">
-                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
-                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==================== STEP 3: PAYMENT ==================== -->
-            <div id="step-3" class="step-section">
-                <div class="text-center mb-6 sm:mb-10 animate-fade-in opacity-0">
-                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-3 sm:mb-4">Onboarding</span>
-                    <div class="flex items-center justify-center gap-2 mb-6 sm:mb-10" id="dots-3">
-                        <div class="progress-dot completed"></div>
-                        <div class="progress-dot completed"></div>
-                        <div class="progress-dot active-green"></div>
-                    </div>
-                    <h1 class="text-2xl sm:text-5xl font-medium tracking-tight mb-2 sm:mb-4" style="letter-spacing:-0.02em">Start your free trial</h1>
-                    <p class="text-xs sm:text-sm text-white/55 font-light leading-relaxed">14 days free. $99/mo after. Cancel anytime via text.</p>
-                </div>
-
-                <div class="glass-panel rounded-[20px] sm:rounded-xl p-4 sm:px-10 sm:py-10 animate-fade-in delay-100 opacity-0">
-                    <div class="flex flex-col gap-4 sm:space-y-6">
-                        <div class="pt-2 sm:pt-2">
-                            <button type="button" id="btn-payment" class="btn-primary h-11 sm:h-14 rounded-lg sm:rounded-none">Continue to payment</button>
-                            <p class="mt-3 sm:mt-5 text-center text-[10px] uppercase tracking-[0.12em] text-white/25">Secure checkout powered by Stripe.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-6 sm:mt-10 text-center animate-fade-in delay-200 opacity-0">
-                    <div class="flex justify-center gap-5 sm:gap-6 text-[9px] uppercase tracking-widest text-white/10">
-                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
-                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==================== STEP 4: CONNECT GOOGLE ==================== -->
-            <div id="step-4" class="step-section">
-                <div class="text-center mb-6 sm:mb-10 animate-fade-in opacity-0">
-                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-3 sm:mb-4">Onboarding</span>
-                    <div class="flex items-center justify-center gap-2 mb-6 sm:mb-10" id="dots-4">
-                        <div class="progress-dot completed"></div>
-                        <div class="progress-dot completed"></div>
-                        <div class="progress-dot active-green"></div>
-                    </div>
-                    <h1 class="text-2xl sm:text-5xl font-medium tracking-tight mb-2 sm:mb-4" style="letter-spacing:-0.02em">Connect Your Google Business Profile</h1>
-                    <p class="text-xs sm:text-sm text-white/55 font-light leading-relaxed max-w-xs sm:max-w-md mx-auto">We'll monitor your reviews and draft replies automatically. You can approve everything via SMS.</p>
-                </div>
-
-                <div class="glass-panel rounded-[20px] sm:rounded-xl p-4 sm:px-10 sm:py-10 animate-fade-in delay-100 opacity-0">
-                    <div class="flex flex-col gap-4 sm:space-y-6">
-                        <div class="pt-2 sm:pt-2">
-                            <button type="button" id="btn-google" class="btn-primary h-11 sm:h-14 rounded-lg sm:rounded-none flex items-center justify-center gap-2">
-                                Connect Google
-                            </button>
-                            <p class="mt-3 sm:mt-5 text-center text-[10px] uppercase tracking-[0.12em] text-white/25">Secure OAuth connection. We never post without your approval.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-6 sm:mt-10 text-center animate-fade-in delay-200 opacity-0">
-                    <div class="flex justify-center gap-5 sm:gap-6 text-[9px] uppercase tracking-widest text-white/10">
-                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
-                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==================== STEP 5: ALL SET ==================== -->
-            <div id="step-5" class="step-section">
-                <div class="text-center mb-6 sm:mb-10 animate-fade-in opacity-0">
-                    <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-3 sm:mb-4">Onboarding</span>
-                    <div class="flex items-center justify-center gap-2 mb-6 sm:mb-10" id="dots-5">
-                        <div class="progress-dot completed"></div>
-                        <div class="progress-dot completed"></div>
-                        <div class="progress-dot completed"></div>
-                    </div>
-                    <div class="flex justify-center mb-6">
-                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="32" cy="32" r="30" stroke="#4ade80" stroke-width="2" opacity="0.3"/>
-                            <circle cx="32" cy="32" r="30" stroke="#4ade80" stroke-width="2" class="check-animate" style="stroke-dasharray:189;stroke-dashoffset:189;animation:checkDraw 0.8s ease-out 0.2s forwards"/>
-                            <path d="M20 33L28 41L44 25" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="check-animate"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-2xl sm:text-5xl font-medium tracking-tight mb-2 sm:mb-4" style="letter-spacing:-0.02em">You're all set</h1>
-                    <p class="text-xs sm:text-sm text-white/55 font-light leading-relaxed">We're monitoring your reviews 24/7. Check your phone for a welcome text.</p>
-                </div>
-
-                <div class="glass-panel rounded-[20px] sm:rounded-xl p-4 sm:px-10 sm:py-10 animate-fade-in delay-100 opacity-0">
-                    <div class="flex flex-col gap-4 sm:space-y-6">
-                        <div class="pt-2 sm:pt-2">
-                            <a href="https://maitreo.com" class="btn-primary h-11 sm:h-14 rounded-lg sm:rounded-none flex items-center justify-center">Go to Maitreo</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-6 sm:mt-10 text-center animate-fade-in delay-200 opacity-0">
-                    <div class="flex justify-center gap-5 sm:gap-6 text-[9px] uppercase tracking-widest text-white/10">
-                        <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
-                        <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
     <script>
     (function() {
-        // ── Config ──
+        // Config
         const API_URL = window.location.hostname === 'localhost'
             ? 'http://localhost:3001'
             : 'https://restaurant-saas-backend-pbbx.onrender.com';
 
-        let state = { restaurantId: null, phone: '' };
+        const params = new URLSearchParams(window.location.search);
+        const isDemo = params.get('demo') === 'true';
+        let restaurantId = params.get('rid') || null;
+        let phoneNumber = '';
+        let formData = {};
 
-        // ── Helpers ──
-        const $ = s => document.querySelector(s);
-        const $$ = s => document.querySelectorAll(s);
-
-        function getParam(k) {
-            return new URLSearchParams(window.location.search).get(k);
-        }
-        function setParam(k, v) {
-            const u = new URL(window.location);
-            u.searchParams.set(k, v);
-            window.history.replaceState({}, '', u);
-        }
-
+        // Step navigation
         function showStep(n) {
-            $$('.step-section').forEach(s => s.classList.remove('active'));
-            const el = $(`#step-${n}`);
-            if (el) {
-                el.classList.add('active');
-                // Re-trigger animations
-                el.querySelectorAll('.animate-fade-in').forEach(a => {
-                    a.style.animation = 'none';
-                    a.offsetHeight; // reflow
-                    a.style.animation = '';
-                });
-            }
-        }
-
-        function formatPhone(v) {
-            const d = v.replace(/\D/g, '').slice(0, 10);
-            if (d.length === 0) return '';
-            if (d.length <= 3) return `(${d}`;
-            if (d.length <= 6) return `(${d.slice(0,3)}) ${d.slice(3)}`;
-            return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
-        }
-        function rawPhone(v) { return v.replace(/\D/g, ''); }
-
-        function showError(name, msg) {
-            const el = document.querySelector(`.error-msg[data-for="${name}"]`);
-            const inp = document.querySelector(`[name="${name}"]`);
-            if (el) { el.textContent = msg; el.classList.add('visible'); }
-            if (inp) inp.classList.add('input-error');
-        }
-        function clearErrors(form) {
-            form.querySelectorAll('.error-msg').forEach(e => { e.textContent = ''; e.classList.remove('visible'); });
-            form.querySelectorAll('.form-input').forEach(e => e.classList.remove('input-error'));
-        }
-
-        async function api(path, opts = {}) {
-            const res = await fetch(`${API_URL}${path}`, {
-                headers: { 'Content-Type': 'application/json', ...opts.headers },
-                ...opts,
-                body: opts.body ? JSON.stringify(opts.body) : undefined
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('step' + n).classList.add('active');
+            // Reset animations
+            document.getElementById('step' + n).querySelectorAll('.animate-fade-in').forEach(el => {
+                el.style.animation = 'none';
+                el.offsetHeight; // reflow
+                el.style.animation = '';
             });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || err.message || `HTTP ${res.status}`);
-            }
-            return res.json();
         }
 
-        // ── Phone formatting ──
-        const phoneInput = $('#phone-input');
-        if (phoneInput) {
-            phoneInput.addEventListener('input', function() {
+        // Phone formatting
+        function formatPhone(val) {
+            const d = val.replace(/\D/g, '').slice(0, 10);
+            if (d.length === 0) return '';
+            if (d.length <= 3) return '(' + d;
+            if (d.length <= 6) return '(' + d.slice(0,3) + ') ' + d.slice(3);
+            return '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6);
+        }
+
+        function maskPhone(phone) {
+            const d = phone.replace(/\D/g, '');
+            if (d.length < 4) return '(xxx) xxx-xxxx';
+            return '(xxx) xxx-' + d.slice(-4);
+        }
+
+        // Phone input formatting
+        document.querySelectorAll('.phone-input').forEach(input => {
+            input.addEventListener('input', function() {
                 const pos = this.selectionStart;
                 const prev = this.value;
                 this.value = formatPhone(this.value);
             });
+        });
+
+        // Label focus behavior
+        document.querySelectorAll('.group').forEach(group => {
+            const input = group.querySelector('input');
+            const label = group.querySelector('label');
+            if (!input || !label) return;
+            input.addEventListener('focus', () => label.style.color = 'white');
+            input.addEventListener('blur', () => { if (!input.value) label.style.color = ''; });
+        });
+
+        // Button loading state
+        function setLoading(btn, loading) {
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner"></span>';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+            }
         }
 
-        // ── Label focus behavior ──
-        function bindLabels(container) {
-            container.querySelectorAll('input').forEach(input => {
-                const label = input.parentElement.querySelector('label');
-                if (!label) return;
-                input.addEventListener('focus', () => label.style.color = 'white');
-                input.addEventListener('blur', () => { if (!input.value) label.style.color = ''; });
-                if (input.value) label.style.color = 'white';
-            });
-        }
-        bindLabels(document);
-
-        // ── Step 1: Register ──
-        $('#form-1').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors(this);
-            const fd = new FormData(this);
-            const data = {
-                name: fd.get('name')?.trim(),
-                ownerName: fd.get('ownerName')?.trim(),
-                email: fd.get('email')?.trim(),
-                phone: rawPhone(fd.get('phone') || ''),
-                address: fd.get('address')?.trim()
+        // Collect form data from whichever form is visible
+        function getFormData() {
+            const isMobile = window.innerWidth < 768;
+            const form = document.getElementById(isMobile ? 'form1-mobile' : 'form1-desktop');
+            const fd = new FormData(form);
+            return {
+                restaurantName: fd.get('restaurantName'),
+                ownerName: fd.get('ownerName'),
+                email: fd.get('email'),
+                phone: fd.get('phone').replace(/\D/g, ''),
+                address: fd.get('address')
             };
+        }
 
-            // Validate
-            let valid = true;
-            if (!data.name) { showError('name', 'Restaurant name is required'); valid = false; }
-            if (!data.ownerName) { showError('ownerName', 'Owner name is required'); valid = false; }
-            if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { showError('email', 'Valid email is required'); valid = false; }
-            if (data.phone.length < 10) { showError('phone', 'Valid 10-digit phone is required'); valid = false; }
-            if (!data.address) { showError('address', 'Address is required'); valid = false; }
-            if (!valid) return;
-
-            const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true; btn.textContent = 'Setting up...';
-            try {
-                const res = await api('/onboarding/register', { method: 'POST', body: data });
-                state.restaurantId = res.restaurantId;
-                state.phone = data.phone;
-                setParam('rid', state.restaurantId);
-                // Send OTP
-                await api('/onboarding/otp/send', { method: 'POST', body: { restaurantId: state.restaurantId, phone: state.phone } });
-                // Update subtitle
-                const masked = `(${state.phone.slice(0,3)}) ${state.phone.slice(3,6)}-${state.phone.slice(6)}`;
-                $('#verify-subtitle').textContent = `We sent a 6-digit code to ${masked}`;
-                showStep(2);
-            } catch (err) {
-                showError('name', err.message);
-            } finally {
-                btn.disabled = false; btn.textContent = 'Continue';
-            }
-        });
-
-        // ── Step 2: Verify OTP ──
-        const otpInput = $('#otp-input');
-        otpInput.addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '').slice(0, 6);
-        });
-
-        $('#form-2').addEventListener('submit', async function(e) {
+        // ===== STEP 1 HANDLERS =====
+        async function handleStep1(e) {
             e.preventDefault();
-            clearErrors(this);
-            const code = otpInput.value.trim();
-            if (code.length !== 6) { showError('code', 'Enter the 6-digit code'); return; }
+            formData = getFormData();
+            phoneNumber = formData.phone;
 
-            const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true; btn.textContent = 'Verifying...';
-            try {
-                await api('/onboarding/otp/verify', { method: 'POST', body: { restaurantId: state.restaurantId, code } });
-                showStep(3);
-            } catch (err) {
-                showError('code', err.message);
-            } finally {
-                btn.disabled = false; btn.textContent = 'Verify';
-            }
-        });
+            if (isDemo) { showStep(2); updateOtpSubtitle(); return; }
 
-        $('#resend-btn').addEventListener('click', async function() {
-            this.textContent = 'Sending...';
-            this.style.pointerEvents = 'none';
+            const btn = e.target.querySelector('button[type="submit"]');
+            setLoading(btn, true);
             try {
-                await api('/onboarding/otp/send', { method: 'POST', body: { restaurantId: state.restaurantId, phone: state.phone } });
-                this.textContent = 'Code sent!';
-                setTimeout(() => { this.textContent = 'Resend code'; this.style.pointerEvents = ''; }, 3000);
-            } catch (err) {
-                this.textContent = 'Failed — try again';
-                setTimeout(() => { this.textContent = 'Resend code'; this.style.pointerEvents = ''; }, 3000);
-            }
-        });
-
-        // ── Step 3: Payment ──
-        $('#btn-payment').addEventListener('click', async function() {
-            this.disabled = true; this.textContent = 'Redirecting...';
-            try {
-                const res = await api('/onboarding/stripe/create-session', { method: 'POST', body: { restaurantId: state.restaurantId } });
-                if (res.url) window.location.href = res.url;
-                else throw new Error('No checkout URL returned');
+                const res = await fetch(API_URL + '/onboarding/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Registration failed');
+                restaurantId = data.restaurantId || data.rid;
+                // Send OTP
+                await fetch(API_URL + '/onboarding/otp/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ restaurantId, phone: formData.phone })
+                });
+                showStep(2);
+                updateOtpSubtitle();
             } catch (err) {
                 alert(err.message);
             } finally {
-                this.disabled = false; this.textContent = 'Continue to payment';
+                setLoading(btn, false);
             }
-        });
+        }
 
-        // ── Step 4: Google Connect ──
-        $('#btn-google').addEventListener('click', function() {
-            const returnUrl = `${window.location.origin}${window.location.pathname}?rid=${state.restaurantId}&step=5`;
-            window.location.href = `${API_URL}/auth/google/start?restaurant_id=${state.restaurantId}&return_url=${encodeURIComponent(returnUrl)}`;
-        });
+        function updateOtpSubtitle() {
+            const masked = maskPhone(phoneNumber);
+            document.getElementById('otp-subtitle-desktop').textContent = 'We sent a 6-digit code to ' + masked;
+            document.getElementById('otp-subtitle-mobile').textContent = 'We sent a 6-digit code to ' + masked;
+        }
 
-        // ── Step 5: Complete ──
-        async function completeOnboarding() {
+        document.getElementById('form1-desktop').addEventListener('submit', handleStep1);
+        document.getElementById('form1-mobile').addEventListener('submit', handleStep1);
+
+        // ===== STEP 2 HANDLERS =====
+        async function handleStep2() {
+            if (isDemo) { showStep(3); return; }
+            const isMobile = window.innerWidth < 768;
+            const otp = document.getElementById(isMobile ? 'otp-mobile' : 'otp-desktop').value.trim();
+            if (otp.length !== 6) { alert('Please enter the 6-digit code'); return; }
+
+            const btn = document.getElementById(isMobile ? 'btn2-mobile' : 'btn2-desktop');
+            setLoading(btn, true);
             try {
-                await api('/onboarding/complete', { method: 'POST', body: { restaurantId: state.restaurantId } });
-            } catch (_) {}
-        }
-
-        // ── Resume Logic ──
-        async function init() {
-            const rid = getParam('rid');
-            const stepParam = getParam('step');
-
-            if (rid) {
-                state.restaurantId = rid;
-                try {
-                    const status = await api(`/onboarding/status?rid=${rid}`);
-                    state.restaurantId = status.restaurantId || rid;
-                    state.phone = status.phone || '';
-
-                    // Stripe return
-                    if (stepParam === '4') {
-                        showStep(4);
-                        return;
-                    }
-                    if (stepParam === '5') {
-                        showStep(5);
-                        completeOnboarding();
-                        return;
-                    }
-
-                    // Auto-advance to first incomplete step
-                    if (status.onboarding_complete) { showStep(5); return; }
-                    if (status.google_connected) { showStep(5); completeOnboarding(); return; }
-                    if (status.stripe_active) { showStep(4); return; }
-                    if (status.phone_verified) { showStep(3); return; }
-                    // Phone not verified — go to step 2, send OTP
-                    showStep(2);
-                    if (state.phone) {
-                        const masked = `(${state.phone.slice(0,3)}) ${state.phone.slice(3,6)}-${state.phone.slice(6)}`;
-                        $('#verify-subtitle').textContent = `We sent a 6-digit code to ${masked}`;
-                    }
-                    try { await api('/onboarding/otp/send', { method: 'POST', body: { restaurantId: state.restaurantId, phone: state.phone } }); } catch(_){}
-                } catch (err) {
-                    // Status fetch failed — start from step 1
-                    showStep(1);
-                }
-            } else {
-                showStep(1);
+                const res = await fetch(API_URL + '/onboarding/otp/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ restaurantId, code: otp })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Verification failed');
+                showStep(3);
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                setLoading(btn, false);
             }
         }
 
-        init();
+        async function handleResend() {
+            if (isDemo) return;
+            try {
+                await fetch(API_URL + '/onboarding/otp/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ restaurantId, phone: phoneNumber })
+                });
+                alert('Code resent!');
+            } catch (err) {
+                alert('Failed to resend code');
+            }
+        }
+
+        document.getElementById('btn2-desktop').addEventListener('click', handleStep2);
+        document.getElementById('btn2-mobile').addEventListener('click', handleStep2);
+        document.getElementById('resend-desktop').addEventListener('click', handleResend);
+        document.getElementById('resend-mobile').addEventListener('click', handleResend);
+
+        // OTP: only allow digits
+        document.querySelectorAll('#otp-desktop, #otp-mobile').forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').slice(0, 6);
+            });
+        });
+
+        // ===== STEP 3 HANDLERS =====
+        async function handleStep3() {
+            if (isDemo) { showStep(4); return; }
+            const isMobile = window.innerWidth < 768;
+            const btn = document.getElementById(isMobile ? 'btn3-mobile' : 'btn3-desktop');
+            setLoading(btn, true);
+            try {
+                const res = await fetch(API_URL + '/onboarding/stripe/create-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ restaurantId })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to create checkout session');
+                if (data.url) window.location.href = data.url;
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        document.getElementById('btn3-desktop').addEventListener('click', handleStep3);
+        document.getElementById('btn3-mobile').addEventListener('click', handleStep3);
+
+        // ===== STEP 4 HANDLERS =====
+        async function handleStep4() {
+            if (isDemo) { showStep(5); return; }
+            window.location.href = API_URL + '/auth/google/start?rid=' + restaurantId;
+        }
+
+        document.getElementById('btn4-desktop').addEventListener('click', handleStep4);
+        document.getElementById('btn4-mobile').addEventListener('click', handleStep4);
+
+        // ===== RESUME LOGIC =====
+        async function checkResume() {
+            if (isDemo || !restaurantId) return;
+            try {
+                const res = await fetch(API_URL + '/onboarding/status?rid=' + restaurantId);
+                if (!res.ok) return;
+                const data = await res.json();
+                const step = data.step || data.currentStep || 1;
+                if (step > 1 && step <= 5) showStep(step);
+            } catch (err) {
+                // Silent fail
+            }
+        }
+
+        if (restaurantId && !isDemo) checkResume();
+
+        // ===== STEP 5: Complete =====
+        async function completeOnboarding() {
+            if (isDemo || !restaurantId) return;
+            try {
+                await fetch(API_URL + '/onboarding/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ restaurantId })
+                });
+            } catch (err) {
+                // Silent
+            }
+        }
+
+        // Watch for step 5 becoming active
+        const observer = new MutationObserver(() => {
+            if (document.getElementById('step5').classList.contains('active')) {
+                completeOnboarding();
+            }
+        });
+        observer.observe(document.getElementById('step5'), { attributes: true, attributeFilter: ['class'] });
+
     })();
     </script>
 </body>
