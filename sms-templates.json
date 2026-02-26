@@ -1,0 +1,239 @@
+{
+  "version": "1.0",
+  "updated": "2026-02-13",
+  "templates": {
+    "new_review_single": {
+      "description": "Sent when a new review arrives (single pending review)",
+      "template": "🌟 New review at {{restaurant_name}}:\n\n\"{{review_text}}\" {{stars}} - {{customer_name}}\n\nDraft reply:\n\"{{draft_reply}}\"\n\nReply:\nAPPROVE - Post this reply\nEDIT - Request changes\nIGNORE - Don't reply\n\nReply HELP anytime.",
+      "variables": {
+        "restaurant_name": "string",
+        "review_text": "string",
+        "stars": "string (e.g., ⭐⭐⭐⭐)",
+        "customer_name": "string",
+        "draft_reply": "string"
+      }
+    },
+    "new_review_multiple": {
+      "description": "Sent when multiple reviews are pending (shows review number)",
+      "template": "🌟 Review #{{review_number}} at {{restaurant_name}}:\n\n\"{{review_text}}\" {{stars}} - {{customer_name}}\n\nDraft reply:\n\"{{draft_reply}}\"\n\nReply:\nAPPROVE {{review_number}} - Post this reply\nEDIT {{review_number}} - Request changes\nIGNORE {{review_number}} - Don't reply\n\n{{pending_count}} more pending.\n\nReply HELP anytime.",
+      "variables": {
+        "review_number": "integer",
+        "restaurant_name": "string",
+        "review_text": "string",
+        "stars": "string",
+        "customer_name": "string",
+        "draft_reply": "string",
+        "pending_count": "integer"
+      }
+    },
+    "approve_success": {
+      "description": "Sent after successfully posting a reply",
+      "template": "✅ Reply posted to {{customer_name}}'s review on {{platform}}.\n\nYou can view it at:\n{{review_url}}\n\nReply HELP anytime.",
+      "variables": {
+        "customer_name": "string",
+        "platform": "string (Google, Yelp, etc.)",
+        "review_url": "string"
+      }
+    },
+    "approve_success_more_pending": {
+      "description": "Sent after approval when more reviews are pending",
+      "template": "✅ Reply posted to {{customer_name}}'s review.\n\nYou have {{pending_count}} more pending. Check your next message.\n\nReply HELP anytime.",
+      "variables": {
+        "customer_name": "string",
+        "pending_count": "integer"
+      },
+      "note": "Follow immediately with next review notification"
+    },
+    "edit_acknowledgment": {
+      "description": "Sent when user requests edits",
+      "template": "Got it! What changes would you like?\n\nExamples:\n- \"Make it shorter\"\n- \"More friendly\"\n- \"Mention our new menu\"\n\nJust reply with your instructions.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "edit_acknowledgment_with_instructions": {
+      "description": "Sent when user provides edit instructions immediately",
+      "template": "Got it! Updating the draft...\n\n\"{{edit_instructions}}\"\n\nYou'll get the new version in a moment.\n\nReply HELP anytime.",
+      "variables": {
+        "edit_instructions": "string"
+      },
+      "note": "Follow with new_review_single once AI regenerates draft"
+    },
+    "edit_new_draft": {
+      "description": "Sent with updated draft after edits",
+      "template": "Here's the updated draft:\n\n\"{{new_draft}}\"\n\nReply:\nAPPROVE - Post this version\nEDIT - Request more changes\nIGNORE - Don't reply\n\nReply HELP anytime.",
+      "variables": {
+        "new_draft": "string"
+      }
+    },
+    "ignore_confirmation": {
+      "description": "Sent when user ignores a review",
+      "template": "✓ Ignored {{customer_name}}'s review. No reply will be posted.\n\nReply HELP anytime.",
+      "variables": {
+        "customer_name": "string"
+      }
+    },
+    "ignore_confirmation_more_pending": {
+      "description": "Sent when user ignores a review and others are pending",
+      "template": "✓ Ignored {{customer_name}}'s review.\n\nYou have {{pending_count}} more pending. Check your next message.\n\nReply HELP anytime.",
+      "variables": {
+        "customer_name": "string",
+        "pending_count": "integer"
+      },
+      "note": "Follow immediately with next review notification"
+    },
+    "pause_confirmation": {
+      "description": "Sent when user pauses notifications",
+      "template": "✓ Review notifications paused for {{duration}}.\n\nNew reviews will be saved. You can still check them at any time.\n\nReply RESUME to turn notifications back on.\n\nReply HELP anytime.",
+      "variables": {
+        "duration": "string (e.g., '24 hours', '1 week')"
+      }
+    },
+    "resume_confirmation": {
+      "description": "Sent when user resumes notifications",
+      "template": "✓ Review notifications resumed.\n\nYou have {{pending_count}} pending reviews.\n\nReply HELP anytime.",
+      "variables": {
+        "pending_count": "integer"
+      },
+      "note": "If pending_count > 0, follow with first review notification"
+    },
+    "resume_confirmation_none_pending": {
+      "description": "Sent when user resumes with no pending reviews",
+      "template": "✓ Review notifications resumed.\n\nNo pending reviews right now. You'll get a text when a new one arrives.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "status_active": {
+      "description": "Sent in response to STATUS command (active subscription)",
+      "template": "📊 Account Status\n\nRestaurant: {{restaurant_name}}\nStatus: Active ✅\nPending reviews: {{pending_count}}\nReviews this week: {{reviews_this_week}}\n\nNotifications: {{notification_status}}\n\nReply BILLING for payment info.\n\nReply HELP anytime.",
+      "variables": {
+        "restaurant_name": "string",
+        "pending_count": "integer",
+        "reviews_this_week": "integer",
+        "notification_status": "string (On, Paused until [date])"
+      }
+    },
+    "status_inactive": {
+      "description": "Sent in response to STATUS command (inactive subscription)",
+      "template": "📊 Account Status\n\nRestaurant: {{restaurant_name}}\nStatus: Inactive ❌\n\nYour subscription has ended. Reply BILLING to reactivate.\n\nReply HELP anytime.",
+      "variables": {
+        "restaurant_name": "string"
+      }
+    },
+    "billing_info": {
+      "description": "Sent in response to BILLING command",
+      "template": "💳 Billing Info\n\nPlan: {{plan_name}} - ${{amount}}/mo\nNext charge: {{next_charge_date}}\n\nManage subscription:\n{{stripe_portal_url}}\n\n(Update card, view invoices, cancel)\n\nReply HELP anytime.",
+      "variables": {
+        "plan_name": "string",
+        "amount": "string (e.g., '49')",
+        "next_charge_date": "string (e.g., 'March 13, 2026')",
+        "stripe_portal_url": "string"
+      }
+    },
+    "billing_info_inactive": {
+      "description": "Sent in response to BILLING when subscription inactive",
+      "template": "💳 Billing Info\n\nStatus: Inactive\n\nReactivate your account:\n{{reactivate_url}}\n\nQuestions? Reply and we'll help.\n\nReply HELP anytime.",
+      "variables": {
+        "reactivate_url": "string"
+      }
+    },
+    "cancel_confirmation": {
+      "description": "First message in cancellation flow",
+      "template": "We're sorry to see you go.\n\nAre you sure you want to cancel?\n\nReply YES to confirm cancellation, or HELP to see other options.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "cancel_confirmed": {
+      "description": "Sent after user confirms cancellation",
+      "template": "✓ Subscription cancelled.\n\nYou'll have access until {{end_date}}. After that, you won't be charged again.\n\nWe'd love your feedback:\n{{feedback_url}}\n\nThanks for trying Maitreo.\n\nReply HELP anytime.",
+      "variables": {
+        "end_date": "string",
+        "feedback_url": "string (optional)"
+      }
+    },
+    "help_full": {
+      "description": "Complete command list",
+      "template": "📱 Maitreo Commands\n\nReview Actions:\nAPPROVE - Post the AI reply\nEDIT - Request changes\nIGNORE - Skip this review\n\nAccount:\nSTATUS - Check account\nBILLING - Payment info\nPAUSE - Pause notifications\nRESUME - Resume notifications\nCANCEL - End subscription\n\nQuestions? Just reply and we'll help.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "help_context": {
+      "description": "Help message when user has pending review",
+      "template": "📱 Quick Commands\n\nFor this review:\nAPPROVE - Post the reply\nEDIT - Request changes\nIGNORE - Skip this review\n\nReply HELP for full list.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "unknown_command": {
+      "description": "Sent when command not recognized",
+      "template": "I didn't recognize that command.\n\nTry:\nAPPROVE - Post the reply\nEDIT - Request changes\nIGNORE - Skip this review\nSTATUS - Check account\n\nReply HELP for full list.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "error_no_context": {
+      "description": "Sent when user sends APPROVE/EDIT/IGNORE with no pending reviews",
+      "template": "No pending reviews right now.\n\nYou'll get a text when a new review arrives.\n\nReply STATUS to check your account.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "error_review_expired": {
+      "description": "Sent when user tries to act on expired review (24h+)",
+      "template": "That review is no longer available (expired after 24h).\n\nTo reply manually, visit your {{platform}} dashboard.\n\nCurrent pending: {{pending_count}}\n\nReply HELP anytime.",
+      "variables": {
+        "platform": "string",
+        "pending_count": "integer"
+      }
+    },
+    "error_already_handled": {
+      "description": "Sent when user tries to act on review already approved/ignored",
+      "template": "That review has already been handled.\n\nCurrent pending: {{pending_count}}\n\nReply STATUS to check your account.\n\nReply HELP anytime.",
+      "variables": {
+        "pending_count": "integer"
+      }
+    },
+    "error_subscription_required": {
+      "description": "Sent when user tries review action but subscription inactive",
+      "template": "Your subscription is inactive.\n\nReply BILLING to reactivate and manage reviews.\n\nQuestions? We're here to help.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "error_unknown_number": {
+      "description": "Sent when SMS comes from unregistered number",
+      "template": "This number isn't registered with Maitreo.\n\nSign up at:\nmaitreo.com\n\nQuestions? Contact support@maitreo.com\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "error_system": {
+      "description": "Generic error fallback",
+      "template": "Something went wrong on our end.\n\nWe've been notified and will fix it ASAP.\n\nTry again in a few minutes, or reply for help.\n\nReply HELP anytime.",
+      "variables": {}
+    },
+    "onboarding_welcome": {
+      "description": "Sent when restaurant first signs up",
+      "template": "🎉 Welcome to Maitreo!\n\nYou're all set at {{restaurant_name}}.\n\nWhen a review arrives, you'll get a text with:\n- The review\n- An AI-generated reply\n- Simple commands (APPROVE, EDIT, IGNORE)\n\nReply HELP anytime to see all commands.\n\nReply HELP anytime.",
+      "variables": {
+        "restaurant_name": "string"
+      }
+    },
+    "test_message": {
+      "description": "Test message for onboarding/verification",
+      "template": "✓ Maitreo is connected!\n\nThis is a test message. Your phone is ready to receive review notifications.\n\nReply HELP to see available commands.\n\nReply HELP anytime.",
+      "variables": {}
+    }
+  },
+  "formatting_rules": {
+    "max_length": 1600,
+    "note": "SMS limit is 1600 chars for concatenated messages. Aim for <500 per message.",
+    "star_emoji": "Use ⭐ emoji for ratings (1-5 stars)",
+    "emojis": {
+      "new_review": "🌟",
+      "success": "✅",
+      "checkmark": "✓",
+      "info": "📊",
+      "billing": "💳",
+      "warning": "⚠️",
+      "celebration": "🎉"
+    },
+    "line_breaks": "Use \\n\\n for paragraph separation (mobile readability)",
+    "signature": "Every message must end with 'Reply HELP anytime.'",
+    "tone": "Friendly, casual, helpful. Not corporate. Use contractions (we'll, you'll).",
+    "calls_to_action": "Always include clear next steps",
+    "links": "Use full URLs (not shortened) for transparency"
+  },
+  "variable_formats": {
+    "stars": "Repeat ⭐ emoji based on rating (1-5)",
+    "dates": "Human-friendly format: 'March 13, 2026' not '2026-03-13'",
+    "durations": "Natural language: '24 hours', '1 week', '3 days'",
+    "customer_names": "First name only if available, otherwise 'this customer'",
+    "platform": "Capitalize: Google, Yelp, Facebook (not lowercase)"
+  }
+}

@@ -98,6 +98,7 @@
 
         .hero-title {
             font-size: 28px;
+            font-weight: 300;
             line-height: 1.2;
             margin-bottom: 20px;
             letter-spacing: 0.05em;
@@ -646,14 +647,11 @@
                 slideshowStarted = true;
                 currentSlideIndex = 0;
                 showSlide(currentSlideIndex);
-                // Faster on mobile: 2.5s, desktop: 4s
-                const isMobile = window.innerWidth < 768;
-                const slideSpeed = isMobile ? 2500 : 4000;
                 slideshowInterval = setInterval(() => {
                     currentSlideIndex++;
                     if (currentSlideIndex >= slideshowSteps.length) currentSlideIndex = 0;
                     showSlide(currentSlideIndex);
-                }, slideSpeed);
+                }, 2500); // Faster mobile: 2.5 seconds per slide
             }
             
             function stopSlideshow() {
@@ -724,7 +722,7 @@
             
 
             
-            const platforms = ['GOOGLE', 'YELP', 'TRIPADVISOR'];
+            const platforms = ['GOOGLE'];
             let currentPlatformIndex = 0;
             const platformText = document.querySelector('.monitoring-platform');
             if (platformText) {
@@ -772,10 +770,11 @@
                 <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square" vid="17"></path>
             </svg>
             <div class="brand-header" vid="18">MAITREO</div>
-            <h1 class="hero-title" vid="19">YOUR REPUTATION<br vid="20">HAS A MAÎTRE D' NOW.</h1>
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
+            <h1 class="hero-title" vid="19">YOUR REPUTATION<br vid="20">HAS A <span style="font-family: 'Playfair Display', serif; font-style: italic; font-weight: 700; text-transform: none;">Maître D'</span> NOW.</h1>
             <p class="hero-sub" vid="21">Monitor every review. Get alerts and respond instantly by text — only when it matters.</p>
             <p class="trust-line" vid="22" style="opacity: 0.4; font-size: 12px; letter-spacing: 0.04em; margin-top: 8px;">No dashboard. No logins.</p>
-            <p class="trust-line" style="opacity: 0.5; font-size: 11px; letter-spacing: 0.04em; margin-top: 16px;">Works with Google, Yelp &amp; TripAdvisor • Checked every 15 minutes, 24/7</p>
+            <p class="trust-line" style="opacity: 0.5; font-size: 11px; letter-spacing: 0.04em; margin-top: 16px;">Checked every 15 minutes, 24/7</p>
             <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; font-size: 11px; letter-spacing: 0.05em;" vid="23">
                 <span class="monitoring-indicator" style="width: 6px; height: 6px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 8px #00ff00;" vid="24"></span>
                 <span style="opacity: 0.5;" vid="25">MONITORING</span>
@@ -793,7 +792,7 @@
                     <span class="step-label" vid="32">Step 1 — Review Received</span>
                     <div class="review-card" vid="33">
                         <p style="color: var(--c-white); margin-bottom: 12px;" vid="34">"The food was excellent, but the wait between courses was longer than expected."</p>
-                        <span class="review-meta" vid="35">2★ — Yelp • 7:42 PM</span>
+                        <span class="review-meta" vid="35">2★ — Google • 7:42 PM</span>
                     </div>
                 </div>
                 
@@ -809,16 +808,16 @@
                             New 2★ review for The Pepper Room mentioning slow service.<br vid="43"><br vid="44">
                             Draft reply:<br vid="45">
                             "We're sorry your experience fell short. This is not the standard we aim to deliver at The Pepper Room. We would appreciate the opportunity to speak with you directly."<br vid="46"><br vid="47">
-                            Reply YES to post.<br vid="48">
-                            Reply EDIT to revise.
+                            Reply APPROVE to post.<br vid="48">
+                            Reply EDIT to revise. Reply HELP anytime.
                         </div>
                     </div>
                 </div>
                 
                 <div class="incident-step slideshow-step" data-step="4" vid="49">
                     <span class="step-label" vid="50">Step 4 — Response Posted</span>
-                    <div class="sms-bubble right" style="max-width: 100px; margin-bottom: 16px; text-align: center;" vid="51">
-                        YES
+                    <div class="sms-bubble right" style="max-width: 130px; margin-bottom: 16px; text-align: center;" vid="51">
+                        APPROVE
                     </div>
                     <p vid="52">Response posted. Issue addressed.</p>
                 </div>
@@ -842,7 +841,7 @@
                     </div>
                     <div class="tab-panel" id="negative" vid="64">
                         <div class="sms-bubble left" vid="65">
-                            New 2★ review mentioning slow service.<br vid="66">Draft reply provided.<br vid="67"><br vid="68">Reply YES to post.<br vid="69">Reply EDIT to revise.
+                            New 2★ review mentioning slow service.<br vid="66">Draft reply provided.<br vid="67"><br vid="68">Reply APPROVE to post.<br vid="69">Reply EDIT to revise. Reply HELP anytime.
                         </div>
                     </div>
                     <div class="tab-panel" id="crisis" vid="70">
@@ -884,7 +883,7 @@
             <div class="pillar-carousel" vid="91">
                 <div class="pillar-card" vid="92">
                     <h3 style="font-size: 14px; margin-bottom: 24px;" vid="93">Continuous Awareness</h3>
-                    <p style="margin-bottom: 16px;" vid="94">All platforms monitored<br vid="95">Pattern detection</p>
+                    <p style="margin-bottom: 16px;" vid="94">Reviews monitored 24/7<br vid="95">Pattern detection</p>
                     <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-left: 2px solid rgba(255,255,255,0.3);" vid="96">
                         <span style="font-size: 11px; opacity: 0.6; display: block; margin-bottom: 8px;" vid="97">EXAMPLE</span>
                         <p style="font-size: 13px;" vid="98">"Slow service" mentioned 3 times this week</p>
@@ -896,7 +895,7 @@
                     <p style="margin-bottom: 16px;" vid="101">Auto-post positive reviews<br vid="102">Approve or edit negative replies by SMS</p>
                     <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-left: 2px solid rgba(255,255,255,0.3);" vid="103">
                         <span style="font-size: 11px; opacity: 0.6; display: block; margin-bottom: 8px;" vid="104">EXAMPLE</span>
-                        <p style="font-size: 13px;" vid="105">Reply YES to publish instantly</p>
+                        <p style="font-size: 13px;" vid="105">Reply APPROVE to publish instantly. Reply HELP anytime.</p>
                     </div>
                 </div>
                 
@@ -1084,17 +1083,13 @@
                 <span style="display: block; font-size: 13px; opacity: 0.5; letter-spacing: 0.03em; margin-bottom: 24px;">Costs less than one lost table per week.</span>
                 <div style="font-size: 48px; font-weight: 300; margin-bottom: 8px;" vid="214">$99</div>
                 <p style="font-size: 13px; opacity: 0.6; margin-bottom: 12px;" vid="215">per month / per location</p>
-                <p style="font-size: 12px; opacity: 0.4; margin-bottom: 40px;">No contracts. Cancel anytime.</p>
-                
-                <p style="font-size: 12px; opacity: 0.7; margin-bottom: 32px; line-height: 1.6;" vid="216">
-                    7-day free trial<br vid="217">
-                    Cancel anytime
-                </p>
+                <p style="font-size: 12px; opacity: 0.7; margin-bottom: 12px;">14-day free trial</p>
+                <p style="font-size: 12px; opacity: 0.4; margin-bottom: 40px;">No charge today. Cancel anytime.</p>
                 
                 <div style="text-align: left; margin-bottom: 48px;" vid="218">
                     <p style="font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px;" vid="219">Includes:</p>
                     <p style="line-height: 1.9; font-size: 13px;" vid="220">
-                        Google, Yelp, TripAdvisor<br vid="221">
+                        All your online reviews<br vid="221">
                         Unlimited reviews<br vid="222">
                         Auto-post positives<br vid="223">
                         Approve negatives via SMS<br vid="224">
@@ -1102,7 +1097,7 @@
                     </p>
                 </div>
                 
-                <button class="btn" style="width: 100%;" vid="225">Start Free Trial</button>
+                <a href="/onboarding" class="btn" style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; justify-content: center; align-items: center; text-decoration: none;" vid="225">Start Free Trial</a>
             </div>
         </section>
 
@@ -1117,7 +1112,7 @@
                 </div>
                 <div class="timeline-item" vid="233">
                     <span class="timeline-time" vid="234">Step 2</span>
-                    <p vid="235">Connect review platforms</p>
+                    <p vid="235">Connect your business profile</p>
                 </div>
                 <div class="timeline-item" vid="236">
                     <span class="timeline-time" vid="237">Step 3</span>
@@ -1151,7 +1146,7 @@
                         <span class="accordion-icon" vid="255">+</span>
                     </button>
                     <div class="accordion-content" vid="256">
-                        <p vid="257">Under 5 minutes. Enter your restaurant details, connect your review platforms, and monitoring begins within 24 hours.</p>
+                        <p vid="257">Under 5 minutes. Enter your restaurant details, connect your business profile, and monitoring begins within 24 hours.</p>
                     </div>
                 </div>
                 
@@ -1171,7 +1166,7 @@
                         <span class="accordion-icon" vid="267">+</span>
                     </button>
                     <div class="accordion-content" vid="268">
-                        <p vid="269">Google, Yelp, and TripAdvisor. All reviews are checked every 15 minutes, 24/7.</p>
+                        <p vid="269">We monitor your connected business profile and check for new reviews every 15 minutes, 24/7.</p>
                     </div>
                 </div>
                 
@@ -1232,15 +1227,27 @@
             </svg>
             <h2 class="hero-title" style="font-size: 22px; margin-bottom: 20px;" vid="297">Your Maître d' Is Ready for Service.</h2>
             <p style="font-size: 14px; opacity: 0.7; margin-bottom: 48px;" vid="298">Continuous reputation oversight begins immediately.</p>
-            <button class="btn" style="max-width: 320px;" vid="299">Start Free Trial</button>
+            <a href="/onboarding" class="btn" style="max-width: 320px; display: block; text-align: center; text-decoration: none; margin: 0 auto;" vid="299">Start Free Trial</a>
+            
+            <!-- Footer -->
+            <div style="margin-top: 60px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; justify-content: center; gap: 20px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.4; margin-bottom: 16px;">
+                    <a href="/privacy.html" style="color: white; text-decoration: none;">Privacy</a>
+                    <a href="/terms.html" style="color: white; text-decoration: none;">Terms</a>
+                    <a href="mailto:support@maitreo.com" style="color: white; text-decoration: none;">Contact</a>
+                </div>
+                <p style="font-size: 10px; opacity: 0.3; text-transform: uppercase; letter-spacing: 0.1em;">
+                    <script>document.write(new Date().getFullYear())</script> Maitreo, LLC
+                </p>
+            </div>
         </section>
 
 
 
     </div>
 
-    <div class="fixed-action" vid="300" style="display: flex; justify-content: center; box-sizing: border-box;">
-        <button class="btn" vid="301" style="max-width: 360px;">Start Free Trial</button>
+    <div class="fixed-action" vid="300" style="display: flex; justify-content: center; align-items: center; box-sizing: border-box;">
+        <a href="/onboarding" class="btn" vid="301" style="max-width: 320px; width: 100%; display: flex; justify-content: center; align-items: center; text-decoration: none;">Start Free Trial</a>
     </div>
 
 
