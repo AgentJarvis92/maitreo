@@ -4,7 +4,7 @@
  * Classifies sentiment, generates AI responses, sends SMS alerts.
  */
 
-import { query } from '../db/client.js';
+import { query, transaction } from '../db/client.js';
 import { googleReviewSource } from '../sources/google.js';
 import { yelpReviewSource } from '../sources/yelp.js';
 import { classifySentiment } from '../services/sentimentClassifier.js';
@@ -81,49 +81,56 @@ export class ReviewMonitorJob {
         // Classify sentiment
         const sentiment = classifySentiment(raw.rating, raw.text);
 
-        // Insert review
-        const insertResult = await query<{ id: string }>(
-          `INSERT INTO reviews (
-            restaurant_id, platform, review_id, author, rating, text,
-            review_date, metadata, sentiment, sentiment_score
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          RETURNING id`,
-          [
-            restaurant.id, platform, raw.id, raw.author, raw.rating, raw.text,
-            raw.date, JSON.stringify(raw.metadata || {}),
-            sentiment.sentiment, sentiment.score,
-          ]
-        );
-        const reviewId = insertResult.rows[0].id;
+        // Insert review + draft in a transaction to prevent orphaned reviews
+        const { review, draft } = await transaction(async (client) => {
+          const insertResult = await client.query<{ id: string }>(
+            `INSERT INTO reviews (
+              restaurant_id, platform, review_id, author, rating, text,
+              review_date, metadata, sentiment, sentiment_score
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING id`,
+            [
+              restaurant.id, platform, raw.id, raw.author, raw.rating, raw.text,
+              raw.date, JSON.stringify(raw.metadata || {}),
+              sentiment.sentiment, sentiment.score,
+            ]
+          );
+          const reviewId = insertResult.rows[0].id;
 
-        // Fetch full review
-        const reviewResult = await query<Review>(`SELECT * FROM reviews WHERE id = $1`, [reviewId]);
-        const review = reviewResult.rows[0];
+          // Fetch full review
+          const reviewResult = await client.query<Review>(`SELECT * FROM reviews WHERE id = $1`, [reviewId]);
+          const review = reviewResult.rows[0];
 
-        // Generate AI reply
-        const replyOutput = await replyGenerator.generateReply({ review, restaurant });
-        const draftResult = await query<ReplyDraft>(
-          `INSERT INTO reply_drafts (
-            review_id, draft_text, escalation_flag, escalation_reasons, status, metadata
-          ) VALUES ($1, $2, $3, $4, 'pending', $5)
-          RETURNING *`,
-          [
-            reviewId,
-            replyOutput.draft_text,
-            replyOutput.escalation_flag,
-            JSON.stringify(replyOutput.escalation_reasons),
-            JSON.stringify({ confidence_score: replyOutput.confidence_score }),
-          ]
-        );
-        const draft = draftResult.rows[0];
+          // Generate AI reply
+          const replyOutput = await replyGenerator.generateReply({ review, restaurant });
+          const draftResult = await client.query<ReplyDraft>(
+            `INSERT INTO reply_drafts (
+              review_id, draft_text, escalation_flag, escalation_reasons, status, metadata
+            ) VALUES ($1, $2, $3, $4, 'pending', $5)
+            RETURNING *`,
+            [
+              reviewId,
+              replyOutput.draft_text,
+              replyOutput.escalation_flag,
+              JSON.stringify(replyOutput.escalation_reasons),
+              JSON.stringify({ confidence_score: replyOutput.confidence_score }),
+            ]
+          );
+          return { review, draft: draftResult.rows[0] };
+        });
 
         // Send SMS if owner has phone
-        const ownerPhone = (restaurant as any).owner_phone;
+        const ownerPhone = restaurant.owner_phone;
         if (ownerPhone) {
           try {
             await smsService.sendReviewAlert(review, draft, restaurant, ownerPhone);
           } catch (err) {
             console.error(`  ❌ SMS failed for ${ownerPhone}:`, err);
+            // Mark review for SMS retry
+            await query(
+              `UPDATE reviews SET metadata = jsonb_set(COALESCE(metadata::jsonb, '{}'), '{sms_alert_failed}', 'true') WHERE id = $1`,
+              [review.id]
+            ).catch(retryErr => console.error('Failed to mark SMS retry:', retryErr));
           }
         } else {
           console.log(`  ⚠️  No phone for ${restaurant.name}, skipping SMS`);

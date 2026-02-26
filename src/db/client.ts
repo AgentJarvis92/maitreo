@@ -20,7 +20,12 @@ pool.on('connect', () => {
 
 pool.on('error', (err) => {
   console.error('❌ Unexpected database error:', err);
-  // Don't crash - allow /ping endpoint to work even without DB
+  // Don't crash — attempt reconnection by running a test query
+  pool.query('SELECT 1').then(() => {
+    console.log('✅ Database reconnected after error');
+  }).catch((reconnectErr) => {
+    console.error('❌ Database reconnection failed:', reconnectErr.message);
+  });
 });
 
 // Query helper with error handling
