@@ -38,32 +38,30 @@ export async function fetchPlaceReviews(placeId: string): Promise<PlaceDetails> 
   const placeUrl = `https://places.googleapis.com/v1/places/${placeId}?fields=displayName,rating,userRatingCount&key=${apiKey}`;
   
   const placeResponse = await fetch(placeUrl);
-  const placeData = (await placeResponse.json()) as Record<string, unknown>;
+  const placeData: any = await placeResponse.json();
 
   if (!placeResponse.ok) {
-    throw new Error(`Places API error: ${(placeData?.error as Record<string, unknown>)?.message || placeResponse.statusText}`);
+    throw new Error(`Places API error: ${placeData.error?.message || placeResponse.statusText}`);
   }
 
   // Step 2: Get reviews (separate endpoint in new API)
   const reviewsUrl = `https://places.googleapis.com/v1/places/${placeId}?fields=reviews&key=${apiKey}`;
   
   const reviewsResponse = await fetch(reviewsUrl);
-  const reviewsData = (await reviewsResponse.json()) as Record<string, unknown>;
+  const reviewsData: any = await reviewsResponse.json();
 
-  const reviews: GoogleReview[] = [];
-  if (reviewsResponse.ok && Array.isArray(reviewsData.reviews)) {
-    reviews.push(...(reviewsData.reviews as GoogleReview[]));
-  } else {
-    console.warn(`Failed to fetch reviews: ${(reviewsData?.error as Record<string, unknown>)?.message}`);
+  if (!reviewsResponse.ok) {
+    console.warn(`Failed to fetch reviews: ${reviewsData.error?.message}`);
+    return {
+      ...placeData,
+      reviews: [],
+    };
   }
 
   return {
-    name: placeData.name as string || '',
-    displayName: placeData.displayName as { text: string; languageCode: string } || { text: '', languageCode: 'en' },
-    rating: placeData.rating as number || 0,
-    userRatingCount: placeData.userRatingCount as number || 0,
-    reviews,
-  } as PlaceDetails;
+    ...placeData,
+    reviews: reviewsData.reviews || [],
+  };
 }
 
 /**
