@@ -1,0 +1,174 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">Maitreo | You're Live</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17" vid="5"></script>
+    <style vid="6">
+        :root {
+            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --c-bg: #121212; 
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--c-bg);
+            color: white;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(160deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.75) 100%),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2787&auto=format&fit=crop'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .glass-header {
+            background: rgba(0,0,0,0.15);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .glass-panel {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            box-shadow: 0 12px 56px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.04) inset;
+        }
+
+        .sms-panel {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+        }
+
+        .monitoring-pill {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.10);
+            backdrop-filter: blur(4px);
+        }
+
+        .progress-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.8);
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; box-shadow: 0 0 8px #00ff00; }
+            50%       { opacity: 0.4; box-shadow: 0 0 2px #00ff00; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+        
+        .delay-100 { animation-delay: 0.15s; }
+        .delay-200 { animation-delay: 0.3s; }
+        .delay-300 { animation-delay: 0.45s; }
+    </style>
+</head>
+<body class="antialiased selection:bg-white selection:text-black flex flex-col h-full w-full" vid="7">
+
+    
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-header px-6 py-4 flex items-center justify-between" vid="8">
+        <div class="flex items-center gap-3" vid="9">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" vid="10">
+                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" vid="11"></circle>
+                <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square" vid="12"></path>
+            </svg>
+            <span class="text-xs font-medium tracking-[0.15em] uppercase text-white" vid="13">Maitreo</span>
+        </div>
+    </nav>
+
+    
+    <main class="flex-grow flex flex-col items-center justify-center px-6 py-24 min-h-screen relative z-10 w-full" vid="14">
+        <div class="w-full max-w-sm mx-auto flex flex-col gap-8" vid="15">
+            
+            
+            <div class="text-center animate-fade-in opacity-0" vid="16">
+                <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-6" vid="17">Onboarding</span>
+                
+                
+                <div class="flex items-center justify-center gap-3 mb-8" vid="18">
+                    <div class="progress-dot" vid="19"></div>
+                    <div class="progress-dot" vid="20"></div>
+                    <div class="progress-dot" vid="21"></div>
+                </div>
+
+                <h1 class="text-4xl font-medium tracking-tight mb-3 text-white" style="letter-spacing: -0.02em;" vid="22">You're Live.</h1>
+                
+                <p class="text-sm text-white/55 font-light leading-relaxed max-w-[280px] mx-auto" vid="23">
+                    We're now monitoring your Google reviews.
+                </p>
+
+                
+                <div class="flex justify-center mt-6" vid="24">
+                    <div class="monitoring-pill inline-flex items-center gap-3 px-4 py-2 rounded-full" vid="25">
+                        <div class="w-2 h-2 rounded-full bg-[#00ff00]" style="animation: pulse-green 2s ease-in-out infinite;" vid="26"></div>
+                        <span class="text-[10px] tracking-[0.1em] text-white/60" vid="27">MONITORING</span>
+                        <span class="text-[10px] font-bold tracking-[0.1em] text-white/80" vid="28">GOOGLE...</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="glass-panel px-6 py-8 animate-fade-in delay-100 opacity-0" vid="29">
+                <div class="flex flex-col w-full" vid="30">
+                    
+                    
+                    <div class="sms-panel px-5 py-5 w-full" vid="31">
+                        
+                        <div class="mb-4" vid="32">
+                            <span class="text-[9px] tracking-[0.2em] text-white/25 uppercase font-medium" vid="33">Maitreo</span>
+                        </div>
+                        
+                        <div class="space-y-2 mb-5" vid="34">
+                            <p class="text-sm text-white/80 font-light leading-relaxed" vid="35">You're all set.</p>
+                            <p class="text-sm text-white/60 font-light leading-relaxed" vid="36">We'll text you when a new review comes in.</p>
+                            <p class="text-sm text-white/40 font-light leading-relaxed" vid="37">Reply HELP anytime for commands.</p>
+                        </div>
+
+                        
+                        <div class="h-px w-full bg-white/5 mb-3" vid="38"></div>
+
+                        
+                        <div class="flex items-center" vid="39">
+                            <span class="text-[10px] text-white/20 tracking-[0.08em] uppercase font-medium" vid="40">Sent via SMS · (555) •••• 1234</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            
+            <div class="text-center animate-fade-in delay-200 opacity-0 pb-4" vid="41">
+                <p class="text-[11px] text-white/20 tracking-[0.06em] font-light mb-8 max-w-[250px] mx-auto leading-relaxed" vid="42">
+                    You can close this tab. We'll handle the rest.
+                </p>
+
+                <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10 font-medium" vid="43">
+                    <a href="#" class="hover:text-white/20 transition-colors" vid="44">Privacy</a>
+                    <a href="#" class="hover:text-white/20 transition-colors" vid="45">Terms</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    
+    <div class="fixed inset-0 pointer-events-none z-0" vid="46">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]" vid="47"></div>
+    </div>
+
+
+</body></html>
