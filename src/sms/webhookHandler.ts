@@ -109,6 +109,20 @@ export async function handleSmsWebhook(req: IncomingMessage, res: ServerResponse
       return;
     }
 
+    // Idempotence check: reject duplicate MessageSid
+    if (messageSid) {
+      const existing = await query(
+        `SELECT id FROM sms_logs WHERE twilio_sid = $1 AND direction = 'inbound' LIMIT 1`,
+        [messageSid]
+      );
+      if (existing.rows.length > 0) {
+        console.log(`⚠️ Duplicate MessageSid ${messageSid} — skipping`);
+        res.writeHead(200, { 'Content-Type': 'text/xml' });
+        res.end('<Response></Response>');
+        return;
+      }
+    }
+
     const reply = await smsService.handleIncoming(from, body, messageSid);
     twimlResponse(res, reply);
   } catch (error) {
