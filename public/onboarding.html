@@ -195,8 +195,21 @@
                             </div>
                         </div>
                         <div class="group">
-                            <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Restaurant Address</label>
-                            <input type="text" name="address" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="Street, City, State, Zip" required>
+                            <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Street Address</label>
+                            <input type="text" name="street" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="123 Main Street" required>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="group">
+                                <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">City</label>
+                                <input type="text" name="city" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="New York" required>
+                            </div>
+                            <div class="group">
+                                <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">State</label>
+                                <input type="text" name="state" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="NY" maxlength="2" required>
+                            </div>
+                            <div class="group">
+                                <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Zip</label>
+                                <input type="text" name="zip" class="form-input w-full px-6 py-4 text-sm text-white placeholder-white/20 font-light" placeholder="10001" maxlength="5" required>
                         </div>
                         <div class="pt-3">
                             <button type="submit" id="btn1-desktop" class="w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200">Continue</button>
@@ -245,8 +258,21 @@
                             </div>
                         </div>
                         <div class="group">
-                            <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Address</label>
-                            <input type="text" name="address" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="Street, City, Zip" required>
+                            <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Street Address</label>
+                            <input type="text" name="street" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="123 Main St" required>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">City</label>
+                                <input type="text" name="city" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="NYC" required>
+                            </div>
+                            <div>
+                                <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">State</label>
+                                <input type="text" name="state" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="NY" maxlength="2" required>
+                            </div>
+                            <div>
+                                <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Zip</label>
+                                <input type="text" name="zip" class="form-input w-full px-3 py-2.5 text-sm text-white rounded-lg" placeholder="10001" maxlength="5" required>
                         </div>
                         <div class="pt-2">
                             <button type="submit" id="btn1-mobile" class="w-full bg-white text-black h-11 rounded-lg font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-100 transition-colors duration-200 shadow-lg shadow-white/5">Continue</button>
@@ -596,6 +622,11 @@
         let restaurantId = params.get('rid') || null;
         let phoneNumber = '';
         let formData = {};
+
+        // In demo mode, disable HTML5 form validation so you can click through
+        if (isDemo) {
+            document.querySelectorAll('form').forEach(f => f.setAttribute('novalidate', ''));
+        }
 
         // Step navigation
         function showStep(n) {
