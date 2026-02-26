@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Weekly Newsletter Job
  *
@@ -6,16 +7,18 @@
  *
  * Schedule: Every Monday at 9:00 AM
  */
-import { startOfWeek, format } from 'date-fns';
-import { query } from '../db/client.js';
-import { newsletterGenerator } from '../services/newsletterGenerator.js';
-import { emailService } from '../services/emailService.js';
-export class NewsletterJob {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.newsletterJob = exports.NewsletterJob = void 0;
+const date_fns_1 = require("date-fns");
+const client_js_1 = require("../db/client.js");
+const newsletterGenerator_js_1 = require("../services/newsletterGenerator.js");
+const emailService_js_1 = require("../services/emailService.js");
+class NewsletterJob {
     /**
      * Fetch all active restaurants
      */
     async getAllRestaurants() {
-        const result = await query(`SELECT * FROM restaurants ORDER BY created_at ASC`);
+        const result = await (0, client_js_1.query)(`SELECT * FROM restaurants ORDER BY created_at ASC`);
         return result.rows;
     }
     /**
@@ -32,7 +35,7 @@ export class NewsletterJob {
         }
         // This is a simplified approach - ideally we'd have competitor IDs linked
         // For now, search for reviews mentioning competitor names
-        const result = await query(`SELECT * FROM reviews 
+        const result = await (0, client_js_1.query)(`SELECT * FROM reviews 
        WHERE review_date >= $1 
        AND review_date < $2
        AND (${competitorNames.map((_, i) => `LOWER(text) LIKE $${i + 3}`).join(' OR ')})
@@ -48,15 +51,16 @@ export class NewsletterJob {
      * Check if newsletter already exists for this week
      */
     async newsletterExists(restaurantId, weekStartDate) {
-        const result = await query(`SELECT COUNT(*) as count FROM newsletters 
+        var _a;
+        const result = await (0, client_js_1.query)(`SELECT COUNT(*) as count FROM newsletters 
        WHERE restaurant_id = $1 AND week_start_date = $2`, [restaurantId, weekStartDate]);
-        return parseInt(String(result.rows[0]?.count || 0)) > 0;
+        return parseInt(String(((_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.count) || 0)) > 0;
     }
     /**
      * Save newsletter to database
      */
     async saveNewsletter(restaurantId, weekStartDate, contentHtml, contentJson) {
-        const result = await query(`INSERT INTO newsletters (restaurant_id, week_start_date, content_html, content_json)
+        const result = await (0, client_js_1.query)(`INSERT INTO newsletters (restaurant_id, week_start_date, content_html, content_json)
        VALUES ($1, $2, $3, $4)
        RETURNING *`, [restaurantId, weekStartDate, contentHtml, JSON.stringify(contentJson)]);
         return result.rows[0];
@@ -78,7 +82,7 @@ export class NewsletterJob {
             console.log(`  Found ${competitorReviews.length} competitor reviews`);
             // Generate newsletter
             console.log(`  🤖 Generating newsletter content...`);
-            const { content_html, content_json } = await newsletterGenerator.generateNewsletter({
+            const { content_html, content_json } = await newsletterGenerator_js_1.newsletterGenerator.generateNewsletter({
                 restaurant,
                 week_start_date: weekStartDate,
                 competitor_reviews: competitorReviews,
@@ -88,14 +92,9 @@ export class NewsletterJob {
             const newsletter = await this.saveNewsletter(restaurant.id, weekStartDate, content_html, content_json);
             console.log(`  ✅ Newsletter saved: ${newsletter.id}`);
             // Send email
-            if (restaurant.owner_email) {
-                console.log(`  📧 Sending email to ${restaurant.owner_email}...`);
-                await emailService.sendNewsletterEmail(restaurant.owner_email, restaurant.name, newsletter);
-                console.log(`  ✅ Newsletter email sent!`);
-            }
-            else {
-                console.warn(`  ⚠️  No owner email for restaurant ${restaurant.name}`);
-            }
+            console.log(`  📧 Sending email to ${restaurant.owner_email}...`);
+            await emailService_js_1.emailService.sendNewsletterEmail(restaurant.owner_email, restaurant.name, newsletter);
+            console.log(`  ✅ Newsletter email sent!`);
         }
         catch (error) {
             console.error(`  ❌ Error processing newsletter:`, error);
@@ -108,8 +107,8 @@ export class NewsletterJob {
     async run(weekStartDate) {
         console.log('🚀 Starting weekly newsletter job...');
         // Use provided date or calculate current week start (Monday)
-        const targetWeek = weekStartDate || startOfWeek(new Date(), { weekStartsOn: 1 });
-        console.log(`   Target week: ${format(targetWeek, 'MMMM d, yyyy')}`);
+        const targetWeek = weekStartDate || (0, date_fns_1.startOfWeek)(new Date(), { weekStartsOn: 1 });
+        console.log(`   Target week: ${(0, date_fns_1.format)(targetWeek, 'MMMM d, yyyy')}`);
         const startTime = Date.now();
         try {
             const restaurants = await this.getAllRestaurants();
@@ -126,6 +125,7 @@ export class NewsletterJob {
         }
     }
 }
+exports.NewsletterJob = NewsletterJob;
 // CLI runner
 if (import.meta.url === `file://${process.argv[1]}`) {
     const job = new NewsletterJob();
@@ -141,5 +141,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(1);
     });
 }
-export const newsletterJob = new NewsletterJob();
-//# sourceMappingURL=newsletter.js.map
+exports.newsletterJob = new NewsletterJob();

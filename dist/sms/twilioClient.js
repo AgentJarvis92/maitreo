@@ -1,14 +1,16 @@
+"use strict";
 /**
  * Twilio SMS Client
  * Handles sending and receiving SMS for review approval flow.
  */
-import dotenv from 'dotenv';
-dotenv.config();
-export class TwilioClient {
-    accountSid;
-    authToken;
-    fromNumber;
-    baseUrl;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.twilioClient = exports.TwilioClient = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+class TwilioClient {
     constructor() {
         this.accountSid = process.env.TWILIO_ACCOUNT_SID || '';
         this.authToken = process.env.TWILIO_AUTH_TOKEN || '';
@@ -54,5 +56,5 @@ export class TwilioClient {
         };
     }
 }
-export const twilioClient = new TwilioClient();
-//# sourceMappingURL=twilioClient.js.map
+exports.TwilioClient = TwilioClient;
+exports.twilioClient = new TwilioClient();

@@ -1,21 +1,31 @@
-import OpenAI from 'openai';
-import dotenv from 'dotenv';
-import { format } from 'date-fns';
-dotenv.config();
-const openai = new OpenAI({
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.newsletterGenerator = exports.NewsletterGeneratorService = void 0;
+const openai_1 = __importDefault(require("openai"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const date_fns_1 = require("date-fns");
+dotenv_1.default.config();
+const openai = new openai_1.default({
     apiKey: process.env.OPENAI_API_KEY,
 });
-export class NewsletterGeneratorService {
+class NewsletterGeneratorService {
     /**
      * Analyze competitor reviews and generate insights
      */
     async analyzeCompetitorData(restaurant, competitorReviews) {
+        var _a, _b;
         const competitors = restaurant.competitors_json || [];
         // Group reviews by competitor
         const reviewsByCompetitor = new Map();
         competitorReviews.forEach(review => {
-            const competitor = competitors.find(c => c.platform === review.platform &&
-                review.text?.toLowerCase().includes(c.name.toLowerCase()));
+            const competitor = competitors.find(c => {
+                var _a;
+                return c.platform === review.platform &&
+                    ((_a = review.text) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes(c.name.toLowerCase()));
+            });
             if (competitor) {
                 const existing = reviewsByCompetitor.get(competitor.name) || [];
                 reviewsByCompetitor.set(competitor.name, [...existing, review]);
@@ -49,7 +59,7 @@ Be specific, data-driven, and actionable.`,
                 max_tokens: 2000,
                 response_format: { type: 'json_object' },
             });
-            const analysis = JSON.parse(completion.choices[0]?.message?.content || '{}');
+            const analysis = JSON.parse(((_b = (_a = completion.choices[0]) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.content) || '{}');
             return {
                 competitor_moves: analysis.competitor_moves || [],
                 review_trends: analysis.review_trends || [],
@@ -75,7 +85,8 @@ Be specific, data-driven, and actionable.`,
             prompt += `Average Rating: ${avgRating.toFixed(1)}/5\n\n`;
             prompt += `Recent Reviews:\n`;
             reviews.slice(0, 10).forEach(review => {
-                prompt += `- ${review.rating}★ "${review.text?.substring(0, 200)}..."\n`;
+                var _a;
+                prompt += `- ${review.rating}★ "${(_a = review.text) === null || _a === void 0 ? void 0 : _a.substring(0, 200)}..."\n`;
             });
             prompt += `\n`;
         });
@@ -93,7 +104,7 @@ Be specific, data-driven, and actionable.`,
      * Generate newsletter HTML
      */
     generateNewsletterHTML(restaurant, weekStartDate, content) {
-        const weekFormatted = format(weekStartDate, 'MMMM d, yyyy');
+        const weekFormatted = (0, date_fns_1.format)(weekStartDate, 'MMMM d, yyyy');
         const baseUrl = process.env.BASE_URL || 'https://maitreo.com';
         const digestUrl = `${baseUrl}/digest/${restaurant.id}`;
         return `
@@ -246,5 +257,5 @@ Be specific, data-driven, and actionable.`,
         }
     }
 }
-export const newsletterGenerator = new NewsletterGeneratorService();
-//# sourceMappingURL=newsletterGenerator.js.map
+exports.NewsletterGeneratorService = NewsletterGeneratorService;
+exports.newsletterGenerator = new NewsletterGeneratorService();

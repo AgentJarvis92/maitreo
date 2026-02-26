@@ -1,37 +1,44 @@
+"use strict";
 /**
  * Review Monitor Job
  * Polls Google and Yelp every 5 minutes for new reviews.
  * Classifies sentiment, generates AI responses, sends SMS alerts.
  */
-import { query } from '../db/client.js';
-import { googleReviewSource } from '../sources/google.js';
-import { yelpReviewSource } from '../sources/yelp.js';
-import { classifySentiment } from '../services/sentimentClassifier.js';
-import { replyGenerator } from '../services/replyGenerator.js';
-import { smsService } from '../sms/smsService.js';
-const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-export class ReviewMonitorJob {
-    running = false;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.reviewMonitor = exports.ReviewMonitorJob = void 0;
+const client_js_1 = require("../db/client.js");
+const google_js_1 = require("../sources/google.js");
+const yelp_js_1 = require("../sources/yelp.js");
+const sentimentClassifier_js_1 = require("../services/sentimentClassifier.js");
+const replyGenerator_js_1 = require("../services/replyGenerator.js");
+const smsService_js_1 = require("../sms/smsService.js");
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '300000'); // default 5 minutes
+class ReviewMonitorJob {
+    constructor() {
+        this.running = false;
+    }
     /**
      * Get all restaurants with their platform IDs from competitors_json
      */
     async getRestaurants() {
-        const result = await query(`SELECT * FROM restaurants ORDER BY created_at`);
+        const result = await (0, client_js_1.query)(`SELECT * FROM restaurants WHERE monitoring_paused IS NOT TRUE ORDER BY created_at`);
         return result.rows;
     }
     /**
      * Check if review already exists
      */
     async reviewExists(platform, reviewId) {
-        const result = await query(`SELECT COUNT(*) as count FROM reviews WHERE platform = $1 AND review_id = $2`, [platform, reviewId]);
-        return parseInt(result.rows[0]?.count || '0') > 0;
+        var _a;
+        const result = await (0, client_js_1.query)(`SELECT COUNT(*) as count FROM reviews WHERE platform = $1 AND review_id = $2`, [platform, reviewId]);
+        return parseInt(((_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.count) || '0') > 0;
     }
     /**
      * Get last review date for a restaurant+platform
      */
     async getLastReviewDate(restaurantId, platform) {
-        const result = await query(`SELECT MAX(review_date) as max_date FROM reviews WHERE restaurant_id = $1 AND platform = $2`, [restaurantId, platform]);
-        return result.rows[0]?.max_date || null;
+        var _a;
+        const result = await (0, client_js_1.query)(`SELECT MAX(review_date) as max_date FROM reviews WHERE restaurant_id = $1 AND platform = $2`, [restaurantId, platform]);
+        return ((_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.max_date) || null;
     }
     /**
      * Process a single restaurant — fetch, store, classify, generate reply, send SMS
@@ -50,10 +57,10 @@ export class ReviewMonitorJob {
             let rawReviews = [];
             try {
                 if (platform === 'google') {
-                    rawReviews = await googleReviewSource.fetchReviews(platformId, since || undefined);
+                    rawReviews = await google_js_1.googleReviewSource.fetchReviews(platformId, since || undefined);
                 }
                 else if (platform === 'yelp') {
-                    rawReviews = await yelpReviewSource.fetchReviews(platformId, since || undefined);
+                    rawReviews = await yelp_js_1.yelpReviewSource.fetchReviews(platformId, since || undefined);
                 }
             }
             catch (err) {
@@ -64,42 +71,46 @@ export class ReviewMonitorJob {
                 if (await this.reviewExists(platform, raw.id))
                     continue;
                 // Classify sentiment
-                const sentiment = classifySentiment(raw.rating, raw.text);
-                // Insert review
-                const insertResult = await query(`INSERT INTO reviews (
-            restaurant_id, platform, review_id, author, rating, text,
-            review_date, metadata, sentiment, sentiment_score
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          RETURNING id`, [
-                    restaurant.id, platform, raw.id, raw.author, raw.rating, raw.text,
-                    raw.date, JSON.stringify(raw.metadata || {}),
-                    sentiment.sentiment, sentiment.score,
-                ]);
-                const reviewId = insertResult.rows[0].id;
-                // Fetch full review
-                const reviewResult = await query(`SELECT * FROM reviews WHERE id = $1`, [reviewId]);
-                const review = reviewResult.rows[0];
-                // Generate AI reply
-                const replyOutput = await replyGenerator.generateReply({ review, restaurant });
-                const draftResult = await query(`INSERT INTO reply_drafts (
-            review_id, draft_text, escalation_flag, escalation_reasons, status, metadata
-          ) VALUES ($1, $2, $3, $4, 'pending', $5)
-          RETURNING *`, [
-                    reviewId,
-                    replyOutput.draft_text,
-                    replyOutput.escalation_flag,
-                    JSON.stringify(replyOutput.escalation_reasons),
-                    JSON.stringify({ confidence_score: replyOutput.confidence_score }),
-                ]);
-                const draft = draftResult.rows[0];
+                const sentiment = (0, sentimentClassifier_js_1.classifySentiment)(raw.rating, raw.text);
+                // Insert review + draft in a transaction to prevent orphaned reviews
+                const { review, draft } = await (0, client_js_1.transaction)(async (client) => {
+                    const insertResult = await client.query(`INSERT INTO reviews (
+              restaurant_id, platform, review_id, author, rating, text,
+              review_date, metadata, sentiment, sentiment_score
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING id`, [
+                        restaurant.id, platform, raw.id, raw.author, raw.rating, raw.text,
+                        raw.date, JSON.stringify(raw.metadata || {}),
+                        sentiment.sentiment, sentiment.score,
+                    ]);
+                    const reviewId = insertResult.rows[0].id;
+                    // Fetch full review
+                    const reviewResult = await client.query(`SELECT * FROM reviews WHERE id = $1`, [reviewId]);
+                    const review = reviewResult.rows[0];
+                    // Generate AI reply
+                    const replyOutput = await replyGenerator_js_1.replyGenerator.generateReply({ review, restaurant });
+                    const draftResult = await client.query(`INSERT INTO reply_drafts (
+              review_id, draft_text, escalation_flag, escalation_reasons, status, metadata
+            ) VALUES ($1, $2, $3, $4, 'pending', $5)
+            RETURNING *`, [
+                        reviewId,
+                        replyOutput.draft_text,
+                        replyOutput.escalation_flag,
+                        JSON.stringify(replyOutput.escalation_reasons),
+                        JSON.stringify({ confidence_score: replyOutput.confidence_score }),
+                    ]);
+                    return { review, draft: draftResult.rows[0] };
+                });
                 // Send SMS if owner has phone
                 const ownerPhone = restaurant.owner_phone;
                 if (ownerPhone) {
                     try {
-                        await smsService.sendReviewAlert(review, draft, restaurant, ownerPhone);
+                        await smsService_js_1.smsService.sendReviewAlert(review, draft, restaurant, ownerPhone);
                     }
                     catch (err) {
                         console.error(`  ❌ SMS failed for ${ownerPhone}:`, err);
+                        // Mark review for SMS retry
+                        await (0, client_js_1.query)(`UPDATE reviews SET metadata = jsonb_set(COALESCE(metadata::jsonb, '{}'), '{sms_alert_failed}', 'true') WHERE id = $1`, [review.id]).catch(retryErr => console.error('Failed to mark SMS retry:', retryErr));
                     }
                 }
                 else {
@@ -147,9 +158,9 @@ export class ReviewMonitorJob {
         console.log('⏹️  Review monitor stopped');
     }
 }
-export const reviewMonitor = new ReviewMonitorJob();
+exports.ReviewMonitorJob = ReviewMonitorJob;
+exports.reviewMonitor = new ReviewMonitorJob();
 // CLI runner
 if (import.meta.url === `file://${process.argv[1]}`) {
-    reviewMonitor.start().catch(console.error);
+    exports.reviewMonitor.start().catch(console.error);
 }
-//# sourceMappingURL=reviewMonitor.js.map

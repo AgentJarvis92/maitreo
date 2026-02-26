@@ -1,0 +1,347 @@
+/**
+ * SMS Service — Full Command Engine for Maitreo
+ * Handles all 8 commands + STOP compliance + context/state tracking.
+ */
+import { query } from '../db/client.js';
+import { twilioClient } from './twilioClient.js';
+import { parseCommand } from './commandParser.js';
+import { createPortalSession, cancelSubscription } from '../services/stripeService.js';
+const HELP_SUFFIX = '\nReply HELP anytime.';
+// ─── Message Templates ───────────────────────────────────────────────
+const TEMPLATES = {
+    help: `Maitreo Commands:
+Review: APPROVE, EDIT, IGNORE
+Account: PAUSE, RESUME, STATUS
+Billing: BILLING, CANCEL
+Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
+    stop: `You've been unsubscribed from Maitreo alerts. Reply START to re-subscribe anytime.`,
+    approve: `✅ Response approved and posted!${HELP_SUFFIX}`,
+    editPrompt: `✏️ Type your custom reply now. Your next message will be posted as the response.${HELP_SUFFIX}`,
+    customReplyConfirm: `✅ Your custom response has been posted!${HELP_SUFFIX}`,
+    ignore: `👍 Review dismissed. No reply will be posted.${HELP_SUFFIX}`,
+    pause: `⏸️ Review monitoring paused. Text RESUME to restart.${HELP_SUFFIX}`,
+    resume: `▶️ Review monitoring resumed! You'll receive alerts for new reviews.${HELP_SUFFIX}`,
+    cancelPrompt: `⚠️ Are you sure you want to cancel your Maitreo subscription? Reply YES to confirm or NO to keep your account.${HELP_SUFFIX}`,
+    cancelConfirm: `Your cancellation request has been submitted. You'll receive a confirmation email. We're sorry to see you go.${HELP_SUFFIX}`,
+    cancelDeny: `Great, your account remains active!${HELP_SUFFIX}`,
+    noPendingReview: `No pending review to respond to. We'll notify you when the next one arrives.${HELP_SUFFIX}`,
+    unknownCommand: `Sorry, I didn't understand that command.\n\nMaitreo Commands:
+Review: APPROVE, EDIT, IGNORE
+Account: PAUSE, RESUME, STATUS
+Billing: BILLING, CANCEL
+Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
+};
+async function getOrCreateContext(phone) {
+    var _a;
+    const result = await query(`SELECT phone, state, pending_review_id, restaurant_id 
+     FROM sms_context WHERE phone = $1`, [phone]);
+    if (result.rows.length > 0)
+        return result.rows[0];
+    // Try to find restaurant by owner phone
+    const restResult = await query(`SELECT id FROM restaurants WHERE owner_phone = $1 LIMIT 1`, [phone]);
+    const restaurantId = ((_a = restResult.rows[0]) === null || _a === void 0 ? void 0 : _a.id) || null;
+    await query(`INSERT INTO sms_context (phone, state, pending_review_id, restaurant_id)
+     VALUES ($1, NULL, NULL, $2)
+     ON CONFLICT (phone) DO NOTHING`, [phone, restaurantId]);
+    return { phone, state: null, pending_review_id: null, restaurant_id: restaurantId };
+}
+async function updateContext(phone, updates) {
+    const sets = [];
+    const vals = [];
+    let i = 1;
+    if ('state' in updates) {
+        sets.push(`state = $${i++}`);
+        vals.push(updates.state);
+    }
+    if ('pending_review_id' in updates) {
+        sets.push(`pending_review_id = $${i++}`);
+        vals.push(updates.pending_review_id);
+    }
+    if ('restaurant_id' in updates) {
+        sets.push(`restaurant_id = $${i++}`);
+        vals.push(updates.restaurant_id);
+    }
+    sets.push(`updated_at = NOW()`);
+    vals.push(phone);
+    await query(`UPDATE sms_context SET ${sets.join(', ')} WHERE phone = $${i}`, vals);
+}
+// ─── SMS Logging ─────────────────────────────────────────────────────
+async function logSms(params) {
+    await query(`INSERT INTO sms_logs (direction, from_phone, to_phone, body, command_parsed, status, twilio_sid)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`, [params.direction, params.from_phone, params.to_phone, params.body, params.command || null, params.status, params.twilio_sid || null]);
+}
+// ─── Core Service ────────────────────────────────────────────────────
+export class SmsService {
+    constructor() {
+        this.twilioPhone = process.env.TWILIO_PHONE_NUMBER || '';
+    }
+    /**
+     * Send an SMS and log it.
+     */
+    async sendSms(to, body) {
+        try {
+            const result = await twilioClient.sendSms(to, body);
+            await logSms({
+                direction: 'outbound',
+                from_phone: this.twilioPhone,
+                to_phone: to,
+                body,
+                status: 'sent',
+                twilio_sid: result.sid,
+            });
+        }
+        catch (error) {
+            await logSms({
+                direction: 'outbound',
+                from_phone: this.twilioPhone,
+                to_phone: to,
+                body,
+                status: 'failed',
+            }).catch(() => { });
+            throw error;
+        }
+    }
+    /**
+     * Send a mock review alert (for testing until Agent 1 is done).
+     */
+    async sendMockReviewAlert(toPhone, restaurantId) {
+        const mock = {
+            id: `mock-${Date.now()}`,
+            author: 'Sarah',
+            rating: 2,
+            text: 'Food was cold and service was slow. Very disappointing experience.',
+            draft_reply: "We're sorry to hear about your experience, Sarah. We're addressing kitchen timing and service speed. We'd love the chance to make it right — please reach out to us directly.",
+            status: 'pending',
+        };
+        // Store pending review in context
+        await getOrCreateContext(toPhone);
+        await updateContext(toPhone, {
+            pending_review_id: mock.id,
+            state: null,
+            restaurant_id: restaurantId || null,
+        });
+        const body = `New review from ${mock.author}: "${mock.text}" (${mock.rating}★)\nDraft reply: "${mock.draft_reply}"\nAPPROVE to post | EDIT for custom reply | IGNORE to skip.${HELP_SUFFIX}`;
+        await this.sendSms(toPhone, body);
+    }
+    /**
+     * Send review alert for a real review + draft.
+     */
+    async sendReviewAlert(review, draft, restaurant, ownerPhone) {
+        const snippet = (review.text || '').slice(0, 120) + ((review.text || '').length > 120 ? '...' : '');
+        let draftSnippet = draft.draft_text;
+        const opt1Match = draftSnippet.match(/Option 1[:\s]*(.+?)(?=Option 2|$)/is);
+        if (opt1Match)
+            draftSnippet = opt1Match[1].trim();
+        draftSnippet = draftSnippet.slice(0, 300);
+        const body = `New review from ${review.author || 'Anonymous'}: "${snippet}" (${review.rating}★)\nDraft reply: "${draftSnippet}"\nAPPROVE to post | EDIT for custom reply | IGNORE to skip.${HELP_SUFFIX}`;
+        // Set context
+        await getOrCreateContext(ownerPhone);
+        await updateContext(ownerPhone, {
+            pending_review_id: review.id,
+            state: null,
+            restaurant_id: restaurant.id,
+        });
+        // Also store in sms_messages for backward compat
+        const insertResult = await query(`INSERT INTO sms_messages (
+        restaurant_id, review_id, reply_draft_id, phone_number,
+        direction, body, status
+      ) VALUES ($1, $2, $3, $4, 'outbound', $5, 'sending')
+      RETURNING id`, [restaurant.id, review.id, draft.id, ownerPhone, body]);
+        await this.sendSms(ownerPhone, body);
+        await query(`UPDATE sms_messages SET status = 'sent' WHERE id = $1`, [insertResult.rows[0].id]);
+        return insertResult.rows[0].id;
+    }
+    /**
+     * Handle an incoming SMS — the main command dispatcher.
+     */
+    async handleIncoming(fromPhone, body, messageSid) {
+        const ctx = await getOrCreateContext(fromPhone);
+        const parsed = parseCommand(body, ctx.state || undefined);
+        // Log inbound
+        await logSms({
+            direction: 'inbound',
+            from_phone: fromPhone,
+            to_phone: this.twilioPhone,
+            body,
+            command: parsed.type,
+            status: 'received',
+            twilio_sid: messageSid || null,
+        });
+        switch (parsed.type) {
+            case 'STOP':
+                return this.handleStop(fromPhone, ctx);
+            case 'HELP':
+                return TEMPLATES.help;
+            case 'APPROVE':
+                return this.handleApprove(fromPhone, ctx);
+            case 'EDIT':
+                return this.handleEdit(fromPhone, ctx);
+            case 'CUSTOM_REPLY':
+                return this.handleCustomReply(fromPhone, ctx, parsed.body || body.trim());
+            case 'IGNORE':
+                return this.handleIgnore(fromPhone, ctx);
+            case 'PAUSE':
+                return this.handlePause(fromPhone, ctx);
+            case 'RESUME':
+                return this.handleResume(fromPhone, ctx);
+            case 'STATUS':
+                return this.handleStatus(fromPhone, ctx);
+            case 'BILLING':
+                return this.handleBilling(fromPhone, ctx);
+            case 'CANCEL':
+                return this.handleCancel(fromPhone, ctx);
+            case 'CANCEL_CONFIRM':
+                return this.handleCancelConfirm(fromPhone, ctx);
+            case 'CANCEL_DENY':
+                return TEMPLATES.cancelDeny;
+            case 'UNKNOWN':
+            default:
+                return TEMPLATES.unknownCommand;
+        }
+    }
+    // ─── Command Handlers ────────────────────────────────────────────
+    async handleStop(phone, ctx) {
+        // Mark user as unsubscribed
+        if (ctx.restaurant_id) {
+            await query(`UPDATE restaurants SET sms_opted_out = true, monitoring_paused = true WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
+        }
+        await updateContext(phone, { state: null, pending_review_id: null });
+        // Twilio auto-blocks future messages after STOP
+        return TEMPLATES.stop;
+    }
+    async handleApprove(phone, ctx) {
+        if (!ctx.pending_review_id)
+            return TEMPLATES.noPendingReview;
+        // If it's a mock review, just confirm
+        if (ctx.pending_review_id.startsWith('mock-')) {
+            console.log(`✅ Mock review ${ctx.pending_review_id} approved via SMS`);
+            await updateContext(phone, { state: null, pending_review_id: null });
+            return TEMPLATES.approve;
+        }
+        // Real review: approve the draft
+        await query(`UPDATE reply_drafts SET status = 'approved', approved_at = NOW()
+       WHERE review_id = $1 AND status = 'pending'`, [ctx.pending_review_id]);
+        await updateContext(phone, { state: null, pending_review_id: null });
+        console.log(`✅ Review ${ctx.pending_review_id} approved via SMS`);
+        return TEMPLATES.approve;
+    }
+    async handleEdit(phone, ctx) {
+        if (!ctx.pending_review_id)
+            return TEMPLATES.noPendingReview;
+        await updateContext(phone, { state: 'waiting_for_custom_reply' });
+        return TEMPLATES.editPrompt;
+    }
+    async handleCustomReply(phone, ctx, customText) {
+        if (!ctx.pending_review_id) {
+            await updateContext(phone, { state: null });
+            return TEMPLATES.noPendingReview;
+        }
+        if (ctx.pending_review_id.startsWith('mock-')) {
+            console.log(`✏️ Mock review ${ctx.pending_review_id} custom reply: "${customText.slice(0, 80)}..."`);
+            await updateContext(phone, { state: null, pending_review_id: null });
+            return TEMPLATES.customReplyConfirm;
+        }
+        // Real review: update draft with custom text and approve
+        await query(`UPDATE reply_drafts 
+       SET draft_text = $1, status = 'approved', approved_at = NOW(),
+           metadata = jsonb_set(COALESCE(metadata, '{}'), '{custom_response}', 'true')
+       WHERE review_id = $2 AND status = 'pending'`, [customText, ctx.pending_review_id]);
+        await updateContext(phone, { state: null, pending_review_id: null });
+        return TEMPLATES.customReplyConfirm;
+    }
+    async handleIgnore(phone, ctx) {
+        if (!ctx.pending_review_id)
+            return TEMPLATES.noPendingReview;
+        if (!ctx.pending_review_id.startsWith('mock-')) {
+            await query(`UPDATE reply_drafts SET status = 'rejected' WHERE review_id = $1 AND status = 'pending'`, [ctx.pending_review_id]);
+        }
+        console.log(`🚫 Review ${ctx.pending_review_id} ignored via SMS`);
+        await updateContext(phone, { state: null, pending_review_id: null });
+        return TEMPLATES.ignore;
+    }
+    async handlePause(phone, ctx) {
+        if (ctx.restaurant_id) {
+            await query(`UPDATE restaurants SET monitoring_paused = true WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
+        }
+        await updateContext(phone, { state: null });
+        return TEMPLATES.pause;
+    }
+    async handleResume(phone, ctx) {
+        if (ctx.restaurant_id) {
+            await query(`UPDATE restaurants SET monitoring_paused = false WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
+        }
+        await updateContext(phone, { state: null });
+        return TEMPLATES.resume;
+    }
+    async handleStatus(phone, ctx) {
+        if (!ctx.restaurant_id) {
+            return `No account found for this phone number. Contact support@maitreo.com for help.${HELP_SUFFIX}`;
+        }
+        const restResult = await query(`SELECT name, COALESCE(monitoring_paused, false) as monitoring_paused FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
+        if (restResult.rows.length === 0) {
+            return `Account not found. Contact support@maitreo.com.${HELP_SUFFIX}`;
+        }
+        const rest = restResult.rows[0];
+        const statusText = rest.monitoring_paused ? '⏸️ Paused' : '✅ Active';
+        // Count reviews
+        const reviewCount = await query(`SELECT COUNT(*) as count FROM reviews WHERE restaurant_id = $1`, [ctx.restaurant_id]).catch(() => ({ rows: [{ count: '0' }] }));
+        return `📊 ${rest.name}
+Status: ${statusText}
+Reviews tracked: ${reviewCount.rows[0].count}
+Billing: Active${HELP_SUFFIX}`;
+    }
+    async handleBilling(phone, ctx) {
+        var _a;
+        if (!ctx.restaurant_id) {
+            return `No account found for this phone number. Contact support@maitreo.com for help.${HELP_SUFFIX}`;
+        }
+        const result = await query(`SELECT stripe_customer_id FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
+        const customerId = (_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.stripe_customer_id;
+        if (!customerId) {
+            return `No billing account found. Complete signup first at https://maitreo.com/pricing${HELP_SUFFIX}`;
+        }
+        try {
+            const portalUrl = await createPortalSession(customerId);
+            return `Manage billing: ${portalUrl} (expires in 1 hour).${HELP_SUFFIX}`;
+        }
+        catch (err) {
+            console.error('Failed to create portal session:', err);
+            return `Unable to generate billing link. Contact support@maitreo.com for help.${HELP_SUFFIX}`;
+        }
+    }
+    async handleCancel(phone, ctx) {
+        await updateContext(phone, { state: 'waiting_for_cancel_confirm' });
+        return TEMPLATES.cancelPrompt;
+    }
+    async handleCancelConfirm(phone, ctx) {
+        var _a;
+        if (!ctx.restaurant_id) {
+            await updateContext(phone, { state: null });
+            return `No account found. Contact support@maitreo.com.${HELP_SUFFIX}`;
+        }
+        // Get Stripe subscription ID
+        const result = await query(`SELECT stripe_subscription_id FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
+        const subId = (_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.stripe_subscription_id;
+        if (subId) {
+            try {
+                await cancelSubscription(subId);
+                console.log(`🚫 Stripe subscription ${subId} canceled for restaurant ${ctx.restaurant_id}`);
+            }
+            catch (err) {
+                console.error('Failed to cancel Stripe subscription:', err);
+                // Still update local state even if Stripe call fails
+            }
+        }
+        // Update local DB state
+        await query(`UPDATE restaurants SET
+         subscription_state = 'canceled',
+         monitoring_paused = true,
+         updated_at = NOW()
+       WHERE id = $1`, [ctx.restaurant_id]);
+        await updateContext(phone, { state: null });
+        console.log(`🚫 Cancellation confirmed for phone ${phone}`);
+        return `Subscription canceled. You won't be charged again.${HELP_SUFFIX}`;
+    }
+}
+export const smsService = new SmsService();
+//# sourceMappingURL=smsService.js.map

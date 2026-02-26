@@ -1,7 +1,13 @@
-import OpenAI from 'openai';
-import dotenv from 'dotenv';
-dotenv.config();
-const openai = new OpenAI({
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.replyGenerator = exports.ReplyGeneratorService = void 0;
+const openai_1 = __importDefault(require("openai"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const openai = new openai_1.default({
     apiKey: process.env.OPENAI_API_KEY,
 });
 const ESCALATION_KEYWORDS = {
@@ -12,7 +18,7 @@ const ESCALATION_KEYWORDS = {
     legal_concern: ['violation', 'illegal', 'law', 'regulation', 'compliance'],
     extreme_negativity: ['worst', 'horrible', 'disgusting', 'never again', 'warning others'],
 };
-export class ReplyGeneratorService {
+class ReplyGeneratorService {
     /**
      * Detects escalation triggers in review text
      */
@@ -30,10 +36,11 @@ export class ReplyGeneratorService {
      * Builds the system prompt for GPT-4 based on restaurant tone profile
      */
     buildSystemPrompt(restaurant) {
-        const tone = restaurant.tone_profile_json?.tone || 'professional';
-        const personality = restaurant.tone_profile_json?.personality || [];
-        const avoid = restaurant.tone_profile_json?.avoid || [];
-        const emphasis = restaurant.tone_profile_json?.emphasis || [];
+        var _a, _b, _c, _d;
+        const tone = ((_a = restaurant.tone_profile_json) === null || _a === void 0 ? void 0 : _a.tone) || 'professional';
+        const personality = ((_b = restaurant.tone_profile_json) === null || _b === void 0 ? void 0 : _b.personality) || [];
+        const avoid = ((_c = restaurant.tone_profile_json) === null || _c === void 0 ? void 0 : _c.avoid) || [];
+        const emphasis = ((_d = restaurant.tone_profile_json) === null || _d === void 0 ? void 0 : _d.emphasis) || [];
         return `You are a professional customer service assistant for ${restaurant.name}, a restaurant located in ${restaurant.location || 'the area'}.
 
 Your task is to generate thoughtful, empathetic replies to customer reviews.
@@ -84,6 +91,7 @@ For SERIOUS ISSUES (health, threats, discrimination, legal):
      * Generate reply drafts for a review using GPT-4
      */
     async generateReply(input) {
+        var _a, _b, _c;
         const { review, restaurant } = input;
         try {
             // Detect escalations
@@ -106,7 +114,7 @@ For SERIOUS ISSUES (health, threats, discrimination, legal):
                 temperature: 0.7,
                 max_tokens: 500,
             });
-            const draft_text = completion.choices[0]?.message?.content || '';
+            const draft_text = ((_b = (_a = completion.choices[0]) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.content) || '';
             if (!draft_text) {
                 throw new Error('GPT-4 returned empty response');
             }
@@ -115,7 +123,7 @@ For SERIOUS ISSUES (health, threats, discrimination, legal):
                 draft_text,
                 escalation_flag,
                 escalation_reasons: escalations,
-                confidence_score: completion.choices[0]?.finish_reason === 'stop' ? 0.9 : 0.7,
+                confidence_score: ((_c = completion.choices[0]) === null || _c === void 0 ? void 0 : _c.finish_reason) === 'stop' ? 0.9 : 0.7,
             };
         }
         catch (error) {
@@ -144,5 +152,5 @@ For SERIOUS ISSUES (health, threats, discrimination, legal):
         return outputs;
     }
 }
-export const replyGenerator = new ReplyGeneratorService();
-//# sourceMappingURL=replyGenerator.js.map
+exports.ReplyGeneratorService = ReplyGeneratorService;
+exports.replyGenerator = new ReplyGeneratorService();

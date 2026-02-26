@@ -1,3 +1,3 @@
+"use strict";
 // Database model types
-export {};
-//# sourceMappingURL=models.js.map
+Object.defineProperty(exports, "__esModule", { value: true });

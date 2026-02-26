@@ -1,10 +1,19 @@
+"use strict";
 /**
  * Google OAuth 2.0 Service for Business Profile API
  * Handles authorization flow, token exchange, storage, and refresh.
  */
-import { query } from '../db/client.js';
-import { encryptToken, decryptToken } from './tokenEncryption.js';
-import crypto from 'crypto';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateAuthUrl = generateAuthUrl;
+exports.handleCallback = handleCallback;
+exports.getValidAccessToken = getValidAccessToken;
+exports.getGoogleAccountId = getGoogleAccountId;
+const client_js_1 = require("../db/client.js");
+const tokenEncryption_js_1 = require("./tokenEncryption.js");
+const crypto_1 = __importDefault(require("crypto"));
 // OAuth configuration
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -30,8 +39,8 @@ function getRedirectUri() {
  * Generate the Google OAuth consent URL.
  * Returns the URL to redirect the user to.
  */
-export function generateAuthUrl(restaurantId) {
-    const state = crypto.randomBytes(32).toString('hex');
+function generateAuthUrl(restaurantId) {
+    const state = crypto_1.default.randomBytes(32).toString('hex');
     // Store state → restaurantId mapping (expires in 10 min)
     pendingStates.set(state, {
         restaurantId,
@@ -57,7 +66,7 @@ export function generateAuthUrl(restaurantId) {
 /**
  * Handle the OAuth callback - exchange code for tokens and store them.
  */
-export async function handleCallback(code, state) {
+async function handleCallback(code, state) {
     // Validate state
     const pending = pendingStates.get(state);
     if (!pending) {
@@ -99,7 +108,7 @@ export async function handleCallback(code, state) {
         // Try to fetch account ID non-blocking (fails gracefully if GBP API quota is 0)
         try {
             const accountId = await fetchAccountId(access_token);
-            await query('UPDATE restaurants SET google_account_id = $1 WHERE id = $2', [accountId, restaurantId]);
+            await (0, client_js_1.query)('UPDATE restaurants SET google_account_id = $1 WHERE id = $2', [accountId, restaurantId]);
             console.log(`✅ [OAuth] Account ID stored: ${accountId}`);
         }
         catch (accountErr) {
@@ -136,15 +145,15 @@ async function fetchAccountId(accessToken) {
  */
 async function storeTokens(restaurantId, accessToken, refreshToken, expiresIn, accountId) {
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
-    await query(`UPDATE restaurants SET
+    await (0, client_js_1.query)(`UPDATE restaurants SET
       google_access_token = $1,
       google_refresh_token = COALESCE($2, google_refresh_token),
       google_token_expires_at = $3,
       google_account_id = $4,
       updated_at = NOW()
     WHERE id = $5`, [
-        encryptToken(accessToken),
-        refreshToken ? encryptToken(refreshToken) : null,
+        (0, tokenEncryption_js_1.encryptToken)(accessToken),
+        refreshToken ? (0, tokenEncryption_js_1.encryptToken)(refreshToken) : null,
         expiresAt.toISOString(),
         accountId,
         restaurantId,
@@ -154,8 +163,8 @@ async function storeTokens(restaurantId, accessToken, refreshToken, expiresIn, a
  * Get a valid access token for a restaurant, auto-refreshing if needed.
  * Returns null if no tokens stored or refresh fails.
  */
-export async function getValidAccessToken(restaurantId) {
-    const result = await query(`SELECT google_access_token, google_refresh_token, google_token_expires_at, google_account_id
+async function getValidAccessToken(restaurantId) {
+    const result = await (0, client_js_1.query)(`SELECT google_access_token, google_refresh_token, google_token_expires_at, google_account_id
      FROM restaurants WHERE id = $1`, [restaurantId]);
     if (result.rows.length === 0)
         return null;
@@ -169,12 +178,12 @@ export async function getValidAccessToken(restaurantId) {
     const fiveMinFromNow = new Date(now.getTime() + 5 * 60 * 1000);
     // Token still valid (expires in >5 min)
     if (expiresAt > fiveMinFromNow) {
-        return decryptToken(row.google_access_token);
+        return (0, tokenEncryption_js_1.decryptToken)(row.google_access_token);
     }
     // Token expired or expiring soon — refresh
     console.log(`🔄 [OAuth] Refreshing token for restaurant ${restaurantId}`);
     try {
-        const refreshToken = decryptToken(row.google_refresh_token);
+        const refreshToken = (0, tokenEncryption_js_1.decryptToken)(row.google_refresh_token);
         const response = await fetch(GOOGLE_TOKEN_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -190,7 +199,7 @@ export async function getValidAccessToken(restaurantId) {
             console.error(`❌ [OAuth] Token refresh failed for ${restaurantId}:`, data);
             // If refresh token revoked, clear tokens
             if (data.error === 'invalid_grant') {
-                await query(`UPDATE restaurants SET google_access_token = NULL, google_refresh_token = NULL, google_token_expires_at = NULL WHERE id = $1`, [restaurantId]);
+                await (0, client_js_1.query)(`UPDATE restaurants SET google_access_token = NULL, google_refresh_token = NULL, google_token_expires_at = NULL WHERE id = $1`, [restaurantId]);
                 console.error(`🚨 [OAuth] Refresh token revoked for ${restaurantId} — tokens cleared. Owner must re-authorize.`);
             }
             return null;
@@ -208,8 +217,8 @@ export async function getValidAccessToken(restaurantId) {
 /**
  * Get the Google account ID for a restaurant.
  */
-export async function getGoogleAccountId(restaurantId) {
-    const result = await query(`SELECT google_account_id FROM restaurants WHERE id = $1`, [restaurantId]);
-    return result.rows[0]?.google_account_id || null;
+async function getGoogleAccountId(restaurantId) {
+    var _a;
+    const result = await (0, client_js_1.query)(`SELECT google_account_id FROM restaurants WHERE id = $1`, [restaurantId]);
+    return ((_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.google_account_id) || null;
 }
-//# sourceMappingURL=googleOAuth.js.map

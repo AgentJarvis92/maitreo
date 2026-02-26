@@ -1,18 +1,24 @@
+"use strict";
 /**
  * Onboarding Service
  * Handles new restaurant sign-ups
  */
-import pool from '../db/client.js';
-import { Resend } from 'resend';
-import dotenv from 'dotenv';
-dotenv.config();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.processOnboarding = processOnboarding;
+const client_js_1 = __importDefault(require("../db/client.js"));
+const resend_1 = require("resend");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 let _resend = null;
 function getResend() {
     if (!_resend) {
         const key = process.env.RESEND_API_KEY;
         if (!key)
             throw new Error('RESEND_API_KEY not set — cannot send emails');
-        _resend = new Resend(key);
+        _resend = new resend_1.Resend(key);
     }
     return _resend;
 }
@@ -49,7 +55,7 @@ function normalizePhone(phone) {
 /**
  * Process new restaurant onboarding
  */
-export async function processOnboarding(data) {
+async function processOnboarding(data) {
     try {
         // Validation
         if (!data.name || data.name.trim().length === 0) {
@@ -81,7 +87,7 @@ export async function processOnboarding(data) {
             };
         }
         // Check if email already exists
-        const existingCheck = await pool.query('SELECT id FROM restaurants WHERE owner_email = $1', [data.email.toLowerCase().trim()]);
+        const existingCheck = await client_js_1.default.query('SELECT id FROM restaurants WHERE owner_email = $1', [data.email.toLowerCase().trim()]);
         if (existingCheck.rows.length > 0) {
             return {
                 success: false,
@@ -92,7 +98,7 @@ export async function processOnboarding(data) {
         // Normalize phone number
         const normalizedPhone = normalizePhone(data.phone);
         // Insert new restaurant
-        const result = await pool.query(`INSERT INTO restaurants (name, location, owner_phone, owner_email, tier, created_at)
+        const result = await client_js_1.default.query(`INSERT INTO restaurants (name, location, owner_phone, owner_email, tier, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW())
        RETURNING id, name, owner_email`, [
             data.name.trim(),
@@ -213,4 +219,3 @@ function generateWelcomeEmail(restaurantName) {
 </html>
   `.trim();
 }
-//# sourceMappingURL=onboarding.js.map

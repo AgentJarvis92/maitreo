@@ -1,8 +1,11 @@
+"use strict";
 /**
  * SMS Command Parser
  * Parses incoming SMS messages into structured commands.
  * Case-insensitive, whitespace-trimmed, with fuzzy matching for common typos.
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseCommand = parseCommand;
 const EXACT_COMMANDS = {
     'APPROVE': 'APPROVE',
     'EDIT': 'EDIT',
@@ -54,7 +57,7 @@ const FUZZY_MAP = {
  * @param body - Raw SMS body text
  * @param conversationState - Current conversation state for context-aware parsing
  */
-export function parseCommand(body, conversationState) {
+function parseCommand(body, conversationState) {
     const raw = body.trim();
     const normalized = raw.toUpperCase().trim();
     // If in EDIT flow (waiting_for_custom_reply), treat any message as custom reply
@@ -96,4 +99,3 @@ export function parseCommand(body, conversationState) {
     }
     return { type: 'UNKNOWN', raw };
 }
-//# sourceMappingURL=commandParser.js.map

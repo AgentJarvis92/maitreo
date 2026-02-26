@@ -1,8 +1,11 @@
+"use strict";
 /**
  * Sentiment Classifier
  * Classifies reviews as positive/negative based on rating + text signals.
  * Lightweight — no external API needed.
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.classifySentiment = classifySentiment;
 const NEGATIVE_WORDS = [
     'terrible', 'awful', 'worst', 'horrible', 'disgusting', 'rude', 'cold',
     'stale', 'overpriced', 'dirty', 'slow', 'bland', 'inedible', 'never again',
@@ -13,7 +16,7 @@ const POSITIVE_WORDS = [
     'outstanding', 'perfect', 'incredible', 'friendly', 'fresh', 'love',
     'recommend', 'favorite', 'gem', 'superb', 'phenomenal', 'great', 'awesome',
 ];
-export function classifySentiment(rating, text) {
+function classifySentiment(rating, text) {
     const lower = (text || '').toLowerCase();
     const signals = [];
     // Rating-based score (primary signal)
@@ -40,4 +43,3 @@ export function classifySentiment(rating, text) {
     const sentiment = score > 0.1 ? 'positive' : score < -0.1 ? 'negative' : 'neutral';
     return { sentiment, score: Math.round(score * 100) / 100, signals };
 }
-//# sourceMappingURL=sentimentClassifier.js.map

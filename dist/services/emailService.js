@@ -1,24 +1,30 @@
-import { Resend } from 'resend';
-import dotenv from 'dotenv';
-import { query } from '../db/client.js';
-dotenv.config();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.emailService = exports.EmailService = void 0;
+const resend_1 = require("resend");
+const dotenv_1 = __importDefault(require("dotenv"));
+const client_js_1 = require("../db/client.js");
+dotenv_1.default.config();
 let _resend = null;
 function getResend() {
     if (!_resend) {
         const key = process.env.RESEND_API_KEY;
         if (!key)
             throw new Error('RESEND_API_KEY not set — cannot send emails');
-        _resend = new Resend(key);
+        _resend = new resend_1.Resend(key);
     }
     return _resend;
 }
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@maitreo.com';
-export class EmailService {
+class EmailService {
     /**
      * Log email to database
      */
     async logEmail(type, to_email, subject, status, metadata = {}, relatedIds) {
-        const result = await query(`INSERT INTO email_logs (type, to_email, subject, status, sent_at, metadata, review_id, reply_draft_id, newsletter_id)
+        const result = await (0, client_js_1.query)(`INSERT INTO email_logs (type, to_email, subject, status, sent_at, metadata, review_id, reply_draft_id, newsletter_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`, [
             type,
@@ -27,9 +33,9 @@ export class EmailService {
             status,
             status === 'sent' ? new Date() : null,
             JSON.stringify(metadata),
-            relatedIds?.review_id || null,
-            relatedIds?.reply_draft_id || null,
-            relatedIds?.newsletter_id || null,
+            (relatedIds === null || relatedIds === void 0 ? void 0 : relatedIds.review_id) || null,
+            (relatedIds === null || relatedIds === void 0 ? void 0 : relatedIds.reply_draft_id) || null,
+            (relatedIds === null || relatedIds === void 0 ? void 0 : relatedIds.newsletter_id) || null,
         ]);
         return result.rows[0].id;
     }
@@ -37,7 +43,7 @@ export class EmailService {
      * Update email log status
      */
     async updateEmailStatus(logId, status, error_message) {
-        await query(`UPDATE email_logs 
+        await (0, client_js_1.query)(`UPDATE email_logs 
        SET status = $1, sent_at = $2, error_message = $3
        WHERE id = $4`, [status, status === 'sent' ? new Date() : null, error_message || null, logId]);
     }
@@ -180,7 +186,7 @@ export class EmailService {
             }
             await this.updateEmailStatus(logId, 'sent');
             // Update newsletter sent_at
-            await query(`UPDATE newsletters SET sent_at = NOW() WHERE id = $1`, [newsletter.id]);
+            await (0, client_js_1.query)(`UPDATE newsletters SET sent_at = NOW() WHERE id = $1`, [newsletter.id]);
             console.log(`✅ Newsletter sent to ${ownerEmail} (log: ${logId})`);
         }
         catch (error) {
@@ -213,5 +219,5 @@ export class EmailService {
         console.log(`✅ Batch email sending complete`);
     }
 }
-export const emailService = new EmailService();
-//# sourceMappingURL=emailService.js.map
+exports.EmailService = EmailService;
+exports.emailService = new EmailService();

@@ -611,12 +611,6 @@ var IngestionJob = class {
     }
   }
 };
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const job = new IngestionJob();
-  console.log("\u26A0\uFE0F  No review sources registered yet.");
-  console.log("    Waiting for data-api-agent to provide ingestion spec.");
-  console.log("    This job will remain a placeholder until then.\n");
-}
 var ingestionJob = new IngestionJob();
 
 // frontend/src/jobs/newsletter.ts
@@ -1019,17 +1013,6 @@ var NewsletterJob = class {
     }
   }
 };
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const job = new NewsletterJob();
-  const targetDate = process.argv[2] ? new Date(process.argv[2]) : void 0;
-  job.run(targetDate).then(() => {
-    console.log("\n\u{1F389} Newsletter job finished successfully!");
-    process.exit(0);
-  }).catch((error) => {
-    console.error("\n\u{1F4A5} Newsletter job failed:", error);
-    process.exit(1);
-  });
-}
 var newsletterJob = new NewsletterJob();
 
 // frontend/src/sources/google.ts
@@ -2024,9 +2007,6 @@ var ReviewMonitorJob = class {
   }
 };
 var reviewMonitor = new ReviewMonitorJob();
-if (import.meta.url === `file://${process.argv[1]}`) {
-  reviewMonitor.start().catch(console.error);
-}
 
 // frontend/src/services/tokenEncryption.ts
 import crypto from "crypto";

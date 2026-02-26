@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Stripe Webhook Handler
  *
@@ -9,9 +10,11 @@
  *   invoice.payment_failed         → set state=past_due, pause, send SMS
  *   checkout.session.completed     → link customer to restaurant
  */
-import { stripe, syncSubscriptionState, findRestaurantBySubscriptionId, } from '../services/stripeService.js';
-import { query } from '../db/client.js';
-import { smsService } from '../sms/smsService.js';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleStripeWebhook = handleStripeWebhook;
+const stripeService_js_1 = require("../services/stripeService.js");
+const client_js_1 = require("../db/client.js");
+const smsService_js_1 = require("../sms/smsService.js");
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 /**
  * Read raw body from request (needed for Stripe signature verification).
@@ -27,13 +30,13 @@ function getRawBody(req) {
 /**
  * Handle POST /webhooks/stripe
  */
-export async function handleStripeWebhook(req, res) {
+async function handleStripeWebhook(req, res) {
     const rawBody = await getRawBody(req);
     let event;
     if (WEBHOOK_SECRET) {
         const sig = req.headers['stripe-signature'];
         try {
-            event = stripe.webhooks.constructEvent(rawBody, sig, WEBHOOK_SECRET);
+            event = stripeService_js_1.stripe.webhooks.constructEvent(rawBody, sig, WEBHOOK_SECRET);
         }
         catch (err) {
             console.error('⚠️ Stripe webhook signature verification failed:', err.message);
@@ -81,41 +84,43 @@ export async function handleStripeWebhook(req, res) {
 }
 // ─── Event Handlers ──────────────────────────────────────────────────
 async function handleCheckoutCompleted(session) {
-    const restaurantId = session.metadata?.restaurant_id;
+    var _a, _b, _c, _d;
+    const restaurantId = (_a = session.metadata) === null || _a === void 0 ? void 0 : _a.restaurant_id;
     if (!restaurantId) {
         console.warn('⚠️ checkout.session.completed missing restaurant_id');
         return;
     }
-    const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
-    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
+    const customerId = typeof session.customer === 'string' ? session.customer : (_b = session.customer) === null || _b === void 0 ? void 0 : _b.id;
+    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : (_c = session.subscription) === null || _c === void 0 ? void 0 : _c.id;
     if (customerId) {
-        await query(`UPDATE restaurants SET stripe_customer_id = $1 WHERE id = $2`, [customerId, restaurantId]);
+        await (0, client_js_1.query)(`UPDATE restaurants SET stripe_customer_id = $1 WHERE id = $2`, [customerId, restaurantId]);
     }
     if (subscriptionId) {
         // Fetch full subscription to sync state
-        const sub = await stripe.subscriptions.retrieve(subscriptionId);
+        const sub = await stripeService_js_1.stripe.subscriptions.retrieve(subscriptionId);
         // Ensure metadata has restaurant_id
-        if (!sub.metadata?.restaurant_id) {
-            await stripe.subscriptions.update(subscriptionId, {
+        if (!((_d = sub.metadata) === null || _d === void 0 ? void 0 : _d.restaurant_id)) {
+            await stripeService_js_1.stripe.subscriptions.update(subscriptionId, {
                 metadata: { restaurant_id: restaurantId },
             });
             sub.metadata.restaurant_id = restaurantId;
         }
-        await syncSubscriptionState(sub);
+        await (0, stripeService_js_1.syncSubscriptionState)(sub);
     }
     console.log(`🎉 Checkout completed: restaurant=${restaurantId} customer=${customerId}`);
 }
 async function handleSubscriptionCreated(sub) {
-    await syncSubscriptionState(sub);
+    await (0, stripeService_js_1.syncSubscriptionState)(sub);
 }
 async function handleSubscriptionUpdated(sub) {
-    await syncSubscriptionState(sub);
+    await (0, stripeService_js_1.syncSubscriptionState)(sub);
 }
 async function handleSubscriptionDeleted(sub) {
-    const restaurantId = sub.metadata?.restaurant_id;
+    var _a;
+    const restaurantId = (_a = sub.metadata) === null || _a === void 0 ? void 0 : _a.restaurant_id;
     if (!restaurantId)
         return;
-    await query(`UPDATE restaurants SET
+    await (0, client_js_1.query)(`UPDATE restaurants SET
        subscription_state = 'canceled',
        monitoring_paused = true,
        updated_at = NOW()
@@ -124,15 +129,15 @@ async function handleSubscriptionDeleted(sub) {
 }
 async function handlePaymentSucceeded(invoice) {
     const sub = invoice.subscription;
-    const subscriptionId = typeof sub === 'string' ? sub : sub?.id;
+    const subscriptionId = typeof sub === 'string' ? sub : sub === null || sub === void 0 ? void 0 : sub.id;
     if (!subscriptionId)
         return;
-    const restaurant = await findRestaurantBySubscriptionId(subscriptionId);
+    const restaurant = await (0, stripeService_js_1.findRestaurantBySubscriptionId)(subscriptionId);
     if (!restaurant)
         return;
     // If was past_due, resume monitoring
     if (restaurant.subscription_state === 'past_due') {
-        await query(`UPDATE restaurants SET
+        await (0, client_js_1.query)(`UPDATE restaurants SET
          subscription_state = 'active',
          monitoring_paused = false,
          updated_at = NOW()
@@ -142,13 +147,13 @@ async function handlePaymentSucceeded(invoice) {
 }
 async function handlePaymentFailed(invoice) {
     const sub = invoice.subscription;
-    const subscriptionId = typeof sub === 'string' ? sub : sub?.id;
+    const subscriptionId = typeof sub === 'string' ? sub : sub === null || sub === void 0 ? void 0 : sub.id;
     if (!subscriptionId)
         return;
-    const restaurant = await findRestaurantBySubscriptionId(subscriptionId);
+    const restaurant = await (0, stripeService_js_1.findRestaurantBySubscriptionId)(subscriptionId);
     if (!restaurant)
         return;
-    await query(`UPDATE restaurants SET
+    await (0, client_js_1.query)(`UPDATE restaurants SET
        subscription_state = 'past_due',
        monitoring_paused = true,
        updated_at = NOW()
@@ -157,11 +162,10 @@ async function handlePaymentFailed(invoice) {
     // Send SMS notification
     if (restaurant.owner_phone) {
         try {
-            await smsService.sendSms(restaurant.owner_phone, `⚠️ Your Maitreo payment failed. Review monitoring is paused. Please update your payment method: text BILLING to get a link.\nReply HELP anytime.`);
+            await smsService_js_1.smsService.sendSms(restaurant.owner_phone, `⚠️ Your Maitreo payment failed. Review monitoring is paused. Please update your payment method: text BILLING to get a link.\nReply HELP anytime.`);
         }
         catch (err) {
             console.error('Failed to send payment failure SMS:', err);
         }
     }
 }
-//# sourceMappingURL=webhooks.js.map

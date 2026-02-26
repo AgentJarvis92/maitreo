@@ -1,39 +1,18 @@
+"use strict";
 /**
  * Twilio SMS Webhook Handler
  * Receives incoming SMS via Twilio webhook POST and processes commands.
  * Also handles delivery status callbacks.
  */
-import crypto from 'crypto';
-import { smsService } from './smsService.js';
-import { query } from '../db/client.js';
-/**
- * Validate Twilio request signature (X-Twilio-Signature).
- */
-function validateTwilioSignature(req, params) {
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    if (!authToken) {
-        if (process.env.NODE_ENV === 'production') {
-            console.error('❌ TWILIO_AUTH_TOKEN not set in production — rejecting request');
-            return false;
-        }
-        return true;
-    }
-    const signature = req.headers['x-twilio-signature'];
-    if (!signature) return false;
-    const protocol = req.headers['x-forwarded-proto'] || 'https';
-    const host = req.headers.host || '';
-    const url = `${protocol}://${host}${req.url}`;
-    const sortedKeys = Object.keys(params).sort();
-    let dataString = url;
-    for (const key of sortedKeys) {
-        dataString += key + params[key];
-    }
-    const expectedSignature = crypto
-        .createHmac('sha1', authToken)
-        .update(dataString)
-        .digest('base64');
-    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
-}
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleSmsWebhook = handleSmsWebhook;
+exports.handleStatusCallback = handleStatusCallback;
+const crypto_1 = __importDefault(require("crypto"));
+const smsService_js_1 = require("./smsService.js");
+const client_js_1 = require("../db/client.js");
 /**
  * Parse URL-encoded form body (Twilio sends application/x-www-form-urlencoded)
  */
@@ -68,9 +47,41 @@ function escapeXml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 /**
+ * Validate Twilio request signature (X-Twilio-Signature).
+ * See: https://www.twilio.com/docs/usage/security#validating-requests
+ */
+function validateTwilioSignature(req, params) {
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (!authToken) {
+        // If no auth token configured, skip validation (dev mode)
+        if (process.env.NODE_ENV === 'production') {
+            console.error('❌ TWILIO_AUTH_TOKEN not set in production — rejecting request');
+            return false;
+        }
+        return true;
+    }
+    const signature = req.headers['x-twilio-signature'];
+    if (!signature)
+        return false;
+    // Build the data string: URL + sorted params concatenated
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers.host || '';
+    const url = `${protocol}://${host}${req.url}`;
+    const sortedKeys = Object.keys(params).sort();
+    let dataString = url;
+    for (const key of sortedKeys) {
+        dataString += key + params[key];
+    }
+    const expectedSignature = crypto_1.default
+        .createHmac('sha1', authToken)
+        .update(dataString)
+        .digest('base64');
+    return crypto_1.default.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+}
+/**
  * Handle POST /webhooks/twilio/inbound — Twilio incoming SMS webhook
  */
-export async function handleSmsWebhook(req, res) {
+async function handleSmsWebhook(req, res) {
     try {
         const params = await parseFormBody(req);
         // Validate Twilio signature in production
@@ -88,7 +99,17 @@ export async function handleSmsWebhook(req, res) {
             twimlResponse(res, 'Invalid message received.');
             return;
         }
-        const reply = await smsService.handleIncoming(from, body, messageSid);
+        // Idempotence check: reject duplicate MessageSid
+        if (messageSid) {
+            const existing = await (0, client_js_1.query)(`SELECT id FROM sms_logs WHERE twilio_sid = $1 AND direction = 'inbound' LIMIT 1`, [messageSid]);
+            if (existing.rows.length > 0) {
+                console.log(`⚠️ Duplicate MessageSid ${messageSid} — skipping`);
+                res.writeHead(200, { 'Content-Type': 'text/xml' });
+                res.end('<Response></Response>');
+                return;
+            }
+        }
+        const reply = await smsService_js_1.smsService.handleIncoming(from, body, messageSid);
         twimlResponse(res, reply);
     }
     catch (error) {
@@ -99,14 +120,14 @@ export async function handleSmsWebhook(req, res) {
 /**
  * Handle POST /webhooks/twilio/status — Twilio delivery status callback
  */
-export async function handleStatusCallback(req, res) {
+async function handleStatusCallback(req, res) {
     try {
         const params = await parseFormBody(req);
         const messageSid = params.MessageSid || '';
         const messageStatus = params.MessageStatus || ''; // queued, sent, delivered, undelivered, failed
         if (messageSid && messageStatus) {
             // Update sms_logs
-            await query(`UPDATE sms_logs SET status = $1 WHERE twilio_sid = $2`, [messageStatus, messageSid]).catch(err => console.error('Failed to update SMS status:', err));
+            await (0, client_js_1.query)(`UPDATE sms_logs SET status = $1 WHERE twilio_sid = $2`, [messageStatus, messageSid]).catch(err => console.error('Failed to update SMS status:', err));
             console.log(`📱 SMS ${messageSid} status: ${messageStatus}`);
         }
         res.writeHead(200, { 'Content-Type': 'text/xml' });
@@ -118,4 +139,3 @@ export async function handleStatusCallback(req, res) {
         res.end('<Response></Response>');
     }
 }
-//# sourceMappingURL=webhookHandler.js.map

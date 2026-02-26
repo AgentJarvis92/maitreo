@@ -1,8 +1,15 @@
+"use strict";
 /**
  * OTP Service — Phone verification via Twilio SMS
  */
-import { twilioClient } from '../sms/twilioClient.js';
-import pool from '../db/client.js';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendOtp = sendOtp;
+exports.verifyOtp = verifyOtp;
+const twilioClient_js_1 = require("../sms/twilioClient.js");
+const client_js_1 = __importDefault(require("../db/client.js"));
 // In-memory OTP store (for simplicity; use Redis in production)
 const otpStore = new Map();
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
@@ -10,7 +17,7 @@ const MAX_ATTEMPTS = 5;
 function generateCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
-export async function sendOtp(restaurantId, phone) {
+async function sendOtp(restaurantId, phone) {
     const code = generateCode();
     const key = `${restaurantId}:${phone}`;
     otpStore.set(key, {
@@ -19,7 +26,7 @@ export async function sendOtp(restaurantId, phone) {
         attempts: 0
     });
     try {
-        await twilioClient.sendSms(phone, `Your Maitreo verification code is: ${code}`);
+        await twilioClient_js_1.twilioClient.sendSms(phone, `Your Maitreo verification code is: ${code}`);
         return { success: true, message: 'Verification code sent' };
     }
     catch (err) {
@@ -27,7 +34,7 @@ export async function sendOtp(restaurantId, phone) {
         return { success: false, message: 'Failed to send verification code. Please try again.' };
     }
 }
-export async function verifyOtp(restaurantId, code) {
+async function verifyOtp(restaurantId, code) {
     // Find the OTP for this restaurant
     let matchKey = null;
     for (const [key, val] of otpStore.entries()) {
@@ -56,7 +63,7 @@ export async function verifyOtp(restaurantId, code) {
     otpStore.delete(matchKey);
     const phone = matchKey.split(':')[1];
     try {
-        await pool.query('UPDATE restaurants SET phone_verified = true WHERE id = $1', [restaurantId]);
+        await client_js_1.default.query('UPDATE restaurants SET phone_verified = true WHERE id = $1', [restaurantId]);
     }
     catch (err) {
         console.error('Failed to update phone_verified:', err);
@@ -64,4 +71,3 @@ export async function verifyOtp(restaurantId, code) {
     }
     return { success: true, message: 'Phone verified!' };
 }
-//# sourceMappingURL=otpService.js.map

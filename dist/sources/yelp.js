@@ -1,16 +1,21 @@
+"use strict";
 /**
  * Yelp Review Scraper
  * Uses Yelp Fusion API to fetch reviews for a business.
  * Note: Yelp API only returns up to 3 reviews. For full scraping,
  * consider Yelp's GraphQL API or a scraping service.
  */
-import dotenv from 'dotenv';
-dotenv.config();
-export class YelpReviewSource {
-    platform = 'yelp';
-    apiKey;
-    baseUrl = 'https://api.yelp.com/v3';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.yelpReviewSource = exports.YelpReviewSource = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+class YelpReviewSource {
     constructor() {
+        this.platform = 'yelp';
+        this.baseUrl = 'https://api.yelp.com/v3';
         this.apiKey = process.env.YELP_API_KEY || '';
     }
     /**
@@ -19,6 +24,7 @@ export class YelpReviewSource {
      * For production, you'd want Yelp's GraphQL endpoint or a scraping layer.
      */
     async fetchReviews(businessId, since) {
+        var _a, _b;
         if (!this.apiKey) {
             console.warn('⚠️  YELP_API_KEY not set, skipping Yelp reviews');
             return [];
@@ -43,13 +49,13 @@ export class YelpReviewSource {
                     continue;
                 reviews.push({
                     id: r.id,
-                    author: r.user?.name || 'Anonymous',
+                    author: ((_a = r.user) === null || _a === void 0 ? void 0 : _a.name) || 'Anonymous',
                     rating: r.rating || 0,
                     text: r.text || '',
                     date: reviewDate,
                     metadata: {
                         platform: 'yelp',
-                        profileUrl: r.user?.profile_url,
+                        profileUrl: (_b = r.user) === null || _b === void 0 ? void 0 : _b.profile_url,
                         timeCreated: r.time_created,
                     },
                 });
@@ -63,5 +69,5 @@ export class YelpReviewSource {
         }
     }
 }
-export const yelpReviewSource = new YelpReviewSource();
-//# sourceMappingURL=yelp.js.map
+exports.YelpReviewSource = YelpReviewSource;
+exports.yelpReviewSource = new YelpReviewSource();

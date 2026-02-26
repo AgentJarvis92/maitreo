@@ -1,8 +1,16 @@
-import pg from 'pg';
-import dotenv from 'dotenv';
-dotenv.config();
-const { Pool } = pg;
-export const pool = new Pool({
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.pool = void 0;
+exports.query = query;
+exports.transaction = transaction;
+const pg_1 = __importDefault(require("pg"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const { Pool } = pg_1.default;
+exports.pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
     max: 20,
@@ -10,18 +18,23 @@ export const pool = new Pool({
     connectionTimeoutMillis: 2000,
 });
 // Test connection
-pool.on('connect', () => {
+exports.pool.on('connect', () => {
     console.log('✅ Database connected');
 });
-pool.on('error', (err) => {
+exports.pool.on('error', (err) => {
     console.error('❌ Unexpected database error:', err);
-    // Don't crash - allow /ping endpoint to work even without DB
+    // Don't crash — attempt reconnection by running a test query
+    exports.pool.query('SELECT 1').then(() => {
+        console.log('✅ Database reconnected after error');
+    }).catch((reconnectErr) => {
+        console.error('❌ Database reconnection failed:', reconnectErr.message);
+    });
 });
 // Query helper with error handling
-export async function query(text, params) {
+async function query(text, params) {
     const start = Date.now();
     try {
-        const res = await pool.query(text, params);
+        const res = await exports.pool.query(text, params);
         const duration = Date.now() - start;
         console.log('Executed query', { text: text.substring(0, 100), duration, rows: res.rowCount });
         return res;
@@ -32,8 +45,8 @@ export async function query(text, params) {
     }
 }
 // Transaction helper
-export async function transaction(callback) {
-    const client = await pool.connect();
+async function transaction(callback) {
+    const client = await exports.pool.connect();
     try {
         await client.query('BEGIN');
         const result = await callback(client);
@@ -48,5 +61,4 @@ export async function transaction(callback) {
         client.release();
     }
 }
-export default pool;
-//# sourceMappingURL=client.js.map
+exports.default = exports.pool;

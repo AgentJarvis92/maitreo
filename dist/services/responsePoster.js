@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Response Posting Service
  * Posts approved reply drafts to Yelp and Google.
@@ -11,9 +12,11 @@
  * 2. Browser automation / Yelp for Business API (partner-only) for Yelp
  * 3. A third-party service like Birdeye, Podium, etc.
  */
-import { query } from '../db/client.js';
-import { postReply } from './googleBusinessProfile.js';
-export class ResponsePoster {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.responsePoster = exports.ResponsePoster = void 0;
+const client_js_1 = require("../db/client.js");
+const googleBusinessProfile_js_1 = require("./googleBusinessProfile.js");
+class ResponsePoster {
     /**
      * Post an approved reply to the originating platform.
      */
@@ -36,7 +39,7 @@ export class ResponsePoster {
                 result = { success: false, platform: review.platform, error: `Unsupported platform: ${review.platform}` };
         }
         // Track in database
-        await query(`UPDATE reply_drafts 
+        await (0, client_js_1.query)(`UPDATE reply_drafts 
        SET status = $1, 
            metadata = jsonb_set(
              COALESCE(metadata, '{}'), 
@@ -50,7 +53,7 @@ export class ResponsePoster {
         ]);
         // Log to posted_responses table
         if (result.success) {
-            await query(`INSERT INTO posted_responses (
+            await (0, client_js_1.query)(`INSERT INTO posted_responses (
           reply_draft_id, review_id, platform, response_text, 
           external_response_id, posted_at
         ) VALUES ($1, $2, $3, $4, $5, NOW())`, [draft.id, review.id, review.platform, responseText, result.externalResponseId || null]);
@@ -61,12 +64,13 @@ export class ResponsePoster {
      * Post response to Google via Business Profile API (OAuth-authenticated).
      */
     async postToGoogle(review, text) {
-        const reviewName = review.metadata?.googleReviewName;
+        var _a;
+        const reviewName = (_a = review.metadata) === null || _a === void 0 ? void 0 : _a.googleReviewName;
         if (!reviewName) {
             return { success: false, platform: 'google', error: 'Missing Google review resource name in metadata' };
         }
         try {
-            const result = await postReply(review.restaurant_id, reviewName, text);
+            const result = await (0, googleBusinessProfile_js_1.postReply)(review.restaurant_id, reviewName, text);
             if (result.success) {
                 console.log('✅ Posted to Google successfully');
                 return { success: true, platform: 'google', externalResponseId: reviewName };
@@ -99,7 +103,7 @@ export class ResponsePoster {
      * Run this on a schedule (e.g., every minute).
      */
     async processApprovedDrafts() {
-        const result = await query(`SELECT rd.*, r.platform as review_platform
+        const result = await (0, client_js_1.query)(`SELECT rd.*, r.platform as review_platform
        FROM reply_drafts rd
        JOIN reviews r ON r.id = rd.review_id
        WHERE rd.status = 'approved'
@@ -112,7 +116,7 @@ export class ResponsePoster {
             return;
         console.log(`📤 Processing ${result.rows.length} approved drafts...`);
         for (const draft of result.rows) {
-            const reviewResult = await query(`SELECT * FROM reviews WHERE id = $1`, [draft.review_id]);
+            const reviewResult = await (0, client_js_1.query)(`SELECT * FROM reviews WHERE id = $1`, [draft.review_id]);
             if (reviewResult.rows.length === 0)
                 continue;
             const review = reviewResult.rows[0];
@@ -120,5 +124,5 @@ export class ResponsePoster {
         }
     }
 }
-export const responsePoster = new ResponsePoster();
-//# sourceMappingURL=responsePoster.js.map
+exports.ResponsePoster = ResponsePoster;
+exports.responsePoster = new ResponsePoster();

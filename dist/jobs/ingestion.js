@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Review Ingestion Job
  *
@@ -9,11 +10,15 @@
  * TODO: Wait for data-api-agent's ingestion spec before implementing.
  * This is a placeholder showing the expected flow.
  */
-import { query } from '../db/client.js';
-import { replyGenerator } from '../services/replyGenerator.js';
-import { emailService } from '../services/emailService.js';
-export class IngestionJob {
-    sources = [];
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ingestionJob = exports.IngestionJob = void 0;
+const client_js_1 = require("../db/client.js");
+const replyGenerator_js_1 = require("../services/replyGenerator.js");
+const emailService_js_1 = require("../services/emailService.js");
+class IngestionJob {
+    constructor() {
+        this.sources = [];
+    }
     /**
      * Register review sources (Google, Yelp, etc.)
      */
@@ -25,30 +30,32 @@ export class IngestionJob {
      * Fetch all restaurants from database
      */
     async getAllRestaurants() {
-        const result = await query(`SELECT * FROM restaurants ORDER BY created_at ASC`);
+        const result = await (0, client_js_1.query)(`SELECT * FROM restaurants ORDER BY created_at ASC`);
         return result.rows;
     }
     /**
      * Get the last ingestion time for a restaurant/platform
      */
     async getLastIngestionTime(restaurantId, platform) {
-        const result = await query(`SELECT MAX(review_date) as max_date 
+        var _a;
+        const result = await (0, client_js_1.query)(`SELECT MAX(review_date) as max_date 
        FROM reviews 
        WHERE restaurant_id = $1 AND platform = $2`, [restaurantId, platform]);
-        return result.rows[0]?.max_date || null;
+        return ((_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.max_date) || null;
     }
     /**
      * Check if review already exists (deduplication)
      */
     async reviewExists(platform, reviewId) {
-        const result = await query(`SELECT COUNT(*) as count FROM reviews WHERE platform = $1 AND review_id = $2`, [platform, reviewId]);
-        return parseInt(String(result.rows[0]?.count || 0)) > 0;
+        var _a;
+        const result = await (0, client_js_1.query)(`SELECT COUNT(*) as count FROM reviews WHERE platform = $1 AND review_id = $2`, [platform, reviewId]);
+        return parseInt(String(((_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.count) || 0)) > 0;
     }
     /**
      * Insert new review into database
      */
     async insertReview(review) {
-        const result = await query(`INSERT INTO reviews (
+        const result = await (0, client_js_1.query)(`INSERT INTO reviews (
         restaurant_id, platform, review_id, author, rating, text, review_date, metadata
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id`, [
@@ -68,9 +75,9 @@ export class IngestionJob {
      */
     async generateAndStoreReply(review, restaurant) {
         // Generate reply using GPT-4
-        const replyOutput = await replyGenerator.generateReply({ review, restaurant });
+        const replyOutput = await replyGenerator_js_1.replyGenerator.generateReply({ review, restaurant });
         // Store in database
-        const result = await query(`INSERT INTO reply_drafts (
+        const result = await (0, client_js_1.query)(`INSERT INTO reply_drafts (
         review_id, draft_text, escalation_flag, escalation_reasons, status, metadata
       ) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *`, [
@@ -117,19 +124,14 @@ export class IngestionJob {
                     });
                     console.log(`  ✅ Inserted review: ${reviewId}`);
                     // Fetch full review object
-                    const reviewResult = await query(`SELECT * FROM reviews WHERE id = $1`, [reviewId]);
+                    const reviewResult = await (0, client_js_1.query)(`SELECT * FROM reviews WHERE id = $1`, [reviewId]);
                     const review = reviewResult.rows[0];
                     // Generate reply draft
                     const replyDraft = await this.generateAndStoreReply(review, restaurant);
                     console.log(`  💬 Generated reply draft: ${replyDraft.id}`);
                     // Send email to owner
-                    if (restaurant.owner_email) {
-                        await emailService.sendReplyDraftEmail(restaurant.owner_email, restaurant.name, review, replyDraft);
-                        console.log(`  📧 Email sent to ${restaurant.owner_email}`);
-                    }
-                    else {
-                        console.warn(`  ⚠️  No owner email for restaurant ${restaurant.name}`);
-                    }
+                    await emailService_js_1.emailService.sendReplyDraftEmail(restaurant.owner_email, restaurant.name, review, replyDraft);
+                    console.log(`  📧 Email sent to ${restaurant.owner_email}`);
                     newReviewsCount++;
                 }
             }
@@ -162,6 +164,7 @@ export class IngestionJob {
         }
     }
 }
+exports.IngestionJob = IngestionJob;
 // CLI runner
 if (import.meta.url === `file://${process.argv[1]}`) {
     const job = new IngestionJob();
@@ -181,5 +184,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     //     process.exit(1);
     //   });
 }
-export const ingestionJob = new IngestionJob();
-//# sourceMappingURL=ingestion.js.map
+exports.ingestionJob = new IngestionJob();

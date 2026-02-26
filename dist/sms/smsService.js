@@ -1,11 +1,14 @@
+"use strict";
 /**
  * SMS Service — Full Command Engine for Maitreo
  * Handles all 8 commands + STOP compliance + context/state tracking.
  */
-import { query } from '../db/client.js';
-import { twilioClient } from './twilioClient.js';
-import { parseCommand } from './commandParser.js';
-import { createPortalSession, cancelSubscription } from '../services/stripeService.js';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.smsService = exports.SmsService = void 0;
+const client_js_1 = require("../db/client.js");
+const twilioClient_js_1 = require("./twilioClient.js");
+const commandParser_js_1 = require("./commandParser.js");
+const stripeService_js_1 = require("../services/stripeService.js");
 const HELP_SUFFIX = '\nReply HELP anytime.';
 // ─── Message Templates ───────────────────────────────────────────────
 const TEMPLATES = {
@@ -32,14 +35,15 @@ Billing: BILLING, CANCEL
 Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
 };
 async function getOrCreateContext(phone) {
-    const result = await query(`SELECT phone, state, pending_review_id, restaurant_id 
+    var _a;
+    const result = await (0, client_js_1.query)(`SELECT phone, state, pending_review_id, restaurant_id 
      FROM sms_context WHERE phone = $1`, [phone]);
     if (result.rows.length > 0)
         return result.rows[0];
     // Try to find restaurant by owner phone
-    const restResult = await query(`SELECT id FROM restaurants WHERE owner_phone = $1 LIMIT 1`, [phone]);
-    const restaurantId = restResult.rows[0]?.id || null;
-    await query(`INSERT INTO sms_context (phone, state, pending_review_id, restaurant_id)
+    const restResult = await (0, client_js_1.query)(`SELECT id FROM restaurants WHERE owner_phone = $1 LIMIT 1`, [phone]);
+    const restaurantId = ((_a = restResult.rows[0]) === null || _a === void 0 ? void 0 : _a.id) || null;
+    await (0, client_js_1.query)(`INSERT INTO sms_context (phone, state, pending_review_id, restaurant_id)
      VALUES ($1, NULL, NULL, $2)
      ON CONFLICT (phone) DO NOTHING`, [phone, restaurantId]);
     return { phone, state: null, pending_review_id: null, restaurant_id: restaurantId };
@@ -62,22 +66,24 @@ async function updateContext(phone, updates) {
     }
     sets.push(`updated_at = NOW()`);
     vals.push(phone);
-    await query(`UPDATE sms_context SET ${sets.join(', ')} WHERE phone = $${i}`, vals);
+    await (0, client_js_1.query)(`UPDATE sms_context SET ${sets.join(', ')} WHERE phone = $${i}`, vals);
 }
 // ─── SMS Logging ─────────────────────────────────────────────────────
 async function logSms(params) {
-    await query(`INSERT INTO sms_logs (direction, from_phone, to_phone, body, command_parsed, status, twilio_sid)
+    await (0, client_js_1.query)(`INSERT INTO sms_logs (direction, from_phone, to_phone, body, command_parsed, status, twilio_sid)
      VALUES ($1, $2, $3, $4, $5, $6, $7)`, [params.direction, params.from_phone, params.to_phone, params.body, params.command || null, params.status, params.twilio_sid || null]);
 }
 // ─── Core Service ────────────────────────────────────────────────────
-export class SmsService {
-    twilioPhone = process.env.TWILIO_PHONE_NUMBER || '';
+class SmsService {
+    constructor() {
+        this.twilioPhone = process.env.TWILIO_PHONE_NUMBER || '';
+    }
     /**
      * Send an SMS and log it.
      */
     async sendSms(to, body) {
         try {
-            const result = await twilioClient.sendSms(to, body);
+            const result = await twilioClient_js_1.twilioClient.sendSms(to, body);
             await logSms({
                 direction: 'outbound',
                 from_phone: this.twilioPhone,
@@ -139,13 +145,13 @@ export class SmsService {
             restaurant_id: restaurant.id,
         });
         // Also store in sms_messages for backward compat
-        const insertResult = await query(`INSERT INTO sms_messages (
+        const insertResult = await (0, client_js_1.query)(`INSERT INTO sms_messages (
         restaurant_id, review_id, reply_draft_id, phone_number,
         direction, body, status
       ) VALUES ($1, $2, $3, $4, 'outbound', $5, 'sending')
       RETURNING id`, [restaurant.id, review.id, draft.id, ownerPhone, body]);
         await this.sendSms(ownerPhone, body);
-        await query(`UPDATE sms_messages SET status = 'sent' WHERE id = $1`, [insertResult.rows[0].id]);
+        await (0, client_js_1.query)(`UPDATE sms_messages SET status = 'sent' WHERE id = $1`, [insertResult.rows[0].id]);
         return insertResult.rows[0].id;
     }
     /**
@@ -153,7 +159,7 @@ export class SmsService {
      */
     async handleIncoming(fromPhone, body, messageSid) {
         const ctx = await getOrCreateContext(fromPhone);
-        const parsed = parseCommand(body, ctx.state || undefined);
+        const parsed = (0, commandParser_js_1.parseCommand)(body, ctx.state || undefined);
         // Log inbound
         await logSms({
             direction: 'inbound',
@@ -190,6 +196,7 @@ export class SmsService {
             case 'CANCEL_CONFIRM':
                 return this.handleCancelConfirm(fromPhone, ctx);
             case 'CANCEL_DENY':
+                await updateContext(fromPhone, { state: null });
                 return TEMPLATES.cancelDeny;
             case 'UNKNOWN':
             default:
@@ -200,7 +207,7 @@ export class SmsService {
     async handleStop(phone, ctx) {
         // Mark user as unsubscribed
         if (ctx.restaurant_id) {
-            await query(`UPDATE restaurants SET sms_opted_out = true, monitoring_paused = true WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
+            await (0, client_js_1.query)(`UPDATE restaurants SET sms_opted_out = true, monitoring_paused = true WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
         }
         await updateContext(phone, { state: null, pending_review_id: null });
         // Twilio auto-blocks future messages after STOP
@@ -216,7 +223,7 @@ export class SmsService {
             return TEMPLATES.approve;
         }
         // Real review: approve the draft
-        await query(`UPDATE reply_drafts SET status = 'approved', approved_at = NOW()
+        await (0, client_js_1.query)(`UPDATE reply_drafts SET status = 'approved', approved_at = NOW()
        WHERE review_id = $1 AND status = 'pending'`, [ctx.pending_review_id]);
         await updateContext(phone, { state: null, pending_review_id: null });
         console.log(`✅ Review ${ctx.pending_review_id} approved via SMS`);
@@ -239,7 +246,7 @@ export class SmsService {
             return TEMPLATES.customReplyConfirm;
         }
         // Real review: update draft with custom text and approve
-        await query(`UPDATE reply_drafts 
+        await (0, client_js_1.query)(`UPDATE reply_drafts 
        SET draft_text = $1, status = 'approved', approved_at = NOW(),
            metadata = jsonb_set(COALESCE(metadata, '{}'), '{custom_response}', 'true')
        WHERE review_id = $2 AND status = 'pending'`, [customText, ctx.pending_review_id]);
@@ -250,7 +257,7 @@ export class SmsService {
         if (!ctx.pending_review_id)
             return TEMPLATES.noPendingReview;
         if (!ctx.pending_review_id.startsWith('mock-')) {
-            await query(`UPDATE reply_drafts SET status = 'rejected' WHERE review_id = $1 AND status = 'pending'`, [ctx.pending_review_id]);
+            await (0, client_js_1.query)(`UPDATE reply_drafts SET status = 'rejected' WHERE review_id = $1 AND status = 'pending'`, [ctx.pending_review_id]);
         }
         console.log(`🚫 Review ${ctx.pending_review_id} ignored via SMS`);
         await updateContext(phone, { state: null, pending_review_id: null });
@@ -258,14 +265,14 @@ export class SmsService {
     }
     async handlePause(phone, ctx) {
         if (ctx.restaurant_id) {
-            await query(`UPDATE restaurants SET monitoring_paused = true WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
+            await (0, client_js_1.query)(`UPDATE restaurants SET monitoring_paused = true WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
         }
         await updateContext(phone, { state: null });
         return TEMPLATES.pause;
     }
     async handleResume(phone, ctx) {
         if (ctx.restaurant_id) {
-            await query(`UPDATE restaurants SET monitoring_paused = false WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
+            await (0, client_js_1.query)(`UPDATE restaurants SET monitoring_paused = false WHERE id = $1`, [ctx.restaurant_id]).catch(() => { });
         }
         await updateContext(phone, { state: null });
         return TEMPLATES.resume;
@@ -274,30 +281,31 @@ export class SmsService {
         if (!ctx.restaurant_id) {
             return `No account found for this phone number. Contact support@maitreo.com for help.${HELP_SUFFIX}`;
         }
-        const restResult = await query(`SELECT name, COALESCE(monitoring_paused, false) as monitoring_paused FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
+        const restResult = await (0, client_js_1.query)(`SELECT name, COALESCE(monitoring_paused, false) as monitoring_paused FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
         if (restResult.rows.length === 0) {
             return `Account not found. Contact support@maitreo.com.${HELP_SUFFIX}`;
         }
         const rest = restResult.rows[0];
         const statusText = rest.monitoring_paused ? '⏸️ Paused' : '✅ Active';
         // Count reviews
-        const reviewCount = await query(`SELECT COUNT(*) as count FROM reviews WHERE restaurant_id = $1`, [ctx.restaurant_id]).catch(() => ({ rows: [{ count: '0' }] }));
+        const reviewCount = await (0, client_js_1.query)(`SELECT COUNT(*) as count FROM reviews WHERE restaurant_id = $1`, [ctx.restaurant_id]).catch(() => ({ rows: [{ count: '0' }] }));
         return `📊 ${rest.name}
 Status: ${statusText}
 Reviews tracked: ${reviewCount.rows[0].count}
 Billing: Active${HELP_SUFFIX}`;
     }
     async handleBilling(phone, ctx) {
+        var _a;
         if (!ctx.restaurant_id) {
             return `No account found for this phone number. Contact support@maitreo.com for help.${HELP_SUFFIX}`;
         }
-        const result = await query(`SELECT stripe_customer_id FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
-        const customerId = result.rows[0]?.stripe_customer_id;
+        const result = await (0, client_js_1.query)(`SELECT stripe_customer_id FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
+        const customerId = (_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.stripe_customer_id;
         if (!customerId) {
             return `No billing account found. Complete signup first at https://maitreo.com/pricing${HELP_SUFFIX}`;
         }
         try {
-            const portalUrl = await createPortalSession(customerId);
+            const portalUrl = await (0, stripeService_js_1.createPortalSession)(customerId);
             return `Manage billing: ${portalUrl} (expires in 1 hour).${HELP_SUFFIX}`;
         }
         catch (err) {
@@ -310,25 +318,28 @@ Billing: Active${HELP_SUFFIX}`;
         return TEMPLATES.cancelPrompt;
     }
     async handleCancelConfirm(phone, ctx) {
+        var _a;
         if (!ctx.restaurant_id) {
             await updateContext(phone, { state: null });
             return `No account found. Contact support@maitreo.com.${HELP_SUFFIX}`;
         }
         // Get Stripe subscription ID
-        const result = await query(`SELECT stripe_subscription_id FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
-        const subId = result.rows[0]?.stripe_subscription_id;
+        const result = await (0, client_js_1.query)(`SELECT stripe_subscription_id FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
+        const subId = (_a = result.rows[0]) === null || _a === void 0 ? void 0 : _a.stripe_subscription_id;
         if (subId) {
             try {
-                await cancelSubscription(subId);
+                await (0, stripeService_js_1.cancelSubscription)(subId);
                 console.log(`🚫 Stripe subscription ${subId} canceled for restaurant ${ctx.restaurant_id}`);
             }
             catch (err) {
-                console.error('Failed to cancel Stripe subscription:', err);
-                // Still update local state even if Stripe call fails
+                console.error('🚨 HIGH SEVERITY: Stripe cancellation failed for subscription', subId, err);
+                // Do NOT update local state — Stripe still considers subscription active
+                await updateContext(phone, { state: null });
+                return `Cancellation failed, please try again or contact support@maitreo.com.${HELP_SUFFIX}`;
             }
         }
-        // Update local DB state
-        await query(`UPDATE restaurants SET
+        // Update local DB state only after successful Stripe cancellation
+        await (0, client_js_1.query)(`UPDATE restaurants SET
          subscription_state = 'canceled',
          monitoring_paused = true,
          updated_at = NOW()
@@ -338,5 +349,5 @@ Billing: Active${HELP_SUFFIX}`;
         return `Subscription canceled. You won't be charged again.${HELP_SUFFIX}`;
     }
 }
-export const smsService = new SmsService();
-//# sourceMappingURL=smsService.js.map
+exports.SmsService = SmsService;
+exports.smsService = new SmsService();
