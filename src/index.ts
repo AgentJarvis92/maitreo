@@ -38,6 +38,36 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
+// ─── Rate Limiting ─────────────────────────────────────────────────
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10; // requests per minute
+const RATE_WINDOW_MS = 60_000;
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now >= entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT;
+}
+
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap) {
+    if (now >= entry.resetAt) rateLimitMap.delete(ip);
+  }
+}, 5 * 60_000);
+
+function getClientIp(req: http.IncomingMessage): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
+  return req.socket.remoteAddress || 'unknown';
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
 
@@ -66,6 +96,30 @@ const server = http.createServer(async (req, res) => {
       }));
     }
     return;
+  }
+
+  // Rate limiting for sensitive endpoints
+  const rateLimitedPaths = ['/onboarding', '/onboarding/register', '/onboarding/otp/send', '/onboarding/otp/verify', '/api/checkout'];
+  if (rateLimitedPaths.includes(url.pathname) && req.method === 'POST') {
+    const clientIp = getClientIp(req);
+    if (isRateLimited(clientIp)) {
+      res.writeHead(429, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Too many requests. Please try again later.' }));
+      return;
+    }
+  }
+
+  // API_SECRET gate for /jobs/* endpoints
+  if (url.pathname.startsWith('/jobs/') && req.method === 'POST') {
+    const apiSecret = process.env.API_SECRET;
+    if (apiSecret) {
+      const authHeader = req.headers['authorization'] || '';
+      if (authHeader !== `Bearer ${apiSecret}`) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Unauthorized' }));
+        return;
+      }
+    }
   }
 
   // Onboarding form submission
@@ -414,10 +468,14 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ error: 'Missing restaurant_id parameter' }));
       return;
     }
-    // Store return URL for post-callback redirect
+    // Store return URL in database for post-callback redirect
     if (returnUrl) {
-      (global as any).__oauthReturnUrls = (global as any).__oauthReturnUrls || new Map();
-      (global as any).__oauthReturnUrls.set(restaurantId, returnUrl);
+      await pool.query(
+        `INSERT INTO oauth_states (restaurant_id, return_url, expires_at)
+         VALUES ($1, $2, NOW() + INTERVAL '10 minutes')
+         ON CONFLICT (restaurant_id) DO UPDATE SET return_url = $2, expires_at = NOW() + INTERVAL '10 minutes'`,
+        [restaurantId, returnUrl]
+      ).catch(err => console.warn('Failed to store OAuth return URL:', err));
     }
     try {
       const authUrl = generateAuthUrl(restaurantId);
@@ -451,12 +509,17 @@ const server = http.createServer(async (req, res) => {
     try {
       const result = await handleCallback(code, state);
       if (result.success) {
-        // Check for onboarding return URL
-        const returnUrls = (global as any).__oauthReturnUrls as Map<string, string> | undefined;
+        // Check for onboarding return URL from database
         const rid = (result as any).restaurantId;
-        const returnUrl = rid && returnUrls?.get(rid);
+        let returnUrl: string | null = null;
+        if (rid) {
+          const oauthResult = await pool.query(
+            `DELETE FROM oauth_states WHERE restaurant_id = $1 AND expires_at > NOW() RETURNING return_url`,
+            [rid]
+          ).catch(() => ({ rows: [] }));
+          returnUrl = oauthResult.rows[0]?.return_url || null;
+        }
         if (returnUrl) {
-          returnUrls!.delete(rid);
           res.writeHead(302, { Location: returnUrl });
           res.end();
           return;
