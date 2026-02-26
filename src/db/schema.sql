@@ -145,3 +145,13 @@ COMMENT ON COLUMN restaurants.tone_profile_json IS 'Brand voice and tone configu
 COMMENT ON COLUMN restaurants.competitors_json IS 'List of competitor businesses to track (e.g., [{"name": "Joe''s Pizza", "platform": "google", "id": "..."}])';
 COMMENT ON COLUMN reply_drafts.escalation_flag IS 'True if review contains sensitive issues requiring human attention';
 COMMENT ON COLUMN reply_drafts.escalation_reasons IS 'Array of detected escalation triggers (e.g., ["health_issue", "refund_request"])';
+
+-- OAuth state storage (replaces in-memory global state)
+CREATE TABLE IF NOT EXISTS oauth_states (
+    restaurant_id UUID PRIMARY KEY REFERENCES restaurants(id) ON DELETE CASCADE,
+    return_url TEXT,
+    expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '10 minutes',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_oauth_states_expires ON oauth_states(expires_at);
