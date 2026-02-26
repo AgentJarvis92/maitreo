@@ -12,7 +12,7 @@ import { replyGenerator } from '../services/replyGenerator.js';
 import { smsService } from '../sms/smsService.js';
 import type { Restaurant, Review, ReplyDraft } from '../types/models.js';
 
-const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '300000'); // default 5 minutes
 
 export class ReviewMonitorJob {
   private running = false;
