@@ -12,7 +12,7 @@ import { replyGenerator } from '../services/replyGenerator.js';
 import { smsService } from '../sms/smsService.js';
 import type { Restaurant, Review, ReplyDraft } from '../types/models.js';
 
-const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '300000'); // default 5 minutes
 
 export class ReviewMonitorJob {
   private running = false;
@@ -21,7 +21,7 @@ export class ReviewMonitorJob {
    * Get all restaurants with their platform IDs from competitors_json
    */
   private async getRestaurants(): Promise<Restaurant[]> {
-    const result = await query<Restaurant>(`SELECT * FROM restaurants ORDER BY created_at`);
+    const result = await query<Restaurant>(`SELECT * FROM restaurants WHERE monitoring_paused IS NOT TRUE ORDER BY created_at`);
     return result.rows;
   }
 

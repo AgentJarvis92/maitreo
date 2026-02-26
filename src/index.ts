@@ -325,8 +325,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Send mock review alert (for testing SMS command flow)
+  // Send mock review alert (for testing SMS command flow) — dev only
   if (url.pathname === '/sms/test/mock-alert' && req.method === 'POST') {
+    if (process.env.NODE_ENV === 'production') {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Not found' }));
+      return;
+    }
     let body = '';
     req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
     req.on('end', async () => {

@@ -5,6 +5,7 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'http';
+import crypto from 'crypto';
 import { smsService } from './smsService.js';
 import { query } from '../db/client.js';
 
@@ -44,11 +45,59 @@ function escapeXml(s: string): string {
 }
 
 /**
+ * Validate Twilio request signature (X-Twilio-Signature).
+ * See: https://www.twilio.com/docs/usage/security#validating-requests
+ */
+function validateTwilioSignature(req: IncomingMessage, params: Record<string, string>): boolean {
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  if (!authToken) {
+    // If no auth token configured, skip validation (dev mode)
+    if (process.env.NODE_ENV === 'production') {
+      console.error('❌ TWILIO_AUTH_TOKEN not set in production — rejecting request');
+      return false;
+    }
+    return true;
+  }
+
+  const signature = req.headers['x-twilio-signature'] as string | undefined;
+  if (!signature) return false;
+
+  // Build the data string: URL + sorted params concatenated
+  const protocol = req.headers['x-forwarded-proto'] || 'https';
+  const host = req.headers.host || '';
+  const url = `${protocol}://${host}${req.url}`;
+
+  const sortedKeys = Object.keys(params).sort();
+  let dataString = url;
+  for (const key of sortedKeys) {
+    dataString += key + params[key];
+  }
+
+  const expectedSignature = crypto
+    .createHmac('sha1', authToken)
+    .update(dataString)
+    .digest('base64');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+}
+
+/**
  * Handle POST /webhooks/twilio/inbound — Twilio incoming SMS webhook
  */
 export async function handleSmsWebhook(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
     const params = await parseFormBody(req);
+
+    // Validate Twilio signature in production
+    if (process.env.NODE_ENV === 'production' && !validateTwilioSignature(req, params)) {
+      console.error('❌ Invalid Twilio signature — rejecting webhook request');
+      res.writeHead(403, { 'Content-Type': 'text/plain' });
+      res.end('Forbidden: invalid signature');
+      return;
+    }
     const from = params.From || '';
     const body = params.Body || '';
     const messageSid = params.MessageSid || '';
