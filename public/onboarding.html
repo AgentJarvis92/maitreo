@@ -277,7 +277,7 @@
                         <div class="progress-dot"></div>
                     </div>
                     <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Verify your phone</h1>
-                    <p class="text-sm text-white/55 font-light leading-relaxed" id="otp-subtitle-desktop">We sent a 6-digit code to (xxx) xxx-xxxx</p>
+                    <p class="text-sm text-white/55 font-light leading-relaxed" id="otp-subtitle-desktop">We sent a 6-digit code to your email</p>
                 </div>
                 <div class="glass-panel px-10 py-10  ">
                     <div class="space-y-6">
@@ -310,7 +310,7 @@
                         <div class="progress-dot"></div>
                     </div>
                     <h1 class="text-2xl font-medium tracking-tight mb-1 text-white" style="letter-spacing: -0.02em;">Verify your phone</h1>
-                    <p class="text-xs text-white/50 font-light" id="otp-subtitle-mobile">We sent a 6-digit code to (xxx) xxx-xxxx</p>
+                    <p class="text-xs text-white/50 font-light" id="otp-subtitle-mobile">We sent a 6-digit code to your email</p>
                 </div>
                 <div class="glass-panel p-4   w-full shrink-0">
                     <div class="flex flex-col gap-3">
@@ -596,6 +596,15 @@
             return '(xxx) xxx-' + d.slice(-4);
         }
 
+        function maskEmail(email) {
+            if (!email || !email.includes('@')) return 'your email';
+            const parts = email.split('@');
+            const local = parts[0];
+            const domain = parts[1];
+            if (local.length <= 2) return local[0] + '***@' + domain;
+            return local[0] + '***@' + domain;
+        }
+
         // Phone input formatting
         document.querySelectorAll('.phone-input').forEach(input => {
             input.addEventListener('input', function() {
@@ -659,11 +668,11 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Registration failed');
                 restaurantId = data.restaurantId || data.rid;
-                // Send OTP
+                // Send OTP via email
                 await fetch(API_URL + '/onboarding/otp/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ restaurantId, phone: formData.phone })
+                    body: JSON.stringify({ restaurantId, phone: formData.phone, email: formData.email })
                 });
                 showStep(2);
                 updateOtpSubtitle();
@@ -675,7 +684,7 @@
         }
 
         function updateOtpSubtitle() {
-            const masked = maskPhone(phoneNumber);
+            const masked = maskEmail(formData.email);
             document.getElementById('otp-subtitle-desktop').textContent = 'We sent a 6-digit code to ' + masked;
             document.getElementById('otp-subtitle-mobile').textContent = 'We sent a 6-digit code to ' + masked;
         }
@@ -714,7 +723,7 @@
                 await fetch(API_URL + '/onboarding/otp/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ restaurantId, phone: phoneNumber })
+                    body: JSON.stringify({ restaurantId, phone: phoneNumber, email: formData.email })
                 });
                 alert('Code resent!');
             } catch (err) {

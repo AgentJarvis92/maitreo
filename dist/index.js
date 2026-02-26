@@ -2924,25 +2924,50 @@ function generateWelcomeEmail(restaurantName) {
 }
 
 // frontend/src/services/otpService.ts
+import { Resend as Resend3 } from "resend";
+var _resend3 = null;
+function getResend3() {
+  if (!_resend3) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error("RESEND_API_KEY not set \u2014 cannot send OTP emails");
+    _resend3 = new Resend3(key);
+  }
+  return _resend3;
+}
+var FROM_EMAIL3 = process.env.FROM_EMAIL || "Maitreo <noreply@maitreo.com>";
 var otpStore = /* @__PURE__ */ new Map();
 var OTP_EXPIRY_MS = 10 * 60 * 1e3;
 var MAX_ATTEMPTS = 5;
 function generateCode() {
   return Math.floor(1e5 + Math.random() * 9e5).toString();
 }
-async function sendOtp(restaurantId, phone) {
+async function sendOtp(restaurantId, phone, email) {
   const code = generateCode();
-  const key = `${restaurantId}:${phone}`;
+  const key = `${restaurantId}:${email}`;
   otpStore.set(key, {
     code,
     expires: Date.now() + OTP_EXPIRY_MS,
     attempts: 0
   });
   try {
-    await twilioClient.sendSms(phone, `Your Maitreo verification code is: ${code}`);
-    return { success: true, message: "Verification code sent" };
+    await getResend3().emails.send({
+      from: FROM_EMAIL3,
+      to: email,
+      subject: "Your Maitreo verification code",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+          <h2 style="color: #1e293b;">Verify your email</h2>
+          <p style="color: #475569; font-size: 16px;">Your verification code is:</p>
+          <div style="background: #f1f5f9; border-radius: 8px; padding: 24px; text-align: center; margin: 24px 0;">
+            <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1e293b;">${code}</span>
+          </div>
+          <p style="color: #64748b; font-size: 14px;">This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `
+    });
+    return { success: true, message: "Verification code sent to your email" };
   } catch (err) {
-    console.error("OTP send failed:", err);
+    console.error("OTP email send failed:", err);
     return { success: false, message: "Failed to send verification code. Please try again." };
   }
 }
@@ -2971,7 +2996,6 @@ async function verifyOtp(restaurantId, code) {
     return { success: false, message: "Invalid code. Please try again." };
   }
   otpStore.delete(matchKey);
-  const phone = matchKey.split(":")[1];
   try {
     await client_default.query(
       "UPDATE restaurants SET phone_verified = true WHERE id = $1",
@@ -2980,7 +3004,7 @@ async function verifyOtp(restaurantId, code) {
   } catch (err) {
     console.error("Failed to update phone_verified:", err);
   }
-  return { success: true, message: "Phone verified!" };
+  return { success: true, message: "Email verified!" };
 }
 
 // frontend/src/index.ts
@@ -3226,10 +3250,21 @@ var server = http.createServer(async (req, res) => {
   }
   if (url.pathname === "/onboarding/otp/send" && req.method === "POST") {
     try {
-      const { restaurantId, phone } = await readBody(req);
-      const digits = phone.replace(/\D/g, "");
-      const e164 = digits.length === 10 ? `+1${digits}` : digits.length === 11 && digits[0] === "1" ? `+${digits}` : phone;
-      const result = await sendOtp(restaurantId, e164);
+      const { restaurantId, phone, email } = await readBody(req);
+      let otpEmail = email;
+      if (!otpEmail && restaurantId) {
+        try {
+          const dbResult = await client_default.query("SELECT email FROM restaurants WHERE id = $1", [restaurantId]);
+          if (dbResult.rows.length > 0) otpEmail = dbResult.rows[0].email;
+        } catch (e) {
+        }
+      }
+      if (!otpEmail) {
+        res.writeHead(400, CORS_HEADERS);
+        res.end(JSON.stringify({ success: false, message: "Email is required for verification" }));
+        return;
+      }
+      const result = await sendOtp(restaurantId, phone || "", otpEmail);
       res.writeHead(result.success ? 200 : 400, CORS_HEADERS);
       res.end(JSON.stringify(result));
     } catch (error) {
