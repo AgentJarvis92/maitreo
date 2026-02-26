@@ -1652,6 +1652,12 @@ APPROVE to post | EDIT for custom reply | IGNORE to skip.${HELP_SUFFIX}`;
       status: "received",
       twilio_sid: messageSid || null
     });
+    if (ctx.restaurant_id && parsed.type !== "BILLING" && parsed.type !== "STOP") {
+      const subCheck = await query(`SELECT subscription_state FROM restaurants WHERE id = $1`, [ctx.restaurant_id]);
+      if (subCheck.rows[0]?.subscription_state === "canceled") {
+        return "Your subscription is inactive. Text BILLING to reactivate.";
+      }
+    }
     switch (parsed.type) {
       case "STOP":
         return this.handleStop(fromPhone, ctx);
@@ -1863,7 +1869,7 @@ var ReviewMonitorJob = class {
    * Get all restaurants with their platform IDs from competitors_json
    */
   async getRestaurants() {
-    const result = await query(`SELECT * FROM restaurants WHERE monitoring_paused IS NOT TRUE ORDER BY created_at`);
+    const result = await query(`SELECT * FROM restaurants WHERE monitoring_paused IS NOT TRUE AND (subscription_state IN ('active', 'trialing') OR subscription_state IS NULL) ORDER BY created_at`);
     return result.rows;
   }
   /**
