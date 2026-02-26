@@ -1,0 +1,180 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">Maitreo | Onboarding</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17" vid="5"></script>
+    <style vid="6">
+        :root {
+            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --c-bg: #121212; 
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--c-bg);
+            color: white;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(160deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.75) 100%),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2787&auto=format&fit=crop'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .glass-header {
+            background: rgba(0,0,0,0.15);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .glass-panel {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            box-shadow: 0 12px 56px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.04) inset;
+        }
+
+        .form-input {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .form-input:focus {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.45);
+            outline: none;
+        }
+
+        .progress-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.18);
+            transition: background 0.2s;
+        }
+        .progress-dot.active {
+            background: rgba(255,255,255,0.85);
+        }
+        .progress-dot.active-green {
+            background: #4ade80;
+            box-shadow: 0 0 6px rgba(74,222,128,0.6);
+            animation: pulse-green 1.8s ease-in-out infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+    </style>
+</head>
+<body class="antialiased selection:bg-white selection:text-black flex flex-col" vid="7">
+
+    
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-header px-8 py-5 flex items-center justify-between" vid="8">
+        <div class="flex items-center gap-3" vid="9">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" vid="10">
+                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" vid="11"></circle>
+                <path d="M12 6L12 18M8 9L16 9M8 15L16 15" stroke="white" stroke-width="1.5" stroke-linecap="square" vid="12"></path>
+            </svg>
+            <span class="text-sm font-medium tracking-[0.15em] uppercase" vid="13">Maitreo</span>
+        </div>
+        
+    </nav>
+
+    
+    <main class="flex-grow flex items-center justify-center px-4 py-32 min-h-screen" vid="14">
+        <div class="w-full max-w-xl mx-auto relative z-10" vid="15">
+            
+            
+            <div class="text-center mb-10 animate-fade-in opacity-0" vid="16">
+                <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4" vid="17">Onboarding</span>
+                
+                
+                <div class="flex items-center justify-center gap-2 mb-10" vid="18">
+                    <div class="progress-dot active" vid="19"></div>
+                    <div class="progress-dot active" vid="20"></div>
+                    <div class="progress-dot active-green" vid="21"></div>
+                </div>
+
+                <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;" vid="22">Connect Your Google Business Profile</h1>
+                <p class="text-sm text-white/55 font-light leading-relaxed max-w-md mx-auto" vid="23">
+                    We'll monitor your reviews and draft replies automatically. You can approve everything via SMS.
+                </p>
+            </div>
+
+            
+            <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0" vid="24">
+                <div class="space-y-6" vid="25">
+                    
+                    <div class="pt-2" vid="26">
+                        <button type="button" class="w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200 shadow-lg" vid="27">
+                            Connect Google
+                        </button>
+                        <p class="mt-5 text-center text-[10px] uppercase tracking-[0.12em] text-white/25" vid="28">Secure OAuth connection. We never post without your approval.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            
+            <div class="mt-10 text-center animate-fade-in delay-200 opacity-0" vid="29">
+                <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10" vid="30">
+                    <a href="#" class="hover:text-white/20 transition-colors" vid="31">Privacy</a>
+                    <a href="#" class="hover:text-white/20 transition-colors" vid="32">Terms</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    
+    <div class="fixed inset-0 pointer-events-none z-0" vid="33">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]" vid="34"></div>
+    </div>
+
+    
+    <script vid="35">
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('label').style.color = 'white';
+            });
+            input.addEventListener('blur', () => {
+                if(!input.value) {
+                    input.parentElement.querySelector('label').style.color = '';
+                }
+            });
+        });
+    </script>
+
+
+</body></html>
