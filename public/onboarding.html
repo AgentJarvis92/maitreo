@@ -93,7 +93,7 @@
                 to { opacity: 1; transform: translateY(0); }
             }
         }
-        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        .animate-fade-in { animation: fadeIn 0.6s ease-out both; }
         .delay-100 { animation-delay: 0.1s; }
         .delay-200 { animation-delay: 0.2s; }
         input::placeholder { color: rgba(255,255,255,0.2); }
@@ -170,7 +170,7 @@
         <!-- Desktop -->
         <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
             <div class="w-full max-w-xl mx-auto relative z-10">
-                <div class="text-center mb-10 animate-fade-in opacity-0">
+                <div class="text-center mb-10 animate-fade-in">
                     <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
                     <div class="flex items-center justify-center gap-2 mb-10" id="dots1-desktop">
                         <div class="progress-dot active-green"></div>
@@ -180,7 +180,7 @@
                     <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Set up your restaurant</h1>
                     <p class="text-sm text-white/55 font-light leading-relaxed">You'll connect your Google Business Profile in the next step.</p>
                 </div>
-                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100">
                     <form id="form1-desktop" class="space-y-6">
                         <div class="group">
                             <label class="text-[10px] uppercase tracking-[0.15em] text-white/50 block mb-3 group-focus-within:text-white transition-colors">Restaurant Name</label>
@@ -210,7 +210,7 @@
                         </div>
                     </form>
                 </div>
-                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                <div class="mt-10 text-center animate-fade-in delay-200">
                     <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
                         <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
                         <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
@@ -221,7 +221,7 @@
         <!-- Mobile -->
         <main class="md:hidden flex-grow flex flex-col items-center justify-center px-8 w-full h-screen pt-[60px] pb-4">
             <div class="w-full max-w-sm mx-auto flex flex-col justify-center h-full relative z-10">
-                <div class="text-center mb-4 animate-fade-in opacity-0 shrink-0">
+                <div class="text-center mb-4 animate-fade-in shrink-0">
                     <div class="flex items-center justify-center gap-2 mb-3">
                         <div class="progress-dot active-green"></div>
                         <div class="progress-dot"></div>
@@ -230,7 +230,7 @@
                     <h1 class="text-2xl font-medium tracking-tight mb-1 text-white" style="letter-spacing: -0.02em;">Set up your restaurant</h1>
                     <p class="text-xs text-white/50 font-light">Google Business Profile connection is next.</p>
                 </div>
-                <div class="glass-panel p-4 animate-fade-in delay-100 opacity-0 w-full shrink-0">
+                <div class="glass-panel p-4 animate-fade-in delay-100 w-full shrink-0">
                     <form id="form1-mobile" class="flex flex-col gap-3">
                         <div class="group">
                             <label class="text-[9px] uppercase tracking-[0.15em] text-white/50 block mb-1.5 transition-colors">Restaurant Name</label>
@@ -259,7 +259,7 @@
                         </div>
                     </form>
                 </div>
-                <div class="mt-4 text-center animate-fade-in delay-200 opacity-0 shrink-0">
+                <div class="mt-4 text-center animate-fade-in delay-200 shrink-0">
                     <div class="flex justify-center gap-5 text-[9px] uppercase tracking-widest text-white/20">
                         <a href="#" class="hover:text-white/40 transition-colors">Privacy</a>
                         <span class="w-1 h-1 rounded-full bg-white/10 self-center"></span>
@@ -275,7 +275,7 @@
         <!-- Desktop -->
         <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
             <div class="w-full max-w-xl mx-auto relative z-10">
-                <div class="text-center mb-10 animate-fade-in opacity-0">
+                <div class="text-center mb-10 animate-fade-in">
                     <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
                     <div class="flex items-center justify-center gap-2 mb-10">
                         <div class="progress-dot active"></div>
@@ -285,7 +285,7 @@
                     <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Verify your phone</h1>
                     <p class="text-sm text-white/55 font-light leading-relaxed" id="otp-subtitle-desktop">We sent a 6-digit code to (xxx) xxx-xxxx</p>
                 </div>
-                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100">
                     <div class="space-y-6">
                         <div class="flex justify-center">
                             <input type="text" id="otp-desktop" maxlength="6" class="otp-input w-64 px-6 py-4 text-white rounded-none" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
@@ -298,7 +298,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                <div class="mt-10 text-center animate-fade-in delay-200">
                     <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
                         <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
                         <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
@@ -309,7 +309,7 @@
         <!-- Mobile -->
         <main class="md:hidden flex-grow flex flex-col items-center justify-center px-8 w-full h-screen pt-[60px] pb-4">
             <div class="w-full max-w-sm mx-auto flex flex-col justify-center h-full relative z-10">
-                <div class="text-center mb-4 animate-fade-in opacity-0 shrink-0">
+                <div class="text-center mb-4 animate-fade-in shrink-0">
                     <div class="flex items-center justify-center gap-2 mb-3">
                         <div class="progress-dot active"></div>
                         <div class="progress-dot active-green"></div>
@@ -318,7 +318,7 @@
                     <h1 class="text-2xl font-medium tracking-tight mb-1 text-white" style="letter-spacing: -0.02em;">Verify your phone</h1>
                     <p class="text-xs text-white/50 font-light" id="otp-subtitle-mobile">We sent a 6-digit code to (xxx) xxx-xxxx</p>
                 </div>
-                <div class="glass-panel p-4 animate-fade-in delay-100 opacity-0 w-full shrink-0">
+                <div class="glass-panel p-4 animate-fade-in delay-100 w-full shrink-0">
                     <div class="flex flex-col gap-3">
                         <div class="flex justify-center">
                             <input type="text" id="otp-mobile" maxlength="6" class="otp-input w-full px-3 py-2.5 text-white rounded-lg" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
@@ -331,7 +331,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 text-center animate-fade-in delay-200 opacity-0 shrink-0">
+                <div class="mt-4 text-center animate-fade-in delay-200 shrink-0">
                     <div class="flex justify-center gap-5 text-[9px] uppercase tracking-widest text-white/20">
                         <a href="#" class="hover:text-white/40 transition-colors">Privacy</a>
                         <span class="w-1 h-1 rounded-full bg-white/10 self-center"></span>
@@ -347,7 +347,7 @@
         <!-- Desktop -->
         <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
             <div class="w-full max-w-xl mx-auto relative z-10">
-                <div class="text-center mb-10 animate-fade-in opacity-0">
+                <div class="text-center mb-10 animate-fade-in">
                     <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
                     <div class="flex items-center justify-center gap-2 mb-10">
                         <div class="progress-dot active"></div>
@@ -357,7 +357,7 @@
                     <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Start Your 14-Day Trial</h1>
                     <p class="text-sm text-white/55 font-light leading-relaxed max-w-md mx-auto">No contracts. Cancel anytime. You'll only be charged after your trial ends.</p>
                 </div>
-                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100">
                     <div class="flex flex-col">
                         <div class="flex flex-col items-center justify-center py-2">
                             <div class="flex items-start text-white relative left-2">
@@ -377,7 +377,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                <div class="mt-10 text-center animate-fade-in delay-200">
                     <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
                         <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
                         <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
@@ -388,7 +388,7 @@
         <!-- Mobile -->
         <main class="md:hidden flex-grow flex flex-col items-center justify-center px-8 w-full h-screen pt-[60px] pb-4">
             <div class="w-full max-w-sm mx-auto flex flex-col justify-center h-full relative z-10">
-                <div class="text-center mb-4 animate-fade-in opacity-0 shrink-0">
+                <div class="text-center mb-4 animate-fade-in shrink-0">
                     <span class="text-[10px] tracking-[0.25em] font-medium text-white/40 uppercase mb-4 block">Onboarding</span>
                     <div class="flex items-center gap-2.5 mb-6 justify-center">
                         <div class="progress-dot active"></div>
@@ -398,7 +398,7 @@
                     <h1 class="text-3xl font-medium tracking-tight text-white mb-3 text-center leading-tight">Start Your<br>14-Day Trial</h1>
                     <p class="text-sm text-white/50 font-light leading-relaxed max-w-[260px] mx-auto">No contracts. Cancel anytime. You'll only be charged after your trial ends.</p>
                 </div>
-                <div class="glass-panel p-8 animate-fade-in delay-100 opacity-0 w-full shrink-0 flex flex-col items-center">
+                <div class="glass-panel p-8 animate-fade-in delay-100 w-full shrink-0 flex flex-col items-center">
                     <div class="flex flex-col items-center justify-center py-2 mb-6 w-full">
                         <div class="flex items-start text-white relative left-1">
                             <span class="text-xl mt-2 mr-1 font-light opacity-50">$</span>
@@ -416,7 +416,7 @@
                         <p class="text-center text-[9px] uppercase tracking-[0.1em] text-white/20 leading-relaxed max-w-[240px] mx-auto">Powered by Stripe. Your payment details are encrypted and secure.</p>
                     </div>
                 </div>
-                <div class="mt-4 text-center animate-fade-in delay-200 opacity-0 shrink-0">
+                <div class="mt-4 text-center animate-fade-in delay-200 shrink-0">
                     <div class="flex justify-center gap-5 text-[9px] uppercase tracking-widest text-white/20">
                         <a href="#" class="hover:text-white/40 transition-colors">Privacy</a>
                         <span class="w-1 h-1 rounded-full bg-white/10 self-center"></span>
@@ -432,7 +432,7 @@
         <!-- Desktop -->
         <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
             <div class="w-full max-w-xl mx-auto relative z-10">
-                <div class="text-center mb-10 animate-fade-in opacity-0">
+                <div class="text-center mb-10 animate-fade-in">
                     <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
                     <div class="flex items-center justify-center gap-2 mb-10">
                         <div class="progress-dot active"></div>
@@ -442,7 +442,7 @@
                     <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">Connect Your Google Business Profile</h1>
                     <p class="text-sm text-white/55 font-light leading-relaxed max-w-md mx-auto">We'll monitor your reviews and draft replies automatically. You can approve everything via SMS.</p>
                 </div>
-                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100">
                     <div class="space-y-6">
                         <div class="pt-2">
                             <button type="button" id="btn4-desktop" class="w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200 shadow-lg">Connect Google</button>
@@ -450,7 +450,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                <div class="mt-10 text-center animate-fade-in delay-200">
                     <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
                         <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
                         <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
@@ -492,7 +492,7 @@
         <!-- Desktop -->
         <main class="hidden md:flex flex-grow items-center justify-center px-4 py-32 min-h-screen">
             <div class="w-full max-w-xl mx-auto relative z-10">
-                <div class="text-center mb-10 animate-fade-in opacity-0">
+                <div class="text-center mb-10 animate-fade-in">
                     <span class="text-[10px] tracking-[0.25em] text-white/50 uppercase block mb-4">Onboarding</span>
                     <div class="flex items-center justify-center gap-2 mb-10">
                         <div class="progress-dot done-green"></div>
@@ -509,12 +509,12 @@
                     <h1 class="text-5xl font-medium tracking-tight mb-4" style="letter-spacing: -0.02em;">You're all set</h1>
                     <p class="text-sm text-white/55 font-light leading-relaxed max-w-md mx-auto">We're monitoring your reviews 24/7. Check your phone for a welcome text.</p>
                 </div>
-                <div class="glass-panel px-10 py-10 animate-fade-in delay-100 opacity-0">
+                <div class="glass-panel px-10 py-10 animate-fade-in delay-100">
                     <div class="pt-2">
                         <a href="https://maitreo.com" class="block w-full bg-white text-black h-14 font-bold uppercase tracking-[0.1em] text-xs hover:bg-gray-100 transition-colors duration-200 shadow-lg text-center leading-[3.5rem]">Go to Maitreo</a>
                     </div>
                 </div>
-                <div class="mt-10 text-center animate-fade-in delay-200 opacity-0">
+                <div class="mt-10 text-center animate-fade-in delay-200">
                     <div class="flex justify-center gap-6 text-[9px] uppercase tracking-widest text-white/10">
                         <a href="#" class="hover:text-white/20 transition-colors">Privacy</a>
                         <a href="#" class="hover:text-white/20 transition-colors">Terms</a>
@@ -525,7 +525,7 @@
         <!-- Mobile -->
         <main class="md:hidden flex-grow flex flex-col items-center justify-center px-8 w-full h-screen pt-[60px] pb-4">
             <div class="w-full max-w-sm mx-auto flex flex-col justify-center h-full relative z-10">
-                <div class="text-center mb-4 animate-fade-in opacity-0 shrink-0">
+                <div class="text-center mb-4 animate-fade-in shrink-0">
                     <div class="flex items-center justify-center gap-2 mb-3">
                         <div class="progress-dot done-green"></div>
                         <div class="progress-dot done-green"></div>
@@ -541,12 +541,12 @@
                     <h1 class="text-2xl font-medium tracking-tight mb-1 text-white" style="letter-spacing: -0.02em;">You're all set</h1>
                     <p class="text-xs text-white/50 font-light">We're monitoring your reviews 24/7. Check your phone for a welcome text.</p>
                 </div>
-                <div class="glass-panel p-4 animate-fade-in delay-100 opacity-0 w-full shrink-0">
+                <div class="glass-panel p-4 animate-fade-in delay-100 w-full shrink-0">
                     <div class="pt-2 pb-1">
                         <a href="https://maitreo.com" class="block w-full bg-white text-black h-11 rounded-lg font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-100 transition-colors duration-200 shadow-lg shadow-white/5 text-center leading-[2.75rem]">Go to Maitreo</a>
                     </div>
                 </div>
-                <div class="mt-4 text-center animate-fade-in delay-200 opacity-0 shrink-0">
+                <div class="mt-4 text-center animate-fade-in delay-200 shrink-0">
                     <div class="flex justify-center gap-5 text-[9px] uppercase tracking-widest text-white/20">
                         <a href="#" class="hover:text-white/40 transition-colors">Privacy</a>
                         <span class="w-1 h-1 rounded-full bg-white/10 self-center"></span>
