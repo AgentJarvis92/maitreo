@@ -21,7 +21,7 @@ export class ReviewMonitorJob {
    * Get all restaurants with their platform IDs from competitors_json
    */
   private async getRestaurants(): Promise<Restaurant[]> {
-    const result = await query<Restaurant>(`SELECT * FROM restaurants ORDER BY created_at`);
+    const result = await query<Restaurant>(`SELECT * FROM restaurants WHERE monitoring_paused IS NOT TRUE ORDER BY created_at`);
     return result.rows;
   }
 
