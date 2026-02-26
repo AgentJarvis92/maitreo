@@ -3024,6 +3024,32 @@ function getClientIp(req) {
   if (typeof forwarded === "string") return forwarded.split(",")[0].trim();
   return req.socket.remoteAddress || "unknown";
 }
+async function lookupGooglePlaceId(restaurantId, name, address) {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) {
+    console.warn("GOOGLE_PLACES_API_KEY not set, skipping Place ID lookup");
+    return;
+  }
+  try {
+    const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask": "places.id"
+      },
+      body: JSON.stringify({ textQuery: `${name} ${address}` })
+    });
+    const data = await res.json();
+    const placeId = data?.places?.[0]?.id;
+    if (placeId) {
+      await client_default.query("UPDATE restaurants SET google_place_id = $1 WHERE id = $2", [placeId, restaurantId]);
+      console.log(`Place ID ${placeId} saved for restaurant ${restaurantId}`);
+    }
+  } catch (err) {
+    console.error("Place ID lookup error:", err);
+  }
+}
 var server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host}`);
   if (url.pathname === "/ping") {
@@ -3143,12 +3169,55 @@ var server = http.createServer(async (req, res) => {
       req2.on("error", reject);
     });
   }
+  if (url.pathname === "/onboarding/status" && req.method === "GET") {
+    const rid = url.searchParams.get("rid");
+    if (!rid) {
+      res.writeHead(400, CORS_HEADERS);
+      res.end(JSON.stringify({ error: "Missing rid parameter" }));
+      return;
+    }
+    try {
+      const result = await client_default.query(
+        `SELECT name, 
+          COALESCE(phone_verified, false) AS phone_verified,
+          stripe_customer_id IS NOT NULL AS stripe_active,
+          google_refresh_token IS NOT NULL AS google_connected,
+          COALESCE(onboarding_complete, false) AS onboarding_complete
+        FROM restaurants WHERE id = $1`,
+        [rid]
+      );
+      if (result.rows.length === 0) {
+        res.writeHead(404, CORS_HEADERS);
+        res.end(JSON.stringify({ error: "Restaurant not found" }));
+        return;
+      }
+      const row = result.rows[0];
+      res.writeHead(200, CORS_HEADERS);
+      res.end(JSON.stringify({
+        restaurantId: rid,
+        name: row.name,
+        phone_verified: row.phone_verified,
+        stripe_active: row.stripe_active,
+        google_connected: row.google_connected,
+        onboarding_complete: row.onboarding_complete
+      }));
+    } catch (error) {
+      res.writeHead(500, CORS_HEADERS);
+      res.end(JSON.stringify({ error: "Server error" }));
+    }
+    return;
+  }
   if (url.pathname === "/onboarding/register" && req.method === "POST") {
     try {
       const data = await readBody(req);
       const result = await processOnboarding(data);
       res.writeHead(result.success ? 200 : 400, CORS_HEADERS);
       res.end(JSON.stringify(result));
+      if (result.success && result.restaurantId && data.name && data.address) {
+        lookupGooglePlaceId(result.restaurantId, data.name, data.address).catch(
+          (err) => console.error("Google Place ID lookup failed (non-fatal):", err)
+        );
+      }
     } catch (error) {
       res.writeHead(500, CORS_HEADERS);
       res.end(JSON.stringify({ success: false, message: "Server error" }));
