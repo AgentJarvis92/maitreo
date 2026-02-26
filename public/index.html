@@ -5,9 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maitreo | Intelligent Reputation</title>
 <script>
-  // UA-based redirect — replaces Next.js middleware
+  // UA-based inline load — no redirect, no URL change
   var mobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  window.location.replace(mobile ? '/mobile.html' : '/desktop.html');
+  fetch(mobile ? '/mobile.html' : '/desktop.html')
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+      document.open();
+      document.write(html);
+      document.close();
+    });
 </script>
 </head>
 <body></body>
