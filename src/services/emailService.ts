@@ -417,7 +417,7 @@ export class EmailService {
         }
         
         main {
-            padding: 56px 32px 56px 56px;
+            padding: 80px 32px 56px 56px;
         }
         
         h1 {
