@@ -21,7 +21,7 @@ const html = `<!DOCTYPE html>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td align="center" style="padding: 0 0 16px;">
-<img src="https://maitreo.com/logo.png?v=3" alt="Maitreo" width="160" height="160" style="display:block; border:0; outline:none; text-decoration:none; width:160px; height:160px;" />
+<img src="https://maitreo.com/logo.png?v=4" alt="Maitreo" width="80" height="80" style="display:block; border:0; outline:none; text-decoration:none; width:80px; height:80px;" />
 </td>
 </tr>
 </table>
