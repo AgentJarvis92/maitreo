@@ -84,7 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_newsletters_sent_at ON newsletters(sent_at);
 -- Email logs table
 CREATE TABLE IF NOT EXISTS email_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    type VARCHAR(50) NOT NULL CHECK (type IN ('reply_draft', 'newsletter', 'notification')),
+    type VARCHAR(50) NOT NULL CHECK (type IN ('reply_draft', 'newsletter', 'notification', 'welcome')),
     to_email VARCHAR(255) NOT NULL,
     subject VARCHAR(500) NOT NULL,
     status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed', 'bounced')),

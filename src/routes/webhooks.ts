@@ -20,6 +20,7 @@ import {
 } from '../services/stripeService.js';
 import { query } from '../db/client.js';
 import { smsService } from '../sms/smsService.js';
+import { emailService } from '../services/emailService.js';
 
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -136,6 +137,41 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
 
 async function handleSubscriptionCreated(sub: Stripe.Subscription): Promise<void> {
   await syncSubscriptionState(sub);
+
+  // Send activation email now that subscription is live
+  const restaurantId = sub.metadata?.restaurant_id;
+  if (!restaurantId) return;
+
+  try {
+    const result = await query<{ name: string; owner_email: string; stripe_customer_id: string }>(
+      `SELECT name, owner_email, stripe_customer_id FROM restaurants WHERE id = $1`,
+      [restaurantId]
+    );
+    const restaurant = result.rows[0];
+    if (!restaurant?.owner_email) return;
+
+    // Generate Stripe billing portal URL
+    const customerId = restaurant.stripe_customer_id ||
+      (typeof sub.customer === 'string' ? sub.customer : sub.customer?.id);
+    let manageSubscriptionUrl = 'https://maitreo.com';
+    if (customerId) {
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: 'https://maitreo.com',
+      });
+      manageSubscriptionUrl = portal.url;
+    }
+
+    await emailService.sendActivationEmail(
+      restaurant.owner_email,
+      restaurant.name,
+      manageSubscriptionUrl
+    );
+    console.log(`✅ Activation email sent to ${restaurant.owner_email}`);
+  } catch (err: any) {
+    // Non-fatal — don't let email failure block webhook response
+    console.error('❌ Failed to send activation email:', err.message);
+  }
 }
 
 async function handleSubscriptionUpdated(sub: Stripe.Subscription): Promise<void> {
