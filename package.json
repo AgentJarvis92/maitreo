@@ -8,6 +8,9 @@
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:email": "vitest src/services/__tests__/emailService.test.ts",
     "ingestion": "tsx src/jobs/ingestion.ts",
     "newsletter": "tsx src/jobs/newsletter.ts",
     "db:migrate": "tsx src/db/migrate.ts",
@@ -42,6 +45,7 @@
     "esbuild": "^0.27.3",
     "lighthouse": "^13.0.3",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
   }
 }
