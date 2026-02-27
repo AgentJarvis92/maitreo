@@ -307,23 +307,22 @@ export class EmailService {
   }
 
   /**
-   * Send welcome email after phone verification
+   * Send activation email when onboarding is complete (Google connected + subscription active)
    */
-  async sendWelcomeEmail(
+  async sendActivationEmail(
     ownerEmail: string,
     restaurantName: string,
-    ownerName: string,
-    phone: string
+    manageSubscriptionUrl: string
   ): Promise<void> {
-    const subject = `Welcome to Maitreo`;
-    const html = this.buildWelcomeEmailHTML(restaurantName, ownerName);
+    const subject = `Maitreo is now active for ${restaurantName}`;
+    const html = this.buildActivationEmailHTML(restaurantName, manageSubscriptionUrl);
 
     const logId = await this.logEmail(
       'welcome',
       ownerEmail,
       subject,
       'pending',
-      { restaurant_name: restaurantName, phone }
+      { restaurant_name: restaurantName }
     );
 
     try {
@@ -336,101 +335,318 @@ export class EmailService {
 
       if (error) throw new Error(error.message);
       await this.updateEmailStatus(logId, 'sent');
-      console.log(`✅ Welcome email sent to ${ownerEmail}`);
+      console.log(`✅ Activation email sent to ${ownerEmail}`);
       
     } catch (error: any) {
       await this.updateEmailStatus(logId, 'failed', error.message);
-      console.error(`❌ Failed to send welcome email:`, error);
+      console.error(`❌ Failed to send activation email:`, error);
       throw error;
     }
   }
 
   /**
-   * Build welcome email HTML with dark monochrome + neon green brand
+   * Build activation email HTML matching Kevin's design
    */
-  private buildWelcomeEmailHTML(
+  private buildActivationEmailHTML(
     restaurantName: string,
-    ownerName: string
+    manageSubscriptionUrl: string
   ): string {
     return `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Maitreo</title>
+  <title>Maitreo Activation</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: #f2f2f0;
+      -webkit-font-smoothing: antialiased;
+      color: #1a1a1a;
+      margin: 0;
+      padding: 40px 16px;
+    }
+    .email-wrapper {
+      background-color: #ffffff;
+      max-width: 600px;
+      margin: 0 auto;
+      box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+      border-radius: 2px;
+    }
+    .header {
+      padding: 48px 32px 40px;
+      text-align: center;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 12px;
+    }
+    .logo-text {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      margin-top: 12px;
+    }
+    .main {
+      padding: 56px 32px 56px 56px;
+    }
+    h1 {
+      font-size: 32px;
+      line-height: 1.15;
+      font-weight: 300;
+      color: #1a1a1a;
+      margin: 0 0 32px;
+      letter-spacing: -0.5px;
+    }
+    .intro {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #4a4a4a;
+      font-weight: 300;
+      margin-bottom: 24px;
+      max-width: 480px;
+    }
+    .divider {
+      height: 1px;
+      background: #e5e5e5;
+      margin: 48px 0;
+      border: none;
+    }
+    .commands-section h2 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #999999;
+      font-weight: 500;
+      margin: 0 0 32px;
+    }
+    .command-row {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 14px 0;
+    }
+    .command-key {
+      width: 112px;
+      flex-shrink: 0;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: 1px;
+    }
+    .command-desc {
+      flex-grow: 1;
+      font-size: 13px;
+      color: #666666;
+      font-weight: 300;
+    }
+    .subscription-section h2 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #999999;
+      font-weight: 500;
+      margin: 0 0 16px;
+    }
+    .subscription-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #4a4a4a;
+      font-weight: 300;
+      max-width: 560px;
+      margin-bottom: 20px;
+    }
+    .subscription-link {
+      display: inline-block;
+      font-size: 12px;
+      color: #1a1a1a;
+      text-decoration: none;
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 2px;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+      margin-top: 20px;
+    }
+    .subscription-link:hover {
+      color: #555555;
+      border-color: #555555;
+    }
+    .monospace {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .footer-section {
+      text-align: center;
+      padding-bottom: 32px;
+    }
+    .tagline {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 26px;
+      color: #1a1a1a;
+      margin: 0 0 40px;
+    }
+    .monitoring-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 16px;
+      background: #fcfcfb;
+      border: 1px solid #ebebeb;
+      border-radius: 999px;
+    }
+    .monitoring-dot {
+      width: 6px;
+      height: 6px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+    }
+    .monitoring-text {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #1a1a1a;
+    }
+    .footer {
+      background: #fafaf8;
+      padding: 32px;
+      border-top: 1px solid #f0f0f0;
+      text-align: center;
+    }
+    .footer-copy {
+      font-size: 10px;
+      color: #999999;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0 0 12px;
+    }
+    .footer-links {
+      font-size: 11px;
+      color: #888888;
+      font-weight: 300;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+    .footer-links a {
+      color: #888888;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .footer-links a:hover {
+      color: #1a1a1a;
+      border-color: #1a1a1a;
+    }
+    .divider-text {
+      color: #cccccc;
+    }
+  </style>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #121212; padding: 20px; margin: 0;">
-  
-  <div style="background: #121212; max-width: 600px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-    
-    <!-- Header -->
-    <div style="background: #161616; border-bottom: 2px solid #00ff00; padding: 40px 20px; text-align: center;">
-      <h1 style="margin: 0; font-size: 32px; color: #ffffff; letter-spacing: 2px;">MAITREO</h1>
-      <p style="margin: 8px 0 0; font-size: 14px; color: #00ff00; font-weight: 600;">Your Google Reviews. On Text.</p>
-    </div>
+<body>
+  <div class="email-wrapper">
+    <header class="header">
+      <svg class="logo" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#1a1a1a" d="M500,999.94C224.3,999.94,0,775.65,0,499.95S224.3-.05,500-.05s500,224.3,500,500-224.3,500-500,500ZM500,71.92c-236.01,0-428.02,192.01-428.02,428.02s192.01,428.02,428.02,428.02,428.02-192.01,428.02-428.02S736.02,71.92,500,71.92Z"></path>
+        <rect fill="#1a1a1a" x="679.07" y="244.75" width="71.98" height="510.39"></rect>
+        <rect fill="#1a1a1a" x="175.33" y="463.96" width="649.33" height="71.98"></rect>
+        <rect fill="#1a1a1a" x="472.05" y="293.72" width="71.97" height="349.04"></rect>
+        <rect fill="#1a1a1a" x="265.02" y="244.75" width="71.98" height="510.39"></rect>
+      </svg>
+      <div class="logo-text">Maitreo</div>
+    </header>
 
-    <!-- Welcome section -->
-    <div style="padding: 40px 20px;">
-      <h2 style="color: #ffffff; margin: 0 0 12px; font-size: 24px;">Hey ${ownerName},</h2>
-      <p style="color: rgba(255,255,255,0.8); font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-        ${restaurantName} is now live on Maitreo. Starting today, we're monitoring your Google reviews 24/7. The moment a customer leaves feedback, you'll get a text.
-      </p>
+    <main class="main">
+      <h1>Maitreo is now active<br>for your restaurant.</h1>
+      
+      <p class="intro">Your Google Business Profile is now being monitored. Every new review will be analyzed instantly, and you'll receive an SMS alert with a drafted response ready for your approval.</p>
+      
+      <p class="intro">No dashboard. No logins. Just a text when something needs attention.</p>
 
-      <!-- Status indicator -->
-      <div style="background: #1a1a1a; border: 1px solid rgba(0,255,0,0.3); padding: 20px; border-radius: 6px; margin: 24px 0;">
-        <div style="display: flex; align-items: center; margin-bottom: 12px;">
-          <div style="width: 12px; height: 12px; background: #00ff00; border-radius: 50%; margin-right: 12px; box-shadow: 0 0 8px #00ff00;"></div>
-          <span style="color: #00ff00; font-weight: 600; font-size: 14px;">MONITORING ACTIVE</span>
+      <hr class="divider">
+
+      <section class="commands-section">
+        <h2>When a review arrives</h2>
+        
+        <div class="command-row">
+          <div class="command-key">APPROVE</div>
+          <div class="command-desc">Post the reply instantly</div>
         </div>
-        <p style="margin: 0; color: rgba(255,255,255,0.7); font-size: 13px;">
-          Your account is verified and ready. We'll alert you the instant feedback comes in.
-        </p>
-      </div>
+        
+        <div class="command-row">
+          <div class="command-key">EDIT</div>
+          <div class="command-desc">Revise before posting</div>
+        </div>
+        
+        <div class="command-row">
+          <div class="command-key">IGNORE</div>
+          <div class="command-desc">Mark as handled</div>
+        </div>
+        
+        <div class="command-row">
+          <div class="command-key">PAUSE</div>
+          <div class="command-desc">Temporarily stop monitoring</div>
+        </div>
+        
+        <div class="command-row">
+          <div class="command-key">RESUME</div>
+          <div class="command-desc">Restart monitoring</div>
+        </div>
+        
+        <div class="command-row">
+          <div class="command-key">STATUS</div>
+          <div class="command-desc">Check system status</div>
+        </div>
+        
+        <div class="command-row">
+          <div class="command-key">BILLING</div>
+          <div class="command-desc">Manage subscription</div>
+        </div>
+      </section>
 
-      <!-- Next step -->
-      <div style="background: #161616; border-left: 3px solid #00ff00; padding: 20px; border-radius: 4px; margin: 24px 0;">
-        <h3 style="margin: 0 0 12px; color: #ffffff; font-size: 16px;">Next Step</h3>
-        <p style="margin: 0 0 12px; color: rgba(255,255,255,0.8); font-size: 14px;">
-          Connect your Google Business Profile to start receiving review alerts. Takes 60 seconds.
-        </p>
-      </div>
+      <hr class="divider">
 
-      <!-- CTA Button -->
-      <div style="text-align: center; margin: 32px 0;">
-        <a href="https://maitreo.com/onboarding/complete" 
-           style="display: inline-block; background: #00ff00; color: #121212; text-decoration: none; padding: 14px 40px; border-radius: 4px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 0 16px rgba(0,255,0,0.3);">
-          CONNECT GOOGLE
-        </a>
-      </div>
+      <section class="subscription-section">
+        <h2>Your Subscription</h2>
+        <p class="subscription-text">Your subscription is active. To manage billing, update your card, or cancel at any time, simply reply <span class="monospace">BILLING</span> to any Maitreo message.</p>
+        <a href="${manageSubscriptionUrl}" class="subscription-link">Manage or cancel your subscription →</a>
+      </section>
 
-      <!-- Quick commands -->
-      <div style="background: #1a1a1a; border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 6px; margin: 24px 0;">
-        <h4 style="margin: 0 0 16px; color: #ffffff; font-size: 14px; font-weight: 600;">TEXT COMMANDS</h4>
-        <div style="color: rgba(255,255,255,0.7); font-size: 13px; font-family: 'Courier New', monospace; line-height: 2;">
-          <div><span style="color: #00ff00;">HELP</span> — See all commands</div>
-          <div><span style="color: #00ff00;">STATUS</span> — Account overview</div>
-          <div><span style="color: #00ff00;">PAUSE</span> — Pause monitoring</div>
-          <div><span style="color: #00ff00;">BILLING</span> — Manage payment</div>
+      <div class="footer-section">
+        <div class="tagline">Reputation, handled.</div>
+        
+        <div class="monitoring-badge">
+          <div class="monitoring-dot"></div>
+          <span class="monitoring-text">Active Monitoring</span>
         </div>
       </div>
+    </main>
 
-      <!-- Pricing callout -->
-      <div style="background: rgba(0,255,0,0.05); border: 1px solid rgba(0,255,0,0.2); padding: 16px; border-radius: 6px; text-align: center; margin: 24px 0;">
-        <p style="margin: 0; color: rgba(255,255,255,0.8); font-size: 13px;">
-          <strong style="color: #00ff00;">14-day free trial</strong> — $99/month after. Cancel anytime via text.
-        </p>
+    <footer class="footer">
+      <p class="footer-copy">© 2025 Maitreo Inc.</p>
+      <div class="footer-links">
+        <a href="mailto:hello@maitreo.com">hello@maitreo.com</a>
+        <span class="divider-text">|</span>
+        <a href="${manageSubscriptionUrl}">Manage subscription</a>
       </div>
-
-      <!-- Footer -->
-      <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; margin-top: 32px; color: rgba(255,255,255,0.5); font-size: 12px;">
-        <p style="margin: 0;">Questions? Text us <strong>HELP</strong> or reply to this email.</p>
-        <p style="margin: 8px 0 0;">© 2026 Maitreo. All rights reserved.</p>
-      </div>
-
-    </div>
+    </footer>
   </div>
-
 </body>
 </html>
     `.trim();

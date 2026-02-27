@@ -4,7 +4,6 @@
 
 import { twilioClient } from '../sms/twilioClient.js';
 import pool from '../db/client.js';
-import { emailService } from './emailService.js';
 
 // In-memory OTP store (for simplicity; use Redis in production)
 const otpStore = new Map<string, { code: string; expires: number; attempts: number }>();
@@ -67,37 +66,19 @@ export async function verifyOtp(restaurantId: string, code: string): Promise<{ s
     return { success: false, message: 'Invalid code. Please try again.' };
   }
 
-  // Success — mark phone as verified + send welcome email
+  // Success — mark phone as verified
   otpStore.delete(matchKey);
   const phone = matchKey.split(':')[1];
 
   try {
-    const res = await pool.query(
-      `UPDATE restaurants SET phone_verified = true WHERE id = $1 
-       RETURNING id, name, email, owner_name`,
+    await pool.query(
+      'UPDATE restaurants SET phone_verified = true WHERE id = $1',
       [restaurantId]
     );
-    
-    const restaurant = res.rows[0];
-    
-    // Send welcome email
-    if (restaurant.email) {
-      try {
-        await emailService.sendWelcomeEmail(
-          restaurant.email,
-          restaurant.name,
-          restaurant.owner_name || 'Restaurant Owner',
-          phone
-        );
-      } catch (emailErr) {
-        console.error('Welcome email failed (non-fatal):', emailErr);
-      }
-    }
-    
   } catch (err) {
     console.error('Failed to update phone_verified:', err);
     // Non-fatal
   }
 
-  return { success: true, message: 'Phone verified! Check your email for next steps.' };
+  return { success: true, message: 'Phone verified!' };
 }
