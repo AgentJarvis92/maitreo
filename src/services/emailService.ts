@@ -545,7 +545,7 @@ export class EmailService {
 <body>
     <div class="email-wrapper">
         <header>
-            <img src="https://maitreo.com/logo.svg" alt="Maitreo" onerror="this.style.display='none'">
+            <img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwMCAxMDAwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGZpbGw9IiMwMDAwMDAiIGQ9Ik01MDAsOTk5Ljk0QzIyNC4zLDk5OS45NCwwLDc3NS42NSwwLDQ5OS45NVMyMjQuMy0uMDUsNTAwLS4wNXM1MDAsMjI0LjMsNTAwLDUwMC0yMjQuMyw1MDAtNTAwLDUwMFpNNTAwLDcxLjkyYy0yMzYuMDEsMC00MjguMDIsMTkyLjAxLTQyOC4wMiw0MjguMDJzMTkyLjAxLDQyOC4wMiw0MjguMDIsNDI4LjAyLDQyOC4wMi0xOTIuMDEsNDI4LjAyLTQyOC4wMlM3MzYuMDIsNzEuOTIsNTAwLDcxLjkyWiI+PC9wYXRoPjxyZWN0IGZpbGw9IiMwMDAwMDAiIHg9IjY3OS4wNyIgeT0iMjQ0Ljc1IiB3aWR0aD0iNzEuOTgiIGhlaWdodD0iNTEwLjM5Ij48L3JlY3Q+PHJlY3QgZmlsbD0iIzAwMDAwMCIgeD0iMTc1LjMzIiB5PSI0NjMuOTYiIHdpZHRoPSI2NDkuMzMiIGhlaWdodD0iNzEuOTgiPjwvcmVjdD48cmVjdCBmaWxsPSIjMDAwMDAwIiB4PSI0NzIuMDUiIHk9IjI5My43MiIgd2lkdGg9IjcxLjk3IiBoZWlnaHQ9IjM0OS4wNCI+PC9yZWN0PjxyZWN0IGZpbGw9IiMwMDAwMDAiIHg9IjI2NS4wMiIgeT0iMjQ0Ljc1IiB3aWR0aD0iNzEuOTgiIGhlaWdodD0iNTEwLjM5Ij48L3JlY3Q+PC9zdmc+" alt="Maitreo" width="32" height="32" style="margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;">
             <span>Maitreo</span>
         </header>
 
