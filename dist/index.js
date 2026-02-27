@@ -3295,8 +3295,8 @@ var server = http.createServer(async (req, res) => {
         const session = await createCheckoutSession({
           restaurantId,
           customerEmail: email,
-          successUrl: `${baseUrl}/onboarding.html?step=4&rid=${restaurantId}`,
-          cancelUrl: `${baseUrl}/onboarding.html?step=3&rid=${restaurantId}`
+          successUrl: `${baseUrl}/onboarding?step=4&rid=${restaurantId}`,
+          cancelUrl: `${baseUrl}/onboarding?step=3&rid=${restaurantId}`
         });
         res.writeHead(200, CORS_HEADERS);
         res.end(JSON.stringify({ url: session.url }));
