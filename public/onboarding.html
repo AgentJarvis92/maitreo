@@ -633,7 +633,7 @@
             document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
             document.getElementById('step' + n).classList.add('active');
             // Reset animations
-            document.getElementById('step' + n).querySelectorAll('.').forEach(el => {
+            document.getElementById('step' + n).querySelectorAll('*').forEach(el => {
                 el.style.animation = 'none';
                 el.offsetHeight; // reflow
                 el.style.animation = '';
