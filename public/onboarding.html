@@ -620,6 +620,7 @@
         const params = new URLSearchParams(window.location.search);
         const isDemo = params.get('demo') === 'true';
         let restaurantId = params.get('rid') || null;
+        const resumeStep = parseInt(params.get('step')) || null;
         let phoneNumber = '';
         let formData = {};
 
@@ -627,6 +628,8 @@
         if (isDemo) {
             document.querySelectorAll('form').forEach(f => f.setAttribute('novalidate', ''));
         }
+
+
 
         // Step navigation
         function showStep(n) {
@@ -638,6 +641,11 @@
                 el.offsetHeight; // reflow
                 el.style.animation = '';
             });
+        }
+
+        // Resume from a specific step (e.g. after Stripe redirect)
+        if (resumeStep && restaurantId) {
+            showStep(resumeStep);
         }
 
         // Phone formatting
