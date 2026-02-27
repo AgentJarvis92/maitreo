@@ -725,7 +725,7 @@
                     body: JSON.stringify(formData)
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Registration failed');
+                if (!res.ok) throw new Error(data.message || 'Registration failed');
                 restaurantId = data.restaurantId || data.rid;
                 // Send OTP via email
                 await fetch(API_URL + '/onboarding/otp/send', {
