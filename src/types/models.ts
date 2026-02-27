@@ -111,7 +111,7 @@ export interface ActionItem {
 
 export interface EmailLog {
   id: string;
-  type: 'reply_draft' | 'newsletter' | 'notification';
+  type: 'reply_draft' | 'newsletter' | 'notification' | 'welcome';
   to_email: string;
   subject: string;
   status: 'pending' | 'sent' | 'failed' | 'bounced';
