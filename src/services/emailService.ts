@@ -157,13 +157,13 @@ export class EmailService {
 
 <!-- HEADER WITH LOGO -->
 <div style="padding: 60px 40px 50px; text-align: center; border-bottom: 1px solid #e5e5e5;">
-<svg width="48" height="48" viewBox="0 0 1000 1000" style="margin: 0 auto 16px; display: block;">
-<path fill="#000000" d="M500,999.94C224.3,999.94,0,775.65,0,499.95S224.3-.05,500-.05s500,224.3,500,500-224.3,500-500,500ZM500,71.92c-236.01,0-428.02,192.01-428.02,428.02s192.01,428.02,428.02,428.02,428.02-192.01,428.02-428.02S736.02,71.92,500,71.92Z"/>
-<rect fill="#000000" x="679.07" y="244.75" width="71.98" height="510.39"/>
-<rect fill="#000000" x="175.33" y="463.96" width="649.33" height="71.98"/>
-<rect fill="#000000" x="472.05" y="293.72" width="71.97" height="349.04"/>
-<rect fill="#000000" x="265.02" y="244.75" width="71.98" height="510.39"/>
-</svg>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td align="center" style="padding: 0 0 16px;">
+<img src="https://maitreo.com/logo.png" alt="Maitreo" width="48" style="display:block; border:0; outline:none; text-decoration:none;" />
+</td>
+</tr>
+</table>
 <div style="font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: #1a1a1a;">Maitreo</div>
 </div>
 
