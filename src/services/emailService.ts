@@ -160,7 +160,7 @@ export class EmailService {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td align="center" style="padding: 0 0 16px;">
-<img src="https://maitreo.com/logo.png" alt="Maitreo" width="48" style="display:block; border:0; outline:none; text-decoration:none;" />
+<img src="https://maitreo.com/logo.png?v=3" alt="Maitreo" width="160" height="160" style="display:block; border:0; outline:none; text-decoration:none; width:160px; height:160px;" />
 </td>
 </tr>
 </table>
