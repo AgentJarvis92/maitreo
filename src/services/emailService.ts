@@ -309,7 +309,8 @@ export class EmailService {
     ownerEmail: string,
     restaurantName: string,
     manageSubscriptionUrl: string,
-    unsubscribeUrl: string = ''
+    unsubscribeUrl: string = '',
+    logoSvg?: string
   ): Promise<void> {
     const subject = `Maitreo is now active for ${restaurantName}`;
     const html = this.buildActivationEmailHTML(restaurantName, manageSubscriptionUrl, unsubscribeUrl);
@@ -323,12 +324,27 @@ export class EmailService {
     );
 
     try {
-      const { data, error } = await getResend().emails.send({
+      // Prepare email payload with optional logo attachment
+      const emailPayload: any = {
         from: FROM_EMAIL,
         to: ownerEmail,
         subject,
         html,
-      });
+      };
+
+      // If logo provided, attach as inline image
+      if (logoSvg) {
+        emailPayload.attachments = [
+          {
+            filename: 'maitreo-logo.svg',
+            content: logoSvg,
+            contentId: 'maitreo-logo',
+            contentDisposition: 'inline',
+          },
+        ];
+      }
+
+      const { data, error } = await getResend().emails.send(emailPayload);
 
       if (error) throw new Error(error.message);
       await this.updateEmailStatus(logId, 'sent');
@@ -546,6 +562,7 @@ export class EmailService {
     <div class="email-wrapper">
         <header>
             
+            <img src="cid:maitreo-logo" alt="Maitreo" width="32" height="32" style="margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;">
             <span>Maitreo</span>
         </header>
 
