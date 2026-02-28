@@ -163,6 +163,16 @@ async function handleSubscriptionCreated(sub: Stripe.Subscription): Promise<void
     }
 
     const unsubscribeUrl = `https://maitreo.com/unsubscribe?r=${restaurantId}`;
+    // Idempotency: only send once per restaurant (Stripe retries can fire this multiple times)
+    const alreadySent = await query<{ id: string }>(
+      `SELECT id FROM email_logs WHERE type = 'activation' AND to_email = $1 AND status = 'sent' LIMIT 1`,
+      [restaurant.owner_email]
+    );
+    if (alreadySent.rows.length > 0) {
+      console.log(`⏭️  Activation email already sent to ${restaurant.owner_email} — skipping`);
+      return;
+    }
+
     await emailService.sendActivationEmail(
       restaurant.owner_email,
       restaurant.name,
