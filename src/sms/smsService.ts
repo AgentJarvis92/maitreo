@@ -23,12 +23,13 @@ EDIT — revise before posting
 IGNORE — skip without replying
 
 On Your Radar:
-COMPETITOR [name] — track competitor
+COMPETITOR [name] — track a competitor
+COMPETITOR SCAN — find nearby competitors
 COMPETITOR LIST — see your list
 COMPETITOR REMOVE [name] — stop tracking
 
 Your Account:
-PAUSE · RESUME · STATUS · BILLING
+PAUSE · RESUME · STATUS · BILLING · CANCEL
 
 support@maitreo.com`,
 
