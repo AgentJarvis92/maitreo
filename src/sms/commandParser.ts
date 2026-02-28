@@ -114,13 +114,14 @@ export function parseCommand(body: string, conversationState?: string): ParsedCo
   if (normalized.startsWith('COMPETITOR')) {
     const rest = raw.slice('COMPETITOR'.length).trim();
     const restUpper = rest.toUpperCase();
+
     if (restUpper === 'SCAN' || restUpper === '') {
       return { type: 'COMPETITOR_SCAN', raw };
     }
     if (restUpper === 'LIST') {
       return { type: 'COMPETITOR_LIST', raw };
     }
-    if (restUpper.startsWith('ADD')) {
+    if (restUpper.startsWith('ADD ') || restUpper === 'ADD') {
       const name = rest.slice(3).trim();
       return { type: 'COMPETITOR_ADD', raw, argument: name || undefined };
     }
@@ -128,6 +129,13 @@ export function parseCommand(body: string, conversationState?: string): ParsedCo
       const identifier = rest.replace(/^(REMOVE|DELETE)\s*/i, '').trim();
       return { type: 'COMPETITOR_REMOVE', raw, argument: identifier || undefined };
     }
+
+    // "COMPETITOR <name>" — bare name shorthand, treat as instant ADD
+    // e.g. "COMPETITOR Trattoria Roma" → adds Trattoria Roma
+    if (rest) {
+      return { type: 'COMPETITOR_ADD', raw, argument: rest };
+    }
+
     return { type: 'UNKNOWN', raw };
   }
 

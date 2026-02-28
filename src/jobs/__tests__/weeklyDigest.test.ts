@@ -275,3 +275,47 @@ describe('risk signal priority ordering', () => {
     expect(signals).toHaveLength(3);
   });
 });
+
+// ─── COMPETITOR Command Parsing ──────────────────────────────────────
+
+import { parseCommand } from '../../sms/commandParser.js';
+
+describe('COMPETITOR command parsing', () => {
+  it('COMPETITOR SCAN → COMPETITOR_SCAN', () => {
+    expect(parseCommand('COMPETITOR SCAN').type).toBe('COMPETITOR_SCAN');
+  });
+  it('competitor scan (lowercase) → COMPETITOR_SCAN', () => {
+    expect(parseCommand('competitor scan').type).toBe('COMPETITOR_SCAN');
+  });
+  it('COMPETITOR LIST → COMPETITOR_LIST', () => {
+    expect(parseCommand('COMPETITOR LIST').type).toBe('COMPETITOR_LIST');
+  });
+  it('COMPETITOR ADD Trattoria Roma → COMPETITOR_ADD with argument', () => {
+    const cmd = parseCommand('COMPETITOR ADD Trattoria Roma');
+    expect(cmd.type).toBe('COMPETITOR_ADD');
+    expect(cmd.argument).toBe('Trattoria Roma');
+  });
+  it('COMPETITOR Trattoria Roma (bare shorthand) → COMPETITOR_ADD', () => {
+    const cmd = parseCommand('COMPETITOR Trattoria Roma');
+    expect(cmd.type).toBe('COMPETITOR_ADD');
+    expect(cmd.argument).toBe('Trattoria Roma');
+  });
+  it('competitor the pizza place (lowercase shorthand) → COMPETITOR_ADD', () => {
+    const cmd = parseCommand('competitor the pizza place');
+    expect(cmd.type).toBe('COMPETITOR_ADD');
+    expect(cmd.argument).toBe('the pizza place');
+  });
+  it('COMPETITOR REMOVE 1 → COMPETITOR_REMOVE with argument', () => {
+    const cmd = parseCommand('COMPETITOR REMOVE 1');
+    expect(cmd.type).toBe('COMPETITOR_REMOVE');
+    expect(cmd.argument).toBe('1');
+  });
+  it('COMPETITOR REMOVE Pasta Palace → COMPETITOR_REMOVE with name', () => {
+    const cmd = parseCommand('COMPETITOR REMOVE Pasta Palace');
+    expect(cmd.type).toBe('COMPETITOR_REMOVE');
+    expect(cmd.argument).toBe('Pasta Palace');
+  });
+  it('bare COMPETITOR with no name → COMPETITOR_SCAN (ambiguous → scan)', () => {
+    expect(parseCommand('COMPETITOR').type).toBe('COMPETITOR_SCAN');
+  });
+});
