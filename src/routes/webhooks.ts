@@ -162,10 +162,12 @@ async function handleSubscriptionCreated(sub: Stripe.Subscription): Promise<void
       manageSubscriptionUrl = portal.url;
     }
 
+    const unsubscribeUrl = `https://maitreo.com/unsubscribe?r=${restaurantId}`;
     await emailService.sendActivationEmail(
       restaurant.owner_email,
       restaurant.name,
-      manageSubscriptionUrl
+      manageSubscriptionUrl,
+      unsubscribeUrl
     );
     console.log(`✅ Activation email sent to ${restaurant.owner_email}`);
   } catch (err: any) {

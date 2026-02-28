@@ -225,7 +225,7 @@ export class EmailService {
 <span style="color: #ccc; margin: 0 8px;">|</span>
 <a href="${manageSubscriptionUrl}" style="color: #888; text-decoration: none;">Manage subscription</a>
 <span style="color: #ccc; margin: 0 8px;">|</span>
-<a href="${unsubscribeUrl}" style="color: #888; text-decoration: none;">Email preferences</a>
+<a href="${unsubscribeUrl}" style="color: #888; text-decoration: none;">Unsubscribe</a>
 </p>
 <div style="display:none; max-height:0; overflow:hidden;">&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
 </div>
