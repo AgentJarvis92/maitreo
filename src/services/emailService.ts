@@ -212,19 +212,20 @@ export class EmailService {
 <td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666;">Manage subscription</td>
 </tr>
 <tr>
-<td colspan="2" style="padding: 20px 0 6px; font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #999;">On Your Radar</td>
+<td style="padding: 20px 0 6px; font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #999; border-top: 1px solid #f0f0f0;">On Your Radar</td>
+<td style="padding: 20px 0 6px; border-top: 1px solid #f0f0f0;"></td>
 </tr>
-<tr style="border-bottom: 1px solid #f0f0f0;">
-<td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; white-space: nowrap;">COMPETITOR &lt;name&gt;</td>
-<td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666;">Add a competitor to your weekly digest</td>
+<tr>
+<td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR [name]</td>
+<td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Add a competitor to your weekly digest</td>
 </tr>
-<tr style="border-bottom: 1px solid #f0f0f0;">
-<td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; white-space: nowrap;">COMPETITOR LIST</td>
-<td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666;">See all competitors you're tracking</td>
+<tr>
+<td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR LIST</td>
+<td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">See all competitors you're tracking</td>
 </tr>
-<tr style="border-bottom: 1px solid #f0f0f0;">
-<td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; white-space: nowrap;">COMPETITOR REMOVE &lt;name&gt;</td>
-<td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666;">Stop tracking a competitor</td>
+<tr>
+<td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR REMOVE [name]</td>
+<td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Stop tracking a competitor</td>
 </tr>
 </table>
 
