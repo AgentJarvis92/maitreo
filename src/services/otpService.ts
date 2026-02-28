@@ -1,14 +1,12 @@
 /**
  * OTP Service — Phone verification via Twilio SMS
+ * Codes stored in DB (otp_codes table) — survives server restarts.
  */
 
 import { twilioClient } from '../sms/twilioClient.js';
-import pool from '../db/client.js';
+import { query } from '../db/client.js';
 
-// In-memory OTP store (for simplicity; use Redis in production)
-const otpStore = new Map<string, { code: string; expires: number; attempts: number }>();
-
-const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+const OTP_EXPIRY_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
 
 function generateCode(): string {
@@ -17,13 +15,19 @@ function generateCode(): string {
 
 export async function sendOtp(restaurantId: string, phone: string): Promise<{ success: boolean; message: string }> {
   const code = generateCode();
-  const key = `${restaurantId}:${phone}`;
 
-  otpStore.set(key, {
-    code,
-    expires: Date.now() + OTP_EXPIRY_MS,
-    attempts: 0
-  });
+  // Upsert into DB — replaces any existing code for this restaurant
+  await query(
+    `INSERT INTO otp_codes (restaurant_id, phone, code, expires_at, attempts)
+     VALUES ($1, $2, $3, NOW() + INTERVAL '${OTP_EXPIRY_MINUTES} minutes', 0)
+     ON CONFLICT (restaurant_id) DO UPDATE
+       SET phone = EXCLUDED.phone,
+           code = EXCLUDED.code,
+           expires_at = EXCLUDED.expires_at,
+           attempts = 0,
+           created_at = NOW()`,
+    [restaurantId, phone, code]
+  );
 
   try {
     await twilioClient.sendSms(phone, `Your Maitreo verification code is: ${code}`);
@@ -35,49 +39,47 @@ export async function sendOtp(restaurantId: string, phone: string): Promise<{ su
 }
 
 export async function verifyOtp(restaurantId: string, code: string): Promise<{ success: boolean; message: string }> {
-  // Find the OTP for this restaurant
-  let matchKey: string | null = null;
-  for (const [key, val] of otpStore.entries()) {
-    if (key.startsWith(`${restaurantId}:`)) {
-      matchKey = key;
-      break;
-    }
-  }
+  // Fetch from DB
+  const result = await query<{ phone: string; code: string; expires_at: Date; attempts: number }>(
+    `SELECT phone, code, expires_at, attempts FROM otp_codes WHERE restaurant_id = $1`,
+    [restaurantId]
+  );
 
-  if (!matchKey) {
+  if (result.rows.length === 0) {
     return { success: false, message: 'No verification code found. Please request a new one.' };
   }
 
-  const entry = otpStore.get(matchKey)!;
+  const entry = result.rows[0];
 
-  if (Date.now() > entry.expires) {
-    otpStore.delete(matchKey);
+  // Expired?
+  if (new Date() > new Date(entry.expires_at)) {
+    await query(`DELETE FROM otp_codes WHERE restaurant_id = $1`, [restaurantId]);
     return { success: false, message: 'Code expired. Please request a new one.' };
   }
 
+  // Too many attempts?
   if (entry.attempts >= MAX_ATTEMPTS) {
-    otpStore.delete(matchKey);
+    await query(`DELETE FROM otp_codes WHERE restaurant_id = $1`, [restaurantId]);
     return { success: false, message: 'Too many attempts. Please request a new code.' };
   }
 
-  entry.attempts++;
+  // Increment attempts
+  await query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE restaurant_id = $1`, [restaurantId]);
 
   if (entry.code !== code) {
     return { success: false, message: 'Invalid code. Please try again.' };
   }
 
-  // Success — mark phone as verified
-  otpStore.delete(matchKey);
-  const phone = matchKey.split(':')[1];
+  // Success — mark phone as verified and clean up
+  await query(`DELETE FROM otp_codes WHERE restaurant_id = $1`, [restaurantId]);
 
   try {
-    await pool.query(
-      'UPDATE restaurants SET phone_verified = true WHERE id = $1',
+    await query(
+      `UPDATE restaurants SET phone_verified = true WHERE id = $1`,
       [restaurantId]
     );
   } catch (err) {
     console.error('Failed to update phone_verified:', err);
-    // Non-fatal
   }
 
   return { success: true, message: 'Phone verified!' };

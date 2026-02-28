@@ -13,12 +13,14 @@ vi.mock('resend', () => ({
   }))
 }));
 
-// Mock database queries
+// Mock database queries — emailService uses named `query` export
 vi.mock('../../db/client', () => ({
+  query: vi.fn(async () => ({
+    rows: [{ id: 'log-id-123' }]
+  })),
+  // Also expose as default for any pool usage
   default: {
-    query: vi.fn(async () => ({
-      rows: [{ id: 'log-id-123' }]
-    }))
+    query: vi.fn(async () => ({ rows: [{ id: 'log-id-123' }] }))
   }
 }));
 

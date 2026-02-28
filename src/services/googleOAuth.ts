@@ -12,8 +12,7 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SCOPES = ['https://www.googleapis.com/auth/business.manage'];
 
-// In-memory state store (short-lived, for CSRF protection)
-const pendingStates = new Map<string, { restaurantId: string; expiresAt: number }>();
+// OAuth states persisted in DB (oauth_states table) — survives server restarts
 
 function getClientId(): string {
   const id = process.env.GOOGLE_CLIENT_ID;
@@ -35,19 +34,19 @@ function getRedirectUri(): string {
  * Generate the Google OAuth consent URL.
  * Returns the URL to redirect the user to.
  */
-export function generateAuthUrl(restaurantId: string): string {
+export async function generateAuthUrl(restaurantId: string): Promise<string> {
   const state = crypto.randomBytes(32).toString('hex');
-  
-  // Store state → restaurantId mapping (expires in 10 min)
-  pendingStates.set(state, {
-    restaurantId,
-    expiresAt: Date.now() + 10 * 60 * 1000,
-  });
+
+  // Persist state in DB — survives restarts, expires in 10 min
+  await query(
+    `INSERT INTO oauth_states (state_token, restaurant_id, expires_at)
+     VALUES ($1, $2, NOW() + INTERVAL '10 minutes')
+     ON CONFLICT (state_token) DO UPDATE SET restaurant_id = EXCLUDED.restaurant_id, expires_at = EXCLUDED.expires_at`,
+    [state, restaurantId]
+  );
 
   // Clean up expired states
-  for (const [key, val] of pendingStates) {
-    if (val.expiresAt < Date.now()) pendingStates.delete(key);
-  }
+  await query(`DELETE FROM oauth_states WHERE expires_at < NOW()`).catch(() => {});
 
   const params = new URLSearchParams({
     client_id: getClientId(),
@@ -67,20 +66,20 @@ export function generateAuthUrl(restaurantId: string): string {
  * Handle the OAuth callback - exchange code for tokens and store them.
  */
 export async function handleCallback(code: string, state: string): Promise<{ restaurantId: string; success: boolean; error?: string }> {
-  // Validate state
-  const pending = pendingStates.get(state);
-  if (!pending) {
+  // Validate state from DB
+  const stateResult = await query<{ restaurant_id: string; expires_at: Date }>(
+    `DELETE FROM oauth_states WHERE state_token = $1 RETURNING restaurant_id, expires_at`,
+    [state]
+  );
+  if (stateResult.rows.length === 0) {
     console.error('🔐 [OAuth] Invalid or expired state parameter');
     return { restaurantId: '', success: false, error: 'Invalid or expired state parameter' };
   }
-  if (pending.expiresAt < Date.now()) {
-    pendingStates.delete(state);
+  const { restaurant_id: restaurantId, expires_at } = stateResult.rows[0];
+  if (new Date() > new Date(expires_at)) {
     console.error('🔐 [OAuth] State expired');
-    return { restaurantId: pending.restaurantId, success: false, error: 'Authorization session expired' };
+    return { restaurantId, success: false, error: 'Authorization session expired' };
   }
-
-  const { restaurantId } = pending;
-  pendingStates.delete(state);
 
   try {
     // Exchange authorization code for tokens

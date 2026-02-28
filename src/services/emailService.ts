@@ -153,14 +153,16 @@ export class EmailService {
 <title>Maitreo Activation</title>
 </head>
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #f2f2f0; margin: 0; padding: 40px 20px;">
+<!-- PREHEADER (hidden preview text, also prevents footer signature detection) -->
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all;">Your Google Business Profile is now being monitored. Reply APPROVE, EDIT, or IGNORE to any review alert.&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
 <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden;">
 
 <!-- HEADER WITH LOGO -->
-<div style="padding: 60px 40px 50px; text-align: center; border-bottom: 1px solid #e5e5e5;">
+<div style="padding: 60px 56px 50px; text-align: center; border-bottom: 1px solid #e5e5e5;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td align="center" style="padding: 0 0 16px;">
-<img src="https://maitreo.com/logo.png?v=4" alt="Maitreo" width="80" height="80" style="display:block; border:0; outline:none; text-decoration:none; width:80px; height:80px;" />
+<img src="https://maitreo.com/logo.png?v=4" alt="Maitreo" width="60" height="60" style="display:block; border:0; outline:none; text-decoration:none; width:60px; height:60px;" />
 </td>
 </tr>
 </table>
@@ -168,7 +170,7 @@ export class EmailService {
 </div>
 
 <!-- MAIN CONTENT -->
-<div style="padding: 60px 40px;">
+<div style="padding: 60px 56px;">
 
 <h1 style="font-size: 28px; font-weight: 300; color: #1a1a1a; margin: 0 0 40px; line-height: 1.3;">Maitreo is now active for ${restaurantName}.</h1>
 
@@ -230,8 +232,8 @@ export class EmailService {
 </div>
 
 <!-- FOOTER -->
-<div style="background: #fafaf8; padding: 40px; text-align: center; border-top: 1px solid #f0f0f0; font-size: 11px; color: #888;">
-<p style="margin: 0 0 12px; color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">© 2025 Maitreo Inc.</p>
+<div style="background: #fafaf8; padding: 40px 56px; text-align: center; border-top: 1px solid #f0f0f0; font-size: 11px; color: #888;">
+<p style="margin: 0 0 12px; color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">© 2026 Maitreo Inc.</p>
 <p style="margin: 0;">
 <a href="mailto:hello@maitreo.com" style="color: #888; text-decoration: none;">hello@maitreo.com</a>
 <span style="color: #ccc; margin: 0 8px;">|</span>
@@ -239,6 +241,7 @@ export class EmailService {
 <span style="color: #ccc; margin: 0 8px;">|</span>
 <a href="${unsubscribeUrl}" style="color: #888; text-decoration: none;">Email preferences</a>
 </p>
+<div style="display:none; max-height:0; overflow:hidden;">&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
 </div>
 
 </div>

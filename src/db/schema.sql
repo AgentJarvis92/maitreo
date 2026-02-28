@@ -14,6 +14,16 @@ CREATE TABLE IF NOT EXISTS restaurants (
     competitors_json JSONB DEFAULT '[]',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    owner_phone VARCHAR(20),
+    phone_verified BOOLEAN DEFAULT false,
+    tier VARCHAR(50) DEFAULT 'review_drafts',
+    monitoring_paused BOOLEAN DEFAULT false,
+    sms_opted_out BOOLEAN DEFAULT false,
+    subscription_state VARCHAR(50) DEFAULT 'trialing' CHECK (subscription_state IN ('trialing', 'active', 'past_due', 'canceled', 'unpaid')),
+    stripe_customer_id VARCHAR(255),
+    stripe_subscription_id VARCHAR(255),
+    trial_ends_at TIMESTAMP WITH TIME ZONE,
+    current_period_end TIMESTAMP WITH TIME ZONE,
     google_access_token TEXT,
     google_refresh_token TEXT,
     google_token_expires_at TIMESTAMP WITH TIME ZONE,
@@ -148,10 +158,48 @@ COMMENT ON COLUMN reply_drafts.escalation_reasons IS 'Array of detected escalati
 
 -- OAuth state storage (replaces in-memory global state)
 CREATE TABLE IF NOT EXISTS oauth_states (
-    restaurant_id UUID PRIMARY KEY REFERENCES restaurants(id) ON DELETE CASCADE,
-    return_url TEXT,
+    state_token VARCHAR(64) PRIMARY KEY,
+    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
     expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '10 minutes',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_oauth_states_expires ON oauth_states(expires_at);
+
+-- OTP codes table (phone verification — survives restarts)
+CREATE TABLE IF NOT EXISTS otp_codes (
+    restaurant_id UUID PRIMARY KEY REFERENCES restaurants(id) ON DELETE CASCADE,
+    phone VARCHAR(20) NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    attempts INT DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_otp_codes_expires ON otp_codes(expires_at);
+
+-- Weekly digest table (Phase 6)
+CREATE TABLE IF NOT EXISTS digests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+    period_start TIMESTAMPTZ NOT NULL,
+    period_end TIMESTAMPTZ NOT NULL,
+    review_count INT DEFAULT 0,
+    avg_rating NUMERIC(3,2) DEFAULT 0,
+    positive_count INT DEFAULT 0,
+    negative_count INT DEFAULT 0,
+    response_rate INT DEFAULT 0,
+    rating_distribution JSONB DEFAULT '{}',
+    daily_counts JSONB DEFAULT '{}',
+    praise_themes JSONB DEFAULT '[]',
+    complaint_themes JSONB DEFAULT '[]',
+    operational_insight TEXT,
+    summary_text TEXT,
+    email_sent_at TIMESTAMPTZ,
+    sms_sent_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(restaurant_id, period_start)
+);
+
+CREATE INDEX IF NOT EXISTS idx_digests_restaurant_id ON digests(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_digests_period_start ON digests(period_start);

@@ -40,7 +40,7 @@ const PORT = process.env.PORT || 3000;
 
 // ─── Rate Limiting ─────────────────────────────────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 10; // requests per minute
+const RATE_LIMIT = 10; // requests per minute (sensitive endpoints)
 const RATE_WINDOW_MS = 60_000;
 
 function isRateLimited(ip: string): boolean {
@@ -52,6 +52,21 @@ function isRateLimited(ip: string): boolean {
   }
   entry.count++;
   return entry.count > RATE_LIMIT;
+}
+
+// Separate, more lenient limiter for webhook endpoints (DoS protection only)
+const webhookRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const WEBHOOK_RATE_LIMIT = 100; // requests per minute
+
+function isWebhookRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = webhookRateLimitMap.get(ip);
+  if (!entry || now >= entry.resetAt) {
+    webhookRateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > WEBHOOK_RATE_LIMIT;
 }
 
 // Clean up stale entries every 5 minutes
@@ -334,6 +349,11 @@ const server = http.createServer(async (req, res) => {
 
   // Stripe webhook
   if (url.pathname === '/webhooks/stripe' && req.method === 'POST') {
+    if (isWebhookRateLimited(getClientIp(req))) {
+      res.writeHead(429, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Too many requests' }));
+      return;
+    }
     await handleStripeWebhook(req, res);
     return;
   }
@@ -478,7 +498,7 @@ const server = http.createServer(async (req, res) => {
       ).catch(err => console.warn('Failed to store OAuth return URL:', err));
     }
     try {
-      const authUrl = generateAuthUrl(restaurantId);
+      const authUrl = await generateAuthUrl(restaurantId);
       res.writeHead(302, { Location: authUrl });
       res.end();
     } catch (error: any) {
