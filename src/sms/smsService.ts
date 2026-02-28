@@ -7,6 +7,7 @@ import { query } from '../db/client.js';
 import { twilioClient } from './twilioClient.js';
 import { parseCommand, type CommandType, type ParsedCommand } from './commandParser.js';
 import { createPortalSession, cancelSubscription } from '../services/stripeService.js';
+import { nearbySearch, textSearch } from '../services/googlePlaces.js';
 import type { Review, ReplyDraft, Restaurant } from '../types/models.js';
 
 const HELP_SUFFIX = '\nReply HELP anytime.';
@@ -278,6 +279,14 @@ export class SmsService {
       case 'CANCEL_DENY':
         await updateContext(fromPhone, { state: null });
         return TEMPLATES.cancelDeny;
+      case 'COMPETITOR_SCAN':
+        return this.handleCompetitorScan(fromPhone, ctx);
+      case 'COMPETITOR_ADD':
+        return this.handleCompetitorAdd(fromPhone, ctx, parsed.argument);
+      case 'COMPETITOR_LIST':
+        return this.handleCompetitorList(fromPhone, ctx);
+      case 'COMPETITOR_REMOVE':
+        return this.handleCompetitorRemove(fromPhone, ctx, parsed.argument);
       case 'UNKNOWN':
       default:
         return TEMPLATES.unknownCommand;
@@ -483,6 +492,144 @@ Billing: Active${HELP_SUFFIX}`;
     await updateContext(phone, { state: null });
     console.log(`🚫 Cancellation confirmed for phone ${phone}`);
     return `Subscription canceled. You won't be charged again.${HELP_SUFFIX}`;
+  }
+
+  // ─── Competitor Watch Handlers ───────────────────────────────────
+
+  private async handleCompetitorScan(phone: string, ctx: SmsContext): Promise<string> {
+    if (!ctx.restaurant_id) return `No account found. Contact support@maitreo.com.${HELP_SUFFIX}`;
+
+    const restResult = await query<{ name: string; lat: number; lng: number; google_place_id: string }>(
+      `SELECT name, lat, lng, google_place_id FROM restaurants WHERE id = $1`,
+      [ctx.restaurant_id]
+    );
+    const rest = restResult.rows[0];
+    if (!rest?.lat || !rest?.lng) {
+      return `We need your restaurant's location to scan competitors. Contact support@maitreo.com.${HELP_SUFFIX}`;
+    }
+
+    try {
+      const places = await nearbySearch(rest.lat, rest.lng, rest.google_place_id);
+      if (places.length === 0) {
+        return `No competitors found within 5 miles with 50+ reviews.${HELP_SUFFIX}`;
+      }
+
+      const list = places
+        .slice(0, 10)
+        .map((p, i) => `${i + 1}. ${p.name} (${p.rating ?? '?'}★, ${p.user_ratings_total ?? '?'} reviews)`)
+        .join('\n');
+
+      // Store scan results temporarily in context (as pending)
+      await query(
+        `UPDATE sms_context SET state = 'waiting_for_competitor_add', updated_at = NOW() WHERE phone = $1`,
+        [phone]
+      );
+
+      // Cache scan results for ADD command
+      await query(
+        `INSERT INTO sms_context (phone, state) VALUES ($1, 'waiting_for_competitor_add')
+         ON CONFLICT (phone) DO UPDATE SET state = 'waiting_for_competitor_add', updated_at = NOW()`,
+        [phone]
+      );
+
+      // Store places in temp table or metadata — simplified: store JSON in context
+      // For now, return the list and let COMPETITOR ADD <name> use text search
+      return `📍 Nearby competitors:\n${list}\n\nReply COMPETITOR ADD <name> to track one.${HELP_SUFFIX}`;
+    } catch (err: any) {
+      console.error('Competitor scan failed:', err.message);
+      return `Scan temporarily unavailable. Try again later.${HELP_SUFFIX}`;
+    }
+  }
+
+  private async handleCompetitorAdd(phone: string, ctx: SmsContext, name?: string): Promise<string> {
+    if (!ctx.restaurant_id) return `No account found. Contact support@maitreo.com.${HELP_SUFFIX}`;
+    if (!name) return `Please specify a name: COMPETITOR ADD <restaurant name>${HELP_SUFFIX}`;
+
+    // Check limit
+    const countResult = await query<{ cnt: string }>(
+      `SELECT COUNT(*) AS cnt FROM competitors WHERE restaurant_id = $1`,
+      [ctx.restaurant_id]
+    );
+    if (parseInt(countResult.rows[0]?.cnt ?? '0') >= 25) {
+      return `You've reached the 25 competitor limit. Remove one first: COMPETITOR REMOVE <name>${HELP_SUFFIX}`;
+    }
+
+    const restResult = await query<{ lat: number; lng: number }>(
+      `SELECT lat, lng FROM restaurants WHERE id = $1`,
+      [ctx.restaurant_id]
+    );
+    const rest = restResult.rows[0];
+    if (!rest?.lat || !rest?.lng) {
+      return `Location not set. Contact support@maitreo.com.${HELP_SUFFIX}`;
+    }
+
+    try {
+      const places = await textSearch(name, rest.lat, rest.lng);
+      if (places.length === 0) {
+        return `No results found for "${name}". Try a more specific name.${HELP_SUFFIX}`;
+      }
+
+      const place = places[0];
+      await query(
+        `INSERT INTO competitors (restaurant_id, place_id, name, lat, lng, added_by)
+         VALUES ($1, $2, $3, $4, $5, 'user')
+         ON CONFLICT (restaurant_id, place_id) DO NOTHING`,
+        [ctx.restaurant_id, place.place_id, place.name, place.lat, place.lng]
+      );
+
+      return `✅ Added ${place.name} (${place.rating ?? '?'}★) to your competitor watch.${HELP_SUFFIX}`;
+    } catch (err: any) {
+      console.error('Competitor add failed:', err.message);
+      return `Could not add competitor. Try again later.${HELP_SUFFIX}`;
+    }
+  }
+
+  private async handleCompetitorList(phone: string, ctx: SmsContext): Promise<string> {
+    if (!ctx.restaurant_id) return `No account found. Contact support@maitreo.com.${HELP_SUFFIX}`;
+
+    const result = await query<{ name: string; created_at: string }>(
+      `SELECT name, created_at FROM competitors WHERE restaurant_id = $1 ORDER BY created_at ASC`,
+      [ctx.restaurant_id]
+    );
+
+    if (result.rows.length === 0) {
+      return `No competitors tracked yet. Reply COMPETITOR SCAN to find nearby competitors.${HELP_SUFFIX}`;
+    }
+
+    const list = result.rows.map((c, i) => `${i + 1}. ${c.name}`).join('\n');
+    return `📊 Tracked competitors (${result.rows.length}/25):\n${list}\n\nReply COMPETITOR REMOVE <name> to remove one.${HELP_SUFFIX}`;
+  }
+
+  private async handleCompetitorRemove(phone: string, ctx: SmsContext, identifier?: string): Promise<string> {
+    if (!ctx.restaurant_id) return `No account found. Contact support@maitreo.com.${HELP_SUFFIX}`;
+    if (!identifier) return `Please specify: COMPETITOR REMOVE <name or number>${HELP_SUFFIX}`;
+
+    // Try by number first
+    const num = parseInt(identifier);
+    if (!isNaN(num)) {
+      const listResult = await query<{ id: string; name: string }>(
+        `SELECT id, name FROM competitors WHERE restaurant_id = $1 ORDER BY created_at ASC LIMIT 25`,
+        [ctx.restaurant_id]
+      );
+      const comp = listResult.rows[num - 1];
+      if (!comp) return `No competitor at position ${num}. Reply COMPETITOR LIST to see your list.${HELP_SUFFIX}`;
+
+      await query(`DELETE FROM competitors WHERE id = $1`, [comp.id]);
+      return `✅ Removed ${comp.name} from your competitor watch.${HELP_SUFFIX}`;
+    }
+
+    // Try by name (partial match)
+    const result = await query<{ id: string; name: string }>(
+      `SELECT id, name FROM competitors WHERE restaurant_id = $1 AND name ILIKE $2 LIMIT 1`,
+      [ctx.restaurant_id, `%${identifier}%`]
+    );
+
+    if (result.rows.length === 0) {
+      return `No competitor matching "${identifier}" found. Reply COMPETITOR LIST to see your list.${HELP_SUFFIX}`;
+    }
+
+    await query(`DELETE FROM competitors WHERE id = $1`, [result.rows[0].id]);
+    return `✅ Removed ${result.rows[0].name} from your competitor watch.${HELP_SUFFIX}`;
   }
 }
 

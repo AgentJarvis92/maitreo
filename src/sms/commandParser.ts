@@ -15,15 +15,20 @@ export type CommandType =
   | 'CANCEL'
   | 'HELP'
   | 'STOP'
-  | 'CANCEL_CONFIRM'  // "YES" after CANCEL prompt
-  | 'CANCEL_DENY'     // "NO" after CANCEL prompt
-  | 'CUSTOM_REPLY'    // Free-text reply in EDIT flow
+  | 'CANCEL_CONFIRM'        // "YES" after CANCEL prompt
+  | 'CANCEL_DENY'           // "NO" after CANCEL prompt
+  | 'CUSTOM_REPLY'          // Free-text reply in EDIT flow
+  | 'COMPETITOR_SCAN'       // COMPETITOR SCAN
+  | 'COMPETITOR_ADD'        // COMPETITOR ADD <name>
+  | 'COMPETITOR_LIST'       // COMPETITOR LIST
+  | 'COMPETITOR_REMOVE'     // COMPETITOR REMOVE <identifier>
   | 'UNKNOWN';
 
 export interface ParsedCommand {
   type: CommandType;
   raw: string;
-  body?: string; // For CUSTOM_REPLY, the actual text
+  body?: string;       // CUSTOM_REPLY text
+  argument?: string;   // COMPETITOR ADD <name> or COMPETITOR REMOVE <identifier>
 }
 
 const EXACT_COMMANDS: Record<string, CommandType> = {
@@ -103,6 +108,27 @@ export function parseCommand(body: string, conversationState?: string): ParsedCo
     }
     // Any other input in cancel flow → treat as cancel denied
     return { type: 'CANCEL_DENY', raw };
+  }
+
+  // COMPETITOR multi-word commands (checked before single-word exact match)
+  if (normalized.startsWith('COMPETITOR')) {
+    const rest = raw.slice('COMPETITOR'.length).trim();
+    const restUpper = rest.toUpperCase();
+    if (restUpper === 'SCAN' || restUpper === '') {
+      return { type: 'COMPETITOR_SCAN', raw };
+    }
+    if (restUpper === 'LIST') {
+      return { type: 'COMPETITOR_LIST', raw };
+    }
+    if (restUpper.startsWith('ADD')) {
+      const name = rest.slice(3).trim();
+      return { type: 'COMPETITOR_ADD', raw, argument: name || undefined };
+    }
+    if (restUpper.startsWith('REMOVE') || restUpper.startsWith('DELETE')) {
+      const identifier = rest.replace(/^(REMOVE|DELETE)\s*/i, '').trim();
+      return { type: 'COMPETITOR_REMOVE', raw, argument: identifier || undefined };
+    }
+    return { type: 'UNKNOWN', raw };
   }
 
   // Exact match

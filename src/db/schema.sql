@@ -203,3 +203,29 @@ CREATE TABLE IF NOT EXISTS digests (
 
 CREATE INDEX IF NOT EXISTS idx_digests_restaurant_id ON digests(restaurant_id);
 CREATE INDEX IF NOT EXISTS idx_digests_period_start ON digests(period_start);
+
+-- Competitor Watch tables (Phase 6)
+CREATE TABLE IF NOT EXISTS competitors (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+    place_id VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    lat NUMERIC(10,7),
+    lng NUMERIC(10,7),
+    added_by VARCHAR(50) DEFAULT 'user',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(restaurant_id, place_id)
+);
+CREATE INDEX IF NOT EXISTS idx_competitors_restaurant ON competitors(restaurant_id);
+
+CREATE TABLE IF NOT EXISTS competitor_weekly_snapshots (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    competitor_id UUID NOT NULL REFERENCES competitors(id) ON DELETE CASCADE,
+    period_start TIMESTAMPTZ NOT NULL,
+    rating NUMERIC(2,1),
+    user_ratings_total INT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(competitor_id, period_start)
+);
+CREATE INDEX IF NOT EXISTS idx_cws_competitor ON competitor_weekly_snapshots(competitor_id);
+CREATE INDEX IF NOT EXISTS idx_cws_period ON competitor_weekly_snapshots(period_start);
