@@ -176,33 +176,29 @@ export class EmailService {
 
 <p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 24px;">Your Google Business Profile is now being monitored. Every new review will be analyzed instantly, and you'll receive an SMS alert with a drafted response ready for your approval.</p>
 
-<p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 48px;">No dashboard. No logins. Just a text when something needs attention.</p>
+<p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 24px;">No dashboard. No logins. Just a text when something needs attention.</p>
 
-<div style="height: 1px; background: #e5e5e5; margin: 0 0 48px;"></div>
+<p style="font-size: 14px; color: #888; line-height: 1.7; margin: 0 0 48px;">Every Sunday you'll also receive a weekly reputation digest — review trends, sentiment highlights, and nearby competitor moves, all in one email.</p>
 
-<h2 style="font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: #999; margin: 0 0 16px;">SMS Commands</h2>
+<div style="height: 1px; background: #e5e5e5; margin: 0 0 32px;"></div>
 
-<h3 style="font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; margin: 0 0 0;">When a review arrives</h3>
-<table style="width: 100%; border-collapse: collapse; margin: 0 0 0;" cellpadding="0" cellspacing="0">
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">APPROVE</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Post the reply instantly</td></tr>
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">EDIT</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Revise before posting</td></tr>
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">IGNORE</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Skip without replying</td></tr>
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">HELP</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Get the full command list</td></tr>
-</table>
+<p style="font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: #999; margin: 0 0 0;">SMS Commands</p>
 
-<h3 style="font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; margin: 28px 0 0;">On Your Radar</h3>
-<table style="width: 100%; border-collapse: collapse; margin: 0 0 0;" cellpadding="0" cellspacing="0">
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR [name]</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Track a competitor in your weekly digest</td></tr>
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR LIST</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">See all competitors you're tracking</td></tr>
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR REMOVE [name]</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Stop tracking a competitor</td></tr>
-</table>
-
-<h3 style="font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; margin: 28px 0 0;">Your Account</h3>
 <table style="width: 100%; border-collapse: collapse; margin: 0 0 48px;" cellpadding="0" cellspacing="0">
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">PAUSE</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Temporarily stop monitoring</td></tr>
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">RESUME</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Restart monitoring</td></tr>
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">STATUS</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Check your account status</td></tr>
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">BILLING</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Manage your subscription</td></tr>
+<tr><td style="padding: 20px 0 6px; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb;">When a review arrives</td><td style="padding: 20px 0 6px;"></td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">APPROVE</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Post the reply instantly</td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">EDIT</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Revise before posting</td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">IGNORE</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Skip without replying</td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">HELP</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Get the full command list</td></tr>
+<tr><td style="padding: 20px 0 6px; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb;">On Your Radar</td><td style="padding: 20px 0 6px;"></td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR [name]</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Track a competitor in your weekly digest</td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR LIST</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">See who you're tracking</td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">COMPETITOR REMOVE [name]</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Stop tracking a competitor</td></tr>
+<tr><td style="padding: 20px 0 6px; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb;">Your Account</td><td style="padding: 20px 0 6px;"></td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">PAUSE</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Temporarily stop monitoring</td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">RESUME</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Restart monitoring</td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">STATUS</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Check your account status</td></tr>
+<tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">BILLING</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Manage your subscription</td></tr>
 </table>
 
 <div style="height: 1px; background: #e5e5e5; margin: 0 0 48px;"></div>
@@ -219,8 +215,6 @@ export class EmailService {
 <span style="display: inline-block; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; margin-right: 8px; vertical-align: middle;"></span>
 <span style="font-size: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #1a1a1a;">Active Monitoring</span>
 </div>
-<!-- Anti-trim spacers: prevent Gmail collapsing badge as signature -->
-<div style="display:none; max-height:0; overflow:hidden;">&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
 </div>
 
 </div>
