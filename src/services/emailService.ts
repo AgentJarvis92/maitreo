@@ -201,21 +201,19 @@ export class EmailService {
 <tr><td style="padding: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">BILLING</td><td style="padding: 12px 0 12px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Manage your subscription</td></tr>
 </table>
 
-<div style="height: 1px; background: #e5e5e5; margin: 0 0 48px;"></div>
-
-<h2 style="font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: #999; margin: 0 0 16px;">Your Subscription</h2>
-
-<p style="font-size: 14px; color: #4a4a4a; line-height: 1.7; margin: 0 0 20px;">Your subscription is active. To manage billing, update your card, or cancel at any time, simply reply <span style="font-family: 'Courier New', monospace; font-weight: 700;">BILLING</span> to any Maitreo message.</p>
-
-<a href="${manageSubscriptionUrl}" style="display: inline-block; font-size: 12px; color: #1a1a1a; text-decoration: none; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; margin-top: 16px;">Manage or cancel your subscription →</a>
-
-<div style="text-align: center; margin-top: 60px; padding-top: 48px; border-top: 1px solid #e5e5e5;">
-<div style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: #1a1a1a; margin-bottom: 32px;">Reputation, handled.</div>
+<div style="text-align: center; padding: 48px 0 40px; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; margin: 0 0 48px;">
+<div style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: #1a1a1a; margin-bottom: 24px;">Reputation, handled.</div>
 <div style="display: inline-block; padding: 6px 14px; background: #fcfcfb; border: 1px solid #e0e0e0; border-radius: 20px;">
 <span style="display: inline-block; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; margin-right: 8px; vertical-align: middle;"></span>
 <span style="font-size: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #1a1a1a;">Active Monitoring</span>
 </div>
 </div>
+
+<h2 style="font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: #999; margin: 0 0 16px;">Your Subscription</h2>
+
+<p style="font-size: 14px; color: #4a4a4a; line-height: 1.7; margin: 0 0 20px;">Your subscription is active. To manage billing, update your card, or cancel at any time, simply reply <span style="font-family: 'Courier New', monospace; font-weight: 700;">BILLING</span> to any Maitreo message.</p>
+
+<a href="${manageSubscriptionUrl}" style="display: inline-block; font-size: 12px; color: #1a1a1a; text-decoration: none; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; margin-top: 16px; margin-bottom: 48px;">Manage or cancel your subscription →</a>
 
 </div>
 
