@@ -23,6 +23,7 @@ const MIME_TYPES: Record<string, string> = {
 import { ingestionJob } from './jobs/ingestion.js';
 import { newsletterJob } from './jobs/newsletter.js';
 import { reviewMonitor } from './jobs/reviewMonitor.js';
+import { runScheduledDigests, generateDigest } from './jobs/weeklyDigest.js';
 import { responsePoster } from './services/responsePoster.js';
 import { handleSmsWebhook, handleStatusCallback } from './sms/webhookHandler.js';
 import { handleStripeWebhook } from './routes/webhooks.js';
@@ -479,6 +480,18 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Manual digest trigger — POST /jobs/digest/run?restaurant_id=xxx&force=true
+  if (url.pathname === '/jobs/digest/run' && req.method === 'POST') {
+    const restaurantId = url.searchParams.get('restaurant_id') || undefined;
+    const force = url.searchParams.get('force') === 'true';
+    res.writeHead(202, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'accepted', message: 'Digest job started', restaurantId, force }));
+    generateDigest(restaurantId, force).catch(err =>
+      console.error('[Digest] Manual trigger error:', err.message)
+    );
+    return;
+  }
+
   // OAuth: Start Google authorization
   if (url.pathname === '/auth/google/start' && req.method === 'GET') {
     const restaurantId = url.searchParams.get('restaurant_id');
@@ -641,6 +654,7 @@ server.listen(PORT, () => {
   console.log(`   POST /jobs/responses/post     - Post approved responses`);
   console.log(`   POST /jobs/ingestion/run      - Trigger ingestion job`);
   console.log(`   POST /jobs/newsletter/run     - Trigger newsletter job`);
+  console.log(`   POST /jobs/digest/run         - Trigger digest (add ?restaurant_id=&force=true)`);
   console.log(`   GET  /auth/google/start       - Start Google OAuth flow`);
   console.log(`   GET  /auth/google/callback    - Google OAuth callback`);
   console.log(`   GET  /api/locations           - List Google Business locations`);
@@ -657,6 +671,22 @@ server.listen(PORT, () => {
     setInterval(() => {
       responsePoster.processApprovedDrafts().catch(console.error);
     }, 60_000);
+  }
+
+  // Hourly digest scheduler — fires Sunday 9AM per restaurant timezone
+  if (process.env.ENABLE_DIGEST !== 'false') {
+    const runDigestCheck = () => {
+      runScheduledDigests().catch(err =>
+        console.error('[Digest] Scheduler error:', err.message)
+      );
+    };
+    // Align to top of next hour, then tick every hour
+    const msUntilNextHour = (60 - new Date().getMinutes()) * 60_000 - new Date().getSeconds() * 1000;
+    setTimeout(() => {
+      runDigestCheck();
+      setInterval(runDigestCheck, 60 * 60_000);
+    }, msUntilNextHour);
+    console.log(`   ⏰ Digest scheduler active (next check in ~${Math.round(msUntilNextHour / 60000)} min)`);
   }
 });
 
