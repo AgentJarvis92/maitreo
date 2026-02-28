@@ -176,14 +176,7 @@ export class EmailService {
 
 <p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 24px;">Your Google Business Profile is now being monitored. Every new review will be analyzed instantly, and you'll receive an SMS alert with a drafted response ready for your approval.</p>
 
-<p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 32px;">No dashboard. No logins. Just a text when something needs attention.</p>
-
-<div style="margin: 0 0 48px;">
-<div style="display: inline-block; padding: 6px 14px; background: #fcfcfb; border: 1px solid #e0e0e0; border-radius: 20px;">
-<span style="display: inline-block; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; margin-right: 8px; vertical-align: middle;"></span>
-<span style="font-size: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #1a1a1a;">Active Monitoring</span>
-</div>
-</div>
+<p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 48px;">No dashboard. No logins. Just a text when something needs attention.</p>
 
 <div style="height: 1px; background: #e5e5e5; margin: 0 0 48px;"></div>
 
@@ -221,7 +214,13 @@ export class EmailService {
 <a href="${manageSubscriptionUrl}" style="display: inline-block; font-size: 12px; color: #1a1a1a; text-decoration: none; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; margin-top: 16px;">Manage or cancel your subscription →</a>
 
 <div style="text-align: center; margin-top: 60px; padding-top: 48px; border-top: 1px solid #e5e5e5;">
-<div style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: #1a1a1a;">Reputation, handled.</div>
+<div style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: #1a1a1a; margin-bottom: 32px;">Reputation, handled.</div>
+<div style="display: inline-block; padding: 6px 14px; background: #fcfcfb; border: 1px solid #e0e0e0; border-radius: 20px;">
+<span style="display: inline-block; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; margin-right: 8px; vertical-align: middle;"></span>
+<span style="font-size: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #1a1a1a;">Active Monitoring</span>
+</div>
+<!-- Anti-trim spacers: prevent Gmail collapsing badge as signature -->
+<div style="display:none; max-height:0; overflow:hidden;">&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
 </div>
 
 </div>
