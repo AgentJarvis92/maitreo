@@ -364,7 +364,43 @@ Rules:
   }
 }
 
-// ─── Step 6: Competitor Watch ─────────────────────────────────────────
+// ─── Step 6a: Auto Competitors (In Your Market) ──────────────────────
+
+interface AutoCompetitor {
+  name: string;
+  metric: string;  // e.g. "4.8★ · 312 reviews"
+  note: string;    // e.g. "Highest rated nearby"
+}
+
+async function fetchAutoCompetitors(
+  lat: number,
+  lng: number,
+  excludePlaceId?: string | null
+): Promise<[AutoCompetitor | null, AutoCompetitor | null]> {
+  const places = await nearbySearch(lat, lng, excludePlaceId ?? undefined);
+  if (places.length === 0) return [null, null];
+
+  // Sort: first by rating desc, then by review count desc
+  const sorted = [...places].sort((a, b) => {
+    const ratingDiff = (b.rating ?? 0) - (a.rating ?? 0);
+    return ratingDiff !== 0 ? ratingDiff : (b.user_ratings_total ?? 0) - (a.user_ratings_total ?? 0);
+  });
+
+  const toAutoComp = (p: typeof places[0], rank: number): AutoCompetitor => {
+    const rating = p.rating != null ? `${p.rating.toFixed(1)}★` : '—';
+    const reviews = p.user_ratings_total != null ? `${p.user_ratings_total.toLocaleString()} reviews` : '';
+    const metric = [rating, reviews].filter(Boolean).join(' · ');
+    const note = rank === 0 ? 'Highest rated nearby' : 'Strong local presence';
+    return { name: p.name, metric, note };
+  };
+
+  return [
+    sorted[0] ? toAutoComp(sorted[0], 0) : null,
+    sorted[1] ? toAutoComp(sorted[1], 1) : null,
+  ];
+}
+
+// ─── Step 6b: Manual Competitor Watch ────────────────────────────────
 
 interface CompetitorRow {
   id: string;
@@ -559,6 +595,7 @@ async function renderDigestEmail(params: {
   deltas: Deltas;
   riskSignals: [string, string, string];
   patterns: Pattern[];
+  autoCompetitors: [AutoCompetitor | null, AutoCompetitor | null];
   competitorMovers: { positive: CompetitorMover | null; negative: CompetitorMover | null };
   actions: string[];
   needsAttentionText: string;
@@ -569,7 +606,7 @@ async function renderDigestEmail(params: {
 }): Promise<string> {
   const {
     restaurant, curr, deltas, riskSignals, patterns,
-    competitorMovers, actions, needsAttentionText,
+    autoCompetitors, competitorMovers, actions, needsAttentionText,
     periodStart, periodEnd, manageSubscriptionUrl, unsubscribeUrl,
   } = params;
 
@@ -580,6 +617,9 @@ async function renderDigestEmail(params: {
     d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   // ── Section removal ──────────────────────────────────────────────────
+  if (!autoCompetitors[0] && !autoCompetitors[1]) {
+    html = removeSection(html, 'AUTO_COMPETITORS_SECTION');
+  }
   if (!competitorMovers.positive && !competitorMovers.negative) {
     html = removeSection(html, 'COMPETITOR_SECTION');
   }
@@ -652,6 +692,12 @@ async function renderDigestEmail(params: {
     '{{pattern_text_3}}':             escapeHtml(patterns[2]?.text ?? ''),
     '{{pattern_dot_4}}':              patterns[3]?.dot ?? '#6fcf97',
     '{{pattern_text_4}}':             escapeHtml(patterns[3]?.text ?? ''),
+    '{{auto_name_1}}':                escapeHtml(autoCompetitors[0]?.name ?? ''),
+    '{{auto_metric_1}}':              escapeHtml(autoCompetitors[0]?.metric ?? ''),
+    '{{auto_note_1}}':                escapeHtml(autoCompetitors[0]?.note ?? ''),
+    '{{auto_name_2}}':                escapeHtml(autoCompetitors[1]?.name ?? ''),
+    '{{auto_metric_2}}':              escapeHtml(autoCompetitors[1]?.metric ?? ''),
+    '{{auto_note_2}}':                escapeHtml(autoCompetitors[1]?.note ?? ''),
     '{{competitor_name_1}}':          escapeHtml(competitorMovers.positive?.name ?? ''),
     '{{competitor_metric_1}}':        escapeHtml(competitorMovers.positive?.metric ?? ''),
     '{{competitor_note_1}}':          escapeHtml(competitorMovers.positive?.note ?? ''),
@@ -771,7 +817,17 @@ export async function runDigestForRestaurant(
   // Patterns (OpenAI — non-fatal)
   const patterns = await extractPatterns(reviews);
 
-  // Competitor watch (Places API — non-fatal)
+  // Auto competitors — In Your Market (Places API — non-fatal)
+  let autoCompetitors: [AutoCompetitor | null, AutoCompetitor | null] = [null, null];
+  if (restaurant.lat && restaurant.lng) {
+    try {
+      autoCompetitors = await fetchAutoCompetitors(restaurant.lat, restaurant.lng, restaurant.google_place_id);
+    } catch (err: any) {
+      console.error('  ⚠️ Auto competitor fetch failed (non-fatal):', err.message);
+    }
+  }
+
+  // Manual competitor watch — On Your Radar (Places API — non-fatal)
   let competitorMovers = { positive: null as CompetitorMover | null, negative: null as CompetitorMover | null };
   try {
     await snapshotCompetitors(restaurant.id, periodStart);
@@ -804,7 +860,7 @@ export async function runDigestForRestaurant(
   // Render
   const html = await renderDigestEmail({
     restaurant, curr, deltas, riskSignals, patterns,
-    competitorMovers, actions, needsAttentionText,
+    autoCompetitors, competitorMovers, actions, needsAttentionText,
     periodStart, periodEnd, manageSubscriptionUrl, unsubscribeUrl,
   });
 
