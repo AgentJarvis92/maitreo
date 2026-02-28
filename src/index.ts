@@ -20,8 +20,7 @@ const MIME_TYPES: Record<string, string> = {
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
 };
-import { ingestionJob } from './jobs/ingestion.js';
-import { newsletterJob } from './jobs/newsletter.js';
+// ingestion.ts + newsletter.ts removed — superseded by reviewMonitor.ts + weeklyDigest.ts
 import { reviewMonitor } from './jobs/reviewMonitor.js';
 import { runScheduledDigests, generateDigest } from './jobs/weeklyDigest.js';
 import { responsePoster } from './services/responsePoster.js';
@@ -444,43 +443,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Manual trigger for ingestion job (for testing)
-  if (url.pathname === '/jobs/ingestion/run' && req.method === 'POST') {
-    try {
-      res.writeHead(202, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        status: 'accepted', 
-        message: 'Ingestion job started' 
-      }));
-      
-      // Run job asynchronously
-      ingestionJob.run().catch(console.error);
-    } catch (error: any) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
-    }
-    return;
-  }
-
-  // Manual trigger for newsletter job (for testing)
-  if (url.pathname === '/jobs/newsletter/run' && req.method === 'POST') {
-    try {
-      res.writeHead(202, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        status: 'accepted', 
-        message: 'Newsletter job started' 
-      }));
-      
-      // Run job asynchronously
-      newsletterJob.run().catch(console.error);
-    } catch (error: any) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
-    }
-    return;
-  }
-
-  // Manual digest trigger — POST /jobs/digest/run?restaurant_id=xxx&force=true
+    // Manual digest trigger — POST /jobs/digest/run?restaurant_id=xxx&force=true
   if (url.pathname === '/jobs/digest/run' && req.method === 'POST') {
     const restaurantId = url.searchParams.get('restaurant_id') || undefined;
     const force = url.searchParams.get('force') === 'true';
@@ -663,8 +626,6 @@ server.listen(PORT, () => {
   console.log(`   POST /sms/test/mock-alert      - Send mock review alert (testing)`);
   console.log(`   POST /jobs/reviews/poll       - Trigger review poll`);
   console.log(`   POST /jobs/responses/post     - Post approved responses`);
-  console.log(`   POST /jobs/ingestion/run      - Trigger ingestion job`);
-  console.log(`   POST /jobs/newsletter/run     - Trigger newsletter job`);
   console.log(`   POST /jobs/digest/run         - Trigger digest (add ?restaurant_id=&force=true)`);
   console.log(`   GET  /auth/google/start       - Start Google OAuth flow`);
   console.log(`   GET  /auth/google/callback    - Google OAuth callback`);
