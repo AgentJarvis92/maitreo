@@ -19,6 +19,7 @@ const TEMPLATES = {
 Review: APPROVE, EDIT, IGNORE
 Account: PAUSE, RESUME, STATUS
 Billing: BILLING, CANCEL
+On Your Radar: COMPETITOR <name>, COMPETITOR LIST, COMPETITOR REMOVE <name>
 Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
 
   stop: `You've been unsubscribed from Maitreo alerts. Reply START to re-subscribe anytime.`,
@@ -47,6 +48,7 @@ Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
 Review: APPROVE, EDIT, IGNORE
 Account: PAUSE, RESUME, STATUS
 Billing: BILLING, CANCEL
+On Your Radar: COMPETITOR <name>, COMPETITOR LIST, COMPETITOR REMOVE <name>
 Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
 };
 
