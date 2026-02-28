@@ -176,7 +176,14 @@ export class EmailService {
 
 <p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 24px;">Your Google Business Profile is now being monitored. Every new review will be analyzed instantly, and you'll receive an SMS alert with a drafted response ready for your approval.</p>
 
-<p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 48px;">No dashboard. No logins. Just a text when something needs attention.</p>
+<p style="font-size: 15px; color: #4a4a4a; line-height: 1.7; margin: 0 0 32px;">No dashboard. No logins. Just a text when something needs attention.</p>
+
+<div style="margin: 0 0 48px;">
+<div style="display: inline-block; padding: 6px 14px; background: #fcfcfb; border: 1px solid #e0e0e0; border-radius: 20px;">
+<span style="display: inline-block; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; margin-right: 8px; vertical-align: middle;"></span>
+<span style="font-size: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #1a1a1a;">Active Monitoring</span>
+</div>
+</div>
 
 <div style="height: 1px; background: #e5e5e5; margin: 0 0 48px;"></div>
 
@@ -187,6 +194,7 @@ export class EmailService {
 <tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">APPROVE</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Post the reply instantly</td></tr>
 <tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">EDIT</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Revise before posting</td></tr>
 <tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">IGNORE</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Skip without replying</td></tr>
+<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">HELP</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Get the full command list</td></tr>
 </table>
 
 <h3 style="font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; margin: 28px 0 0;">On Your Radar</h3>
@@ -198,7 +206,6 @@ export class EmailService {
 
 <h3 style="font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; margin: 28px 0 0;">Your Account</h3>
 <table style="width: 100%; border-collapse: collapse; margin: 0 0 48px;" cellpadding="0" cellspacing="0">
-<tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">HELP</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Get the full command list</td></tr>
 <tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">PAUSE</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Temporarily stop monitoring</td></tr>
 <tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">RESUME</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Restart monitoring</td></tr>
 <tr><td style="padding: 14px 0; font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #1a1a1a; border-bottom: 1px solid #f0f0f0;">STATUS</td><td style="padding: 14px 0 14px 24px; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0;">Check your account status</td></tr>
@@ -214,11 +221,7 @@ export class EmailService {
 <a href="${manageSubscriptionUrl}" style="display: inline-block; font-size: 12px; color: #1a1a1a; text-decoration: none; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; margin-top: 16px;">Manage or cancel your subscription →</a>
 
 <div style="text-align: center; margin-top: 60px; padding-top: 48px; border-top: 1px solid #e5e5e5;">
-<div style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: #1a1a1a; margin-bottom: 32px;">Reputation, handled.</div>
-<div style="display: inline-block; padding: 6px 14px; background: #fcfcfb; border: 1px solid #e0e0e0; border-radius: 20px;">
-<span style="display: inline-block; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; margin-right: 8px; vertical-align: middle;"></span>
-<span style="font-size: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #1a1a1a;">Active Monitoring</span>
-</div>
+<div style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: #1a1a1a;">Reputation, handled.</div>
 </div>
 
 </div>
