@@ -640,6 +640,17 @@ const server = http.createServer(async (req, res) => {
   res.end(JSON.stringify({ error: 'Not found' }));
 });
 
+// ─── Startup env var validation ──────────────────────────────────────
+const REQUIRED_ENV = ['DATABASE_URL', 'TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'RESEND_API_KEY', 'API_SECRET', 'TOKEN_ENCRYPTION_KEY'];
+const missingEnv = REQUIRED_ENV.filter(k => !process.env[k]);
+if (missingEnv.length > 0) {
+  console.error(`❌ Missing required environment variables: ${missingEnv.join(', ')}`);
+  if (process.env.NODE_ENV === 'production') process.exit(1);
+  else console.warn('⚠️  Continuing in dev mode with missing env vars');
+}
+if (!process.env.OPENAI_API_KEY) console.warn('⚠️  OPENAI_API_KEY not set — digest pattern analysis will be skipped');
+if (!process.env.GOOGLE_PLACES_API_KEY) console.warn('⚠️  GOOGLE_PLACES_API_KEY not set — competitor scan/auto-seed disabled');
+
 server.listen(PORT, () => {
   console.log('🚀 Restaurant SaaS Backend Started');
   console.log(`   Port: ${PORT}`);
