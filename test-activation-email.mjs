@@ -5,8 +5,10 @@
  */
 
 const apiKey = process.argv[2];
+const recipient = process.argv[3] || 'kevin.j.reyes@gmail.com';
+
 if (!apiKey) {
-  console.error('Usage: npx tsx test-activation-email.mjs <resend_api_key>');
+  console.error('Usage: npx tsx test-activation-email.mjs <resend_api_key> [recipient]');
   process.exit(1);
 }
 
@@ -17,12 +19,12 @@ const { emailService } = await import('./src/services/emailService.js');
 
 try {
   await emailService.sendActivationEmail(
-    'kevin.j.reyes@gmail.com',
-    'Test Restaurant',
+    recipient,
+    'Trattoria Roma',
     'https://billing.stripe.com/p/session/test_1234567890',
     'https://maitreo.com/unsubscribe?r=test'
   );
-  console.log('✅ Activation email sent successfully!');
+  console.log(`✅ Activation email sent to ${recipient}`);
 } catch (error) {
   console.error('❌ Failed to send:', error);
   process.exit(1);
