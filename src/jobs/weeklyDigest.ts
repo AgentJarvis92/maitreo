@@ -364,40 +364,27 @@ Rules:
   }
 }
 
-// ─── Step 6a: Auto Competitors (In Your Market) ──────────────────────
+// ─── Step 6a: Seed Auto Competitors (In Your Market) ─────────────────
+//
+// Upserts top nearby restaurants into the competitors table as added_by='system'.
+// These feed the same snapshot + mover pipeline as manual ('user') competitors.
+// Does NOT overwrite existing user-added entries.
 
-interface AutoCompetitor {
-  name: string;
-  metric: string;  // e.g. "4.8★ · 312 reviews"
-  note: string;    // e.g. "Highest rated nearby"
-}
-
-async function fetchAutoCompetitors(
+async function seedAutoCompetitors(
+  restaurantId: string,
   lat: number,
   lng: number,
   excludePlaceId?: string | null
-): Promise<[AutoCompetitor | null, AutoCompetitor | null]> {
+): Promise<void> {
   const places = await nearbySearch(lat, lng, excludePlaceId ?? undefined);
-  if (places.length === 0) return [null, null];
-
-  // Sort: first by rating desc, then by review count desc
-  const sorted = [...places].sort((a, b) => {
-    const ratingDiff = (b.rating ?? 0) - (a.rating ?? 0);
-    return ratingDiff !== 0 ? ratingDiff : (b.user_ratings_total ?? 0) - (a.user_ratings_total ?? 0);
-  });
-
-  const toAutoComp = (p: typeof places[0], rank: number): AutoCompetitor => {
-    const rating = p.rating != null ? `${p.rating.toFixed(1)}★` : '—';
-    const reviews = p.user_ratings_total != null ? `${p.user_ratings_total.toLocaleString()} reviews` : '';
-    const metric = [rating, reviews].filter(Boolean).join(' · ');
-    const note = rank === 0 ? 'Highest rated nearby' : 'Strong local presence';
-    return { name: p.name, metric, note };
-  };
-
-  return [
-    sorted[0] ? toAutoComp(sorted[0], 0) : null,
-    sorted[1] ? toAutoComp(sorted[1], 1) : null,
-  ];
+  for (const place of places) {
+    await query(
+      `INSERT INTO competitors (restaurant_id, place_id, name, lat, lng, added_by)
+       VALUES ($1, $2, $3, $4, $5, 'system')
+       ON CONFLICT (restaurant_id, place_id) DO NOTHING`,
+      [restaurantId, place.place_id, place.name, place.lat, place.lng]
+    );
+  }
 }
 
 // ─── Step 6b: Manual Competitor Watch ────────────────────────────────
@@ -445,25 +432,27 @@ async function snapshotCompetitors(
 async function computeCompetitorMovers(
   restaurantId: string,
   periodStart: Date,
-  prevStart: Date
+  prevStart: Date,
+  addedBy: 'user' | 'system' = 'user'
 ): Promise<{ positive: CompetitorMover | null; negative: CompetitorMover | null }> {
-  // Get current + previous snapshots for all competitors
+  // Get current + previous snapshots filtered by how competitors were added
   const result = await query(
     `SELECT
        c.name,
-       curr.rating         AS curr_rating,
-       curr.user_ratings_total AS curr_total,
-       prev.rating         AS prev_rating,
-       prev.user_ratings_total AS prev_total
+       curr.rating              AS curr_rating,
+       curr.user_ratings_total  AS curr_total,
+       prev.rating              AS prev_rating,
+       prev.user_ratings_total  AS prev_total
      FROM competitors c
      LEFT JOIN competitor_weekly_snapshots curr
        ON curr.competitor_id = c.id AND curr.period_start = $2
      LEFT JOIN competitor_weekly_snapshots prev
        ON prev.competitor_id = c.id AND prev.period_start = $3
      WHERE c.restaurant_id = $1
+       AND c.added_by = $4
        AND curr.id IS NOT NULL
        AND prev.id IS NOT NULL`,
-    [restaurantId, periodStart.toISOString(), prevStart.toISOString()]
+    [restaurantId, periodStart.toISOString(), prevStart.toISOString(), addedBy]
   );
 
   if (result.rows.length === 0) return { positive: null, negative: null };
@@ -595,7 +584,7 @@ async function renderDigestEmail(params: {
   deltas: Deltas;
   riskSignals: [string, string, string];
   patterns: Pattern[];
-  autoCompetitors: [AutoCompetitor | null, AutoCompetitor | null];
+  autoMovers: { positive: CompetitorMover | null; negative: CompetitorMover | null };
   competitorMovers: { positive: CompetitorMover | null; negative: CompetitorMover | null };
   actions: string[];
   needsAttentionText: string;
@@ -606,7 +595,7 @@ async function renderDigestEmail(params: {
 }): Promise<string> {
   const {
     restaurant, curr, deltas, riskSignals, patterns,
-    autoCompetitors, competitorMovers, actions, needsAttentionText,
+    autoMovers, competitorMovers, actions, needsAttentionText,
     periodStart, periodEnd, manageSubscriptionUrl, unsubscribeUrl,
   } = params;
 
@@ -617,7 +606,7 @@ async function renderDigestEmail(params: {
     d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   // ── Section removal ──────────────────────────────────────────────────
-  if (!autoCompetitors[0] && !autoCompetitors[1]) {
+  if (!autoMovers.positive && !autoMovers.negative) {
     html = removeSection(html, 'AUTO_COMPETITORS_SECTION');
   }
   if (!competitorMovers.positive && !competitorMovers.negative) {
@@ -692,12 +681,12 @@ async function renderDigestEmail(params: {
     '{{pattern_text_3}}':             escapeHtml(patterns[2]?.text ?? ''),
     '{{pattern_dot_4}}':              patterns[3]?.dot ?? '#6fcf97',
     '{{pattern_text_4}}':             escapeHtml(patterns[3]?.text ?? ''),
-    '{{auto_name_1}}':                escapeHtml(autoCompetitors[0]?.name ?? ''),
-    '{{auto_metric_1}}':              escapeHtml(autoCompetitors[0]?.metric ?? ''),
-    '{{auto_note_1}}':                escapeHtml(autoCompetitors[0]?.note ?? ''),
-    '{{auto_name_2}}':                escapeHtml(autoCompetitors[1]?.name ?? ''),
-    '{{auto_metric_2}}':              escapeHtml(autoCompetitors[1]?.metric ?? ''),
-    '{{auto_note_2}}':                escapeHtml(autoCompetitors[1]?.note ?? ''),
+    '{{auto_name_1}}':                escapeHtml(autoMovers.positive?.name ?? ''),
+    '{{auto_metric_1}}':              escapeHtml(autoMovers.positive?.metric ?? ''),
+    '{{auto_note_1}}':                escapeHtml(autoMovers.positive?.note ?? ''),
+    '{{auto_name_2}}':                escapeHtml(autoMovers.negative?.name ?? ''),
+    '{{auto_metric_2}}':              escapeHtml(autoMovers.negative?.metric ?? ''),
+    '{{auto_note_2}}':                escapeHtml(autoMovers.negative?.note ?? ''),
     '{{competitor_name_1}}':          escapeHtml(competitorMovers.positive?.name ?? ''),
     '{{competitor_metric_1}}':        escapeHtml(competitorMovers.positive?.metric ?? ''),
     '{{competitor_note_1}}':          escapeHtml(competitorMovers.positive?.note ?? ''),
@@ -817,21 +806,22 @@ export async function runDigestForRestaurant(
   // Patterns (OpenAI — non-fatal)
   const patterns = await extractPatterns(reviews);
 
-  // Auto competitors — In Your Market (Places API — non-fatal)
-  let autoCompetitors: [AutoCompetitor | null, AutoCompetitor | null] = [null, null];
+  // Seed auto competitors into DB (system-added, non-fatal)
   if (restaurant.lat && restaurant.lng) {
     try {
-      autoCompetitors = await fetchAutoCompetitors(restaurant.lat, restaurant.lng, restaurant.google_place_id);
+      await seedAutoCompetitors(restaurant.id, restaurant.lat, restaurant.lng, restaurant.google_place_id);
     } catch (err: any) {
-      console.error('  ⚠️ Auto competitor fetch failed (non-fatal):', err.message);
+      console.error('  ⚠️ Auto competitor seeding failed (non-fatal):', err.message);
     }
   }
 
-  // Manual competitor watch — On Your Radar (Places API — non-fatal)
+  // Snapshot all competitors (both system + user), then compute movers per source
+  let autoMovers = { positive: null as CompetitorMover | null, negative: null as CompetitorMover | null };
   let competitorMovers = { positive: null as CompetitorMover | null, negative: null as CompetitorMover | null };
   try {
     await snapshotCompetitors(restaurant.id, periodStart);
-    competitorMovers = await computeCompetitorMovers(restaurant.id, periodStart, prevStart);
+    autoMovers      = await computeCompetitorMovers(restaurant.id, periodStart, prevStart, 'system');
+    competitorMovers = await computeCompetitorMovers(restaurant.id, periodStart, prevStart, 'user');
   } catch (err: any) {
     console.error('  ⚠️ Competitor watch failed (non-fatal):', err.message);
   }
@@ -860,7 +850,7 @@ export async function runDigestForRestaurant(
   // Render
   const html = await renderDigestEmail({
     restaurant, curr, deltas, riskSignals, patterns,
-    autoCompetitors, competitorMovers, actions, needsAttentionText,
+    autoMovers, competitorMovers, actions, needsAttentionText,
     periodStart, periodEnd, manageSubscriptionUrl, unsubscribeUrl,
   });
 
