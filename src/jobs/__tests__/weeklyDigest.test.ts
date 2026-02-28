@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getWeekWindow, isDigestTime } from '../weeklyDigest.js';
+import { getWeekWindow, isDigestTime, renderDigestEmail } from '../weeklyDigest.js';
 
 // ─── Week Window Tests ──────────────────────────────────────────────
 
@@ -317,5 +317,53 @@ describe('COMPETITOR command parsing', () => {
   });
   it('bare COMPETITOR with no name → COMPETITOR_SCAN (ambiguous → scan)', () => {
     expect(parseCommand('COMPETITOR').type).toBe('COMPETITOR_SCAN');
+  });
+});
+
+// ─── Digest HTML Size Guard ─────────────────────────────────────────
+
+describe('renderDigestEmail — HTML size', () => {
+  it('full rendered output stays under 80KB', async () => {
+    const periodStart = new Date('2026-03-01T05:00:00.000Z');
+    const periodEnd   = new Date('2026-03-08T04:59:59.000Z');
+
+    const html = await renderDigestEmail({
+      restaurant: { id: 'test', name: 'Trattoria Roma', timezone: 'America/New_York' } as any,
+      curr:    { reviewCount: 22, avgRating: 4.7, positiveCount: 18, negativeCount: 4, responseRate: 91 },
+      deltas:  { reviewCountDeltaPct: 15, avgRatingDelta: 0.2, responseRateDelta: 4 },
+      riskSignals: [
+        '3 reviews below 3 stars this week',
+        '2 reviews awaiting a reply',
+        'Response rate dipped under 90%',
+      ],
+      patterns: [
+        { dot: '#6fcf97', text: 'Guests consistently praise the wood-fired pizza and attentive staff service.' },
+        { dot: '#6fcf97', text: 'Ambiance and romantic setting frequently mentioned in 5-star reviews.' },
+        { dot: '#dc2626', text: 'Wait times at peak hours are a recurring complaint in recent reviews.' },
+        { dot: '#b8860b', text: 'Some guests mention inconsistent portion sizes across visits.' },
+      ],
+      autoMovers: {
+        positive: { name: 'Bella Napoli Ristorante', metric: '+18 reviews', note: '↑ trending up', score: 20 },
+        negative: { name: 'Pizza Express Downtown',  metric: '4.2 → 3.9',   note: '↓ slipping',   score: -5 },
+      },
+      competitorMovers: {
+        positive: { name: 'Osteria del Sole',   metric: '+12 reviews', note: '↑ active month', score: 12 },
+        negative: { name: 'The Corner Bistro',  metric: '4.5 → 4.1',  note: '↓ rating drop',  score: -8 },
+      },
+      actions: [
+        'Reply to 2 unanswered reviews',
+        'Audit peak-hour wait times',
+        "Lean into what's working: wood-fired pizza",
+      ],
+      needsAttentionText: 'Guest left 2 stars mentioning cold food and a 45-minute wait. No reply yet.',
+      periodStart,
+      periodEnd,
+      manageSubscriptionUrl: 'https://maitreo.com/billing',
+      unsubscribeUrl:        'https://maitreo.com/unsubscribe',
+    });
+
+    const bytes = Buffer.byteLength(html, 'utf8');
+    console.log(`[size-test] digest HTML: ${bytes} bytes (${(bytes / 1024).toFixed(1)} KB)`);
+    expect(bytes).toBeLessThan(80 * 1024);
   });
 });

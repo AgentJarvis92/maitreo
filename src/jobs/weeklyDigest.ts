@@ -578,7 +578,7 @@ function removeSection(html: string, sectionName: string): string {
   return html.replace(re, '');
 }
 
-async function renderDigestEmail(params: {
+export async function renderDigestEmail(params: {
   restaurant: RestaurantRow;
   curr: KPI;
   deltas: Deltas;
@@ -658,6 +658,11 @@ async function renderDigestEmail(params: {
     );
   }
 
+  // ── Cap helpers ───────────────────────────────────────────────────────
+  const capText = (s: string, max = 160) =>
+    s.length > max ? s.slice(0, max - 1) + '…' : s;
+  const capChip = (s: string) => capText(s, 60);
+
   // ── All replacements ──────────────────────────────────────────────────
   const replacements: Record<string, string> = {
     '{{RESTAURANT_NAME}}':            escapeHtml(restaurant.name),
@@ -670,33 +675,33 @@ async function renderDigestEmail(params: {
     '{{NEW_REVIEWS_DELTA_DISPLAY}}':  fmtReviewDelta(deltas.reviewCountDeltaPct),
     '{{RESPONSE_RATE}}':              curr.responseRate.toString(),
     '{{RESPONSE_RATE_DELTA_DISPLAY}}':fmtResponseDelta(deltas.responseRateDelta),
-    '{{RISK_SIGNAL_1}}':              escapeHtml(riskSignals[0]),
-    '{{RISK_SIGNAL_2}}':              escapeHtml(riskSignals[1]),
-    '{{RISK_SIGNAL_3}}':              escapeHtml(riskSignals[2]),
+    '{{RISK_SIGNAL_1}}':              escapeHtml(capText(riskSignals[0])),
+    '{{RISK_SIGNAL_2}}':              escapeHtml(capText(riskSignals[1])),
+    '{{RISK_SIGNAL_3}}':              escapeHtml(capText(riskSignals[2])),
     '{{pattern_dot_1}}':              patterns[0]?.dot ?? '#6fcf97',
-    '{{pattern_text_1}}':             escapeHtml(patterns[0]?.text ?? ''),
+    '{{pattern_text_1}}':             escapeHtml(capText(patterns[0]?.text ?? '')),
     '{{pattern_dot_2}}':              patterns[1]?.dot ?? '#6fcf97',
-    '{{pattern_text_2}}':             escapeHtml(patterns[1]?.text ?? ''),
+    '{{pattern_text_2}}':             escapeHtml(capText(patterns[1]?.text ?? '')),
     '{{pattern_dot_3}}':              patterns[2]?.dot ?? '#6fcf97',
-    '{{pattern_text_3}}':             escapeHtml(patterns[2]?.text ?? ''),
+    '{{pattern_text_3}}':             escapeHtml(capText(patterns[2]?.text ?? '')),
     '{{pattern_dot_4}}':              patterns[3]?.dot ?? '#6fcf97',
-    '{{pattern_text_4}}':             escapeHtml(patterns[3]?.text ?? ''),
-    '{{auto_name_1}}':                escapeHtml(autoMovers.positive?.name ?? ''),
-    '{{auto_metric_1}}':              escapeHtml(autoMovers.positive?.metric ?? ''),
-    '{{auto_note_1}}':                escapeHtml(autoMovers.positive?.note ?? ''),
-    '{{auto_name_2}}':                escapeHtml(autoMovers.negative?.name ?? ''),
-    '{{auto_metric_2}}':              escapeHtml(autoMovers.negative?.metric ?? ''),
-    '{{auto_note_2}}':                escapeHtml(autoMovers.negative?.note ?? ''),
-    '{{competitor_name_1}}':          escapeHtml(competitorMovers.positive?.name ?? ''),
-    '{{competitor_metric_1}}':        escapeHtml(competitorMovers.positive?.metric ?? ''),
-    '{{competitor_note_1}}':          escapeHtml(competitorMovers.positive?.note ?? ''),
-    '{{competitor_name_2}}':          escapeHtml(competitorMovers.negative?.name ?? ''),
-    '{{competitor_metric_2}}':        escapeHtml(competitorMovers.negative?.metric ?? ''),
-    '{{competitor_note_2}}':          escapeHtml(competitorMovers.negative?.note ?? ''),
-    '{{action_text_1}}':              escapeHtml(actions[0] ?? ''),
-    '{{action_text_2}}':              escapeHtml(actions[1] ?? ''),
-    '{{action_text_3}}':              escapeHtml(actions[2] ?? ''),
-    '{{needs_attention_text}}':       escapeHtml(needsAttentionText),
+    '{{pattern_text_4}}':             escapeHtml(capText(patterns[3]?.text ?? '')),
+    '{{auto_name_1}}':                escapeHtml(capText(autoMovers.positive?.name ?? '', 80)),
+    '{{auto_metric_1}}':              escapeHtml(capText(autoMovers.positive?.metric ?? '', 60)),
+    '{{auto_note_1}}':                escapeHtml(capText(autoMovers.positive?.note ?? '', 60)),
+    '{{auto_name_2}}':                escapeHtml(capText(autoMovers.negative?.name ?? '', 80)),
+    '{{auto_metric_2}}':              escapeHtml(capText(autoMovers.negative?.metric ?? '', 60)),
+    '{{auto_note_2}}':                escapeHtml(capText(autoMovers.negative?.note ?? '', 60)),
+    '{{competitor_name_1}}':          escapeHtml(capText(competitorMovers.positive?.name ?? '', 80)),
+    '{{competitor_metric_1}}':        escapeHtml(capText(competitorMovers.positive?.metric ?? '', 60)),
+    '{{competitor_note_1}}':          escapeHtml(capText(competitorMovers.positive?.note ?? '', 60)),
+    '{{competitor_name_2}}':          escapeHtml(capText(competitorMovers.negative?.name ?? '', 80)),
+    '{{competitor_metric_2}}':        escapeHtml(capText(competitorMovers.negative?.metric ?? '', 60)),
+    '{{competitor_note_2}}':          escapeHtml(capText(competitorMovers.negative?.note ?? '', 60)),
+    '{{action_text_1}}':              escapeHtml(capChip(actions[0] ?? '')),
+    '{{action_text_2}}':              escapeHtml(capChip(actions[1] ?? '')),
+    '{{action_text_3}}':              escapeHtml(capChip(actions[2] ?? '')),
+    '{{needs_attention_text}}':       escapeHtml(capText(needsAttentionText, 500)),
     '{{manage_subscription_url}}':    manageSubscriptionUrl,
     '{{unsubscribe_url}}':            unsubscribeUrl,
     // Remove comment-only placeholders
@@ -706,6 +711,21 @@ async function renderDigestEmail(params: {
 
   for (const [key, value] of Object.entries(replacements)) {
     html = html.split(key).join(value);
+  }
+
+  // ── Post-processing: strip bloat from final output ───────────────────
+  // Remove visual-editor vid="" attributes (151 of them, ~3KB)
+  html = html.replace(/ vid="[^"]*"/g, '');
+  // Remove HTML comments (keep <!--[if mso]> Outlook conditionals)
+  html = html.replace(/<!--(?!\[if)[\s\S]*?-->/g, '');
+  // Collapse blank lines left behind
+  html = html.replace(/\n\s*\n/g, '\n');
+
+  // ── Size guard ───────────────────────────────────────────────────────
+  const byteSize = Buffer.byteLength(html, 'utf8');
+  console.log(`[digest] rendered HTML: ${byteSize} bytes (${(byteSize / 1024).toFixed(1)} KB)`);
+  if (byteSize > 80 * 1024) {
+    throw new Error(`[digest] rendered HTML exceeds 80KB limit: ${byteSize} bytes`);
   }
 
   return html;
