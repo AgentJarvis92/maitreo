@@ -15,12 +15,22 @@ const HELP_SUFFIX = '\nReply HELP anytime.';
 // ─── Message Templates ───────────────────────────────────────────────
 
 const TEMPLATES = {
-  help: `Maitreo Commands:
-Review: APPROVE, EDIT, IGNORE
-Account: PAUSE, RESUME, STATUS
-Billing: BILLING, CANCEL
-On Your Radar: COMPETITOR <name>, COMPETITOR LIST, COMPETITOR REMOVE <name>
-Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
+  help: `Maitreo SMS Commands:
+
+When a review arrives:
+APPROVE — post reply instantly
+EDIT — revise before posting
+IGNORE — skip without replying
+
+On Your Radar:
+COMPETITOR [name] — track competitor
+COMPETITOR LIST — see your list
+COMPETITOR REMOVE [name] — stop tracking
+
+Your Account:
+PAUSE · RESUME · STATUS · BILLING
+
+support@maitreo.com`,
 
   stop: `You've been unsubscribed from Maitreo alerts. Reply START to re-subscribe anytime.`,
 
@@ -44,12 +54,7 @@ Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
 
   noPendingReview: `No pending review to respond to. We'll notify you when the next one arrives.${HELP_SUFFIX}`,
 
-  unknownCommand: `Sorry, I didn't understand that command.\n\nMaitreo Commands:
-Review: APPROVE, EDIT, IGNORE
-Account: PAUSE, RESUME, STATUS
-Billing: BILLING, CANCEL
-On Your Radar: COMPETITOR <name>, COMPETITOR LIST, COMPETITOR REMOVE <name>
-Support: text 'help' or email support@maitreo.com${HELP_SUFFIX}`,
+  unknownCommand: `Sorry, I didn't understand that.\n\nReply HELP for the full command list.`,
 };
 
 // ─── Mock Review Objects (until Agent 1 completes) ───────────────────
