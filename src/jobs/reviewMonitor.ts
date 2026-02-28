@@ -1,12 +1,12 @@
 /**
  * Review Monitor Job
- * Polls Google and Yelp every 5 minutes for new reviews.
+ * Polls Google every 5 minutes for new reviews.
  * Classifies sentiment, generates AI responses, sends SMS alerts.
+ * Google-only — Yelp/TripAdvisor removed (locked product decision).
  */
 
 import { query, transaction } from '../db/client.js';
 import { googleReviewSource } from '../sources/google.js';
-import { yelpReviewSource } from '../sources/yelp.js';
 import { classifySentiment } from '../services/sentimentClassifier.js';
 import { replyGenerator } from '../services/replyGenerator.js';
 import { smsService } from '../sms/smsService.js';
@@ -59,19 +59,15 @@ export class ReviewMonitorJob {
       const platformId = comp.id;
 
       if (!platformId) continue;
-      if (platform !== 'google' && platform !== 'yelp') continue;
+      if (platform !== 'google') continue; // Google-only
 
       const since = await this.getLastReviewDate(restaurant.id, platform);
       let rawReviews: any[] = [];
 
       try {
-        if (platform === 'google') {
-          rawReviews = await googleReviewSource.fetchReviews(platformId, since || undefined);
-        } else if (platform === 'yelp') {
-          rawReviews = await yelpReviewSource.fetchReviews(platformId, since || undefined);
-        }
+        rawReviews = await googleReviewSource.fetchReviews(platformId, since || undefined);
       } catch (err) {
-        console.error(`  ❌ Error fetching ${platform} for ${restaurant.name}:`, err);
+        console.error(`  ❌ Error fetching Google reviews for ${restaurant.name}:`, err);
         continue;
       }
 
