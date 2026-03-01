@@ -1,15 +1,8 @@
 /**
  * Response Posting Service
- * Posts approved reply drafts to Yelp and Google.
+ * Posts approved reply drafts to Google Business Profile.
  * 
- * IMPORTANT: Neither Yelp nor Google provide public APIs for posting review responses.
- * - Google: Business Profile API requires OAuth + business verification
- * - Yelp: No public API for responding to reviews
- * 
- * This module provides the interface and tracking. Actual posting requires either:
- * 1. Google Business Profile API (OAuth flow) for Google
- * 2. Browser automation / Yelp for Business API (partner-only) for Yelp
- * 3. A third-party service like Birdeye, Podium, etc.
+ * Google Business Profile API requires OAuth + business verification.
  */
 
 import { query } from '../db/client.js';
@@ -41,9 +34,6 @@ export class ResponsePoster {
       case 'google':
         result = await this.postToGoogle(review, responseText);
         break;
-      case 'yelp':
-        result = await this.postToYelp(review, responseText);
-        break;
       default:
         result = { success: false, platform: review.platform, error: `Unsupported platform: ${review.platform}` };
     }
@@ -59,7 +49,7 @@ export class ResponsePoster {
            )
        WHERE id = $3`,
       [
-        result.success ? 'sent' : 'approved', // keep 'approved' if posting failed
+        result.success ? 'sent' : 'approved',
         JSON.stringify(result),
         draft.id,
       ]
@@ -103,23 +93,7 @@ export class ResponsePoster {
   }
 
   /**
-   * Post response to Yelp.
-   * Yelp does NOT have a public API for posting review responses.
-   * This is a placeholder for future browser automation or partner API integration.
-   */
-  private async postToYelp(review: Review, text: string): Promise<PostResult> {
-    console.warn('⚠️  Yelp response posting not yet implemented (no public API)');
-    // TODO: Implement via browser automation (Puppeteer) or Yelp partner API
-    return {
-      success: false,
-      platform: 'yelp',
-      error: 'Yelp does not provide a public API for posting responses. Browser automation integration pending.',
-    };
-  }
-
-  /**
    * Process all approved drafts that haven't been posted yet.
-   * Run this on a schedule (e.g., every minute).
    */
   async processApprovedDrafts(): Promise<void> {
     const result = await query<ReplyDraft & { review_platform: string }>(

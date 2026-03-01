@@ -90,7 +90,7 @@ export class EmailService {
   }
 
   private getPlatformReviewUrl(review: Review): string {
-    const platformUrls: Record<string, string> = { google: 'https://business.google.com/reviews', yelp: 'https://biz.yelp.com/inbox', tripadvisor: 'https://www.tripadvisor.com/ManagementCenter', facebook: 'https://www.facebook.com/reviews' };
+    const platformUrls: Record<string, string> = { google: 'https://business.google.com/reviews', facebook: 'https://www.facebook.com/reviews' };
     return platformUrls[review.platform] || '#';
   }
 

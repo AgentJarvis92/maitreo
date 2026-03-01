@@ -25,7 +25,7 @@ export interface ToneProfile {
 
 export interface Competitor {
   name: string;
-  platform: 'google' | 'yelp' | 'tripadvisor' | 'facebook';
+  platform: 'google';
   id: string;
   location?: string;
 }
@@ -33,7 +33,7 @@ export interface Competitor {
 export interface Review {
   id: string;
   restaurant_id: string;
-  platform: 'google' | 'yelp' | 'tripadvisor' | 'facebook';
+  platform: 'google';
   review_id: string;
   author: string | null;
   rating: number;
