@@ -1,6 +1,6 @@
 /**
  * Onboarding Service
- * Handles new restaurant sign-ups.
+ * Handles new restaurant sign-ups with A2P 10DLC SMS consent tracking.
  * NOTE: No email is sent here. The activation email fires via the
  * Stripe `customer.subscription.created` webhook in src/routes/webhooks.ts.
  */
@@ -15,6 +15,13 @@ export interface OnboardingData {
   address: string;
   phone: string;
   email: string;
+  ownerName?: string;
+  // SMS Consent tracking (A2P 10DLC compliance)
+  smsConsent: boolean;
+  smsConsentIp?: string;
+  smsConsentUserAgent?: string;
+  smsConsentVersion?: string;
+  smsConsentSource?: string;
 }
 
 export interface OnboardingResult {
@@ -56,10 +63,49 @@ function normalizePhone(phone: string): string {
 }
 
 /**
+ * Log SMS consent to audit table
+ */
+async function logSmsConsent(customerId: string, data: OnboardingData): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO sms_consent_audit (
+        customer_id, 
+        consent_given, 
+        consent_timestamp, 
+        ip_address, 
+        user_agent, 
+        consent_version, 
+        consent_source
+      ) VALUES ($1, $2, NOW(), $3, $4, $5, $6)`,
+      [
+        customerId,
+        data.smsConsent === true ? true : false,
+        data.smsConsentIp || 'unknown',
+        data.smsConsentUserAgent || 'unknown',
+        data.smsConsentVersion || 'v1',
+        data.smsConsentSource || 'website_onboarding'
+      ]
+    );
+  } catch (error: any) {
+    console.error('Failed to log SMS consent:', error);
+    // Don't fail onboarding if audit logging fails, but log it
+  }
+}
+
+/**
  * Process new restaurant onboarding
  */
 export async function processOnboarding(data: OnboardingData): Promise<OnboardingResult> {
   try {
+    // ===== SMS CONSENT CHECK (CRITICAL) =====
+    if (data.smsConsent !== true) {
+      return {
+        success: false,
+        message: 'SMS consent is required to use Maitreo. Please agree to receive SMS notifications.',
+        error: 'SMS_CONSENT_REQUIRED'
+      };
+    }
+
     // Validation
     if (!data.name || data.name.trim().length === 0) {
       return {
@@ -125,6 +171,53 @@ export async function processOnboarding(data: OnboardingData): Promise<Onboardin
     );
 
     const restaurant = result.rows[0];
+    const restaurantId = restaurant.id;
+
+    // ===== CREATE CUSTOMER RECORD WITH SMS CONSENT =====
+    try {
+      const customerResult = await pool.query(
+        `INSERT INTO customers (
+          restaurant_name,
+          location_address,
+          phone_number,
+          email,
+          sms_consent,
+          sms_consent_timestamp,
+          sms_consent_ip,
+          sms_consent_version,
+          sms_consent_source,
+          sms_consent_user_agent,
+          created_at
+        ) VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7, $8, $9, NOW())
+        RETURNING id`,
+        [
+          data.name.trim(),
+          data.address.trim(),
+          normalizedPhone,
+          data.email.toLowerCase().trim(),
+          true, // SMS consent is checked
+          data.smsConsentIp || 'unknown',
+          data.smsConsentVersion || 'v1',
+          data.smsConsentSource || 'website_onboarding',
+          data.smsConsentUserAgent || 'unknown'
+        ]
+      );
+
+      const customerId = customerResult.rows[0].id;
+
+      // Log SMS consent to audit trail
+      await logSmsConsent(customerId, data);
+
+      // Link customer to restaurant
+      await pool.query(
+        'UPDATE restaurants SET customer_id = $1 WHERE id = $2',
+        [customerId, restaurantId]
+      );
+
+    } catch (customerError: any) {
+      console.error('Failed to create customer record:', customerError);
+      // Still allow signup to proceed even if customer record fails
+    }
 
     return {
       success: true,
@@ -141,5 +234,3 @@ export async function processOnboarding(data: OnboardingData): Promise<Onboardin
     };
   }
 }
-
-
