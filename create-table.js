@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   'https://cykzsgignbifzjavzcbo.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5a3pzZ2lnbmJpZnpqYXZ6Y2JvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDgyMzY5NiwiZXhwIjoyMDg2Mzk5Njk2fQ.iqYUMnqGCo50Bd7q1DbPbhod3M3gzq1HYyaqfPo9RXc'
+  process.env.SUPABASE_SERVICE_KEY
 );
 
 async function createTable() {
